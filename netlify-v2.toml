@@ -1,0 +1,23 @@
+# ── FORGE V2 ──────────────────────────────────────────────────
+# Netlify config for the V2 site
+# Publish directory: v2
+# Functions: v2/netlify/functions/claude.js (Claude API proxy)
+# Required env var: ANTHROPIC_API_KEY
+
+[build]
+  publish = "v2"
+  functions = "v2/netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/claude"
+  to = "/.netlify/functions/claude"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

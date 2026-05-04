@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec A — Master Scheduler, Watchdog & State Store | FORGE Platform</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #555;
+    --light: #888;
+    --border: #ddd;
+    --bg-alt: #fafafa;
+    --bg-code: #f4f4f4;
+    --accent: #1d4ed8;
+    --accent-light: #eff6ff;
+    --warn: #b91c1c;
+    --warn-light: #fef2f2;
+    --ok: #15803d;
+    --ok-light: #f0fdf4;
+    --gold: #92400e;
+    --gold-light: #fffbeb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; font-size: 16px; line-height: 1.75; color: var(--ink); background: #fff; }
+
+  /* ── LAYOUT ── */
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: #f9f9f9; border-right: 1px solid var(--border);
+    padding: 0; font-family: 'Courier New', monospace; font-size: 12px;
+  }
+  .sidebar-brand {
+    padding: 20px 20px 14px; border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: bold; letter-spacing: 1px;
+  }
+  .sidebar-brand a { text-decoration: none; color: var(--ink); }
+  .sidebar-brand a:hover { color: var(--accent); }
+  .sidebar-doc-title {
+    padding: 12px 20px 0; font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--light);
+  }
+  .sidebar-doc-name {
+    padding: 4px 20px 14px; font-size: 12px; font-weight: bold;
+    color: var(--accent); border-bottom: 1px solid var(--border);
+  }
+  .nav-section { padding: 12px 0 4px 20px; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); }
+  .nav-item { display: block; padding: 5px 20px 5px 24px; color: var(--muted); text-decoration: none; line-height: 1.4; border-left: 2px solid transparent; }
+  .nav-item:hover { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); }
+  .nav-item.active { color: var(--accent); font-weight: bold; border-left-color: var(--accent); }
+  .nav-item.sub { padding-left: 36px; font-size: 11px; }
+  .sidebar-files { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 4px; }
+  .nav-file { display: block; padding: 5px 20px; color: var(--light); text-decoration: none; font-size: 11px; }
+  .nav-file:hover { color: var(--accent); }
+  .nav-file.current { color: var(--ink); font-weight: bold; }
+
+  /* ── MAIN CONTENT ── */
+  .main { padding: 60px 80px 100px; max-width: 860px; }
+
+  /* breadcrumb */
+  .breadcrumb { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); margin-bottom: 36px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { margin: 0 6px; }
+
+  /* doc header */
+  .doc-header { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 40px; }
+  .doc-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); margin-bottom: 10px; }
+  .doc-title { font-size: 36px; font-weight: bold; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .doc-desc { font-size: 16px; color: var(--muted); font-style: italic; margin-bottom: 16px; }
+  .doc-meta { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); display: flex; gap: 24px; flex-wrap: wrap; }
+
+  /* section anchors */
+  .section { margin-bottom: 64px; }
+  .section-anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+  h1.sh { font-size: 26px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 20px; margin-top: 0; display: flex; align-items: baseline; gap: 12px; }
+  h2.sh { font-size: 19px; margin-top: 36px; margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; }
+  h3.sh { font-size: 15px; margin-top: 24px; margin-bottom: 8px; font-style: italic; display: flex; align-items: baseline; gap: 8px; }
+  .anchor-link { font-family: 'Courier New', monospace; font-size: 11px; color: var(--border); text-decoration: none; font-style: normal; font-weight: normal; }
+  .anchor-link:hover { color: var(--accent); }
+  h1.sh:hover .anchor-link,
+  h2.sh:hover .anchor-link,
+  h3.sh:hover .anchor-link { color: var(--accent); }
+
+  p { margin-bottom: 14px; }
+  ul, ol { margin: 0 0 14px 0; padding-left: 24px; }
+  li { margin-bottom: 6px; line-height: 1.7; }
+
+  /* callouts */
+  .callout { padding: 16px 20px; margin: 20px 0; border-left: 4px solid var(--ink); background: var(--bg-alt); font-size: 15px; }
+  .callout.blue { border-color: var(--accent); background: var(--accent-light); }
+  .callout.red { border-color: var(--warn); background: var(--warn-light); }
+  .callout.green { border-color: var(--ok); background: var(--ok-light); }
+  .callout.gold { border-color: var(--gold); background: var(--gold-light); }
+  .callout-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 6px; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; }
+  th { background: var(--ink); color: #fff; padding: 9px 13px; text-align: left; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: normal; }
+  td { padding: 8px 13px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tr:nth-child(even) td { background: var(--bg-alt); }
+
+  /* code */
+  pre { background: var(--bg-code); border: 1px solid var(--border); padding: 16px 20px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; margin: 16px 0 24px; white-space: pre; }
+  code { font-family: 'Courier New', monospace; font-size: 12.5px; background: #eeeeee; padding: 2px 5px; }
+
+  /* field schema */
+  .schema-row { display: grid; grid-template-columns: 180px 100px 1fr; gap: 0; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px; }
+  .schema-field { font-family: 'Courier New', monospace; color: var(--accent); }
+  .schema-type { font-family: 'Courier New', monospace; color: var(--light); font-size: 11px; padding-top: 2px; }
+  .schema-desc { color: var(--muted); padding-left: 10px; }
+  .schema-head { display: grid; grid-template-columns: 180px 100px 1fr; gap: 0; padding: 6px 0; font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); border-bottom: 2px solid var(--border); margin-bottom: 4px; }
+
+  /* state badge */
+  .state { display: inline-block; font-family: 'Courier New', monospace; font-size: 10px; padding: 2px 8px; border: 1px solid currentColor; letter-spacing: 1px; text-transform: uppercase; vertical-align: middle; }
+  .state.queued { color: #1d4ed8; }
+  .state.progress { color: #b45309; }
+  .state.done { color: #15803d; }
+  .state.fail { color: #b91c1c; }
+  .state.suspend { color: #6b21a8; }
+
+  /* page nav */
+  .page-nav { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 12px; }
+  .page-nav a { color: var(--accent); text-decoration: none; }
+  .page-nav a:hover { text-decoration: underline; }
+
+  .spec-footer { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .main { padding: 40px 32px 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-brand"><a href="index.html">← FORGE Platform</a></div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec A — Scheduler &amp; Watchdog</div>
+
+  <div class="nav-section">Sections</div>
+  <a href="#overview" class="nav-item">Overview</a>
+  <a href="#master-scheduler" class="nav-item">Master Scheduler</a>
+  <a href="#state-machine" class="nav-item sub">State Machine</a>
+  <a href="#dag-execution" class="nav-item sub">DAG Execution</a>
+  <a href="#task-dispatch" class="nav-item sub">Task Dispatch</a>
+  <a href="#cost-enforcement" class="nav-item sub">Cost Enforcement</a>
+  <a href="#escalation" class="nav-item sub">Human Escalation</a>
+  <a href="#master-context" class="nav-item sub">MASTER_CONTEXT.md</a>
+  <a href="#watchdog" class="nav-item">Watchdog</a>
+  <a href="#heartbeat" class="nav-item sub">Heartbeat System</a>
+  <a href="#timeouts" class="nav-item sub">Timeout Thresholds</a>
+  <a href="#recovery" class="nav-item sub">Recovery Decision Tree</a>
+  <a href="#scenarios" class="nav-item sub">Recovery Scenarios</a>
+  <a href="#retry-counters" class="nav-item sub">Retry Counters</a>
+  <a href="#state-store" class="nav-item">State Store (Redis)</a>
+  <a href="#redis-schema" class="nav-item sub">Redis Schema</a>
+  <a href="#sync" class="nav-item sub">Jira Sync</a>
+  <a href="#interfaces" class="nav-item">JSON Interfaces</a>
+  <a href="#task-descriptor" class="nav-item sub">Task Descriptor</a>
+  <a href="#agent-result" class="nav-item sub">Agent Result</a>
+  <a href="#config" class="nav-item">Configuration</a>
+
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-A-scheduler-and-watchdog.html" class="nav-file current">A — Scheduler &amp; Watchdog</a>
+    <a href="spec-B-functional-spec-agent.html" class="nav-file">B — Spec Generator &amp; Jira</a>
+    <a href="spec-C-agents.html" class="nav-file">C — The Eight Agents</a>
+    <a href="spec-D-resource-and-cloud.html" class="nav-file">D — Resource &amp; Cloud</a>
+    <a href="spec-E-knowledge-and-models.html" class="nav-file">E — Knowledge &amp; Models</a>
+    <a href="spec-F-multitenant-and-ops.html" class="nav-file">F — Multi-Tenant &amp; Ops</a>
+  </div>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+
+  <div class="breadcrumb">
+    <a href="index.html">FORGE Platform Spec</a>
+    <span>›</span>
+    Spec A — Master Scheduler, Watchdog &amp; State Store
+  </div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification A of F</div>
+    <div class="doc-title">Master Scheduler, Watchdog &amp; State Store</div>
+    <div class="doc-desc">The orchestration core — task lifecycle management, pipeline DAG execution, agent dispatch, cost enforcement, resiliency monitoring, and failure recovery.</div>
+    <div class="doc-meta">
+      <span>Components: 01, 02, 03</span>
+      <span>Version: 1.0</span>
+      <span>Status: Draft</span>
+      <span>May 2026</span>
+    </div>
+  </div>
+
+  <!-- ══ OVERVIEW ══ -->
+  <div class="section">
+    <a class="section-anchor" id="overview"></a>
+    <h1 class="sh">Overview <a href="#overview" class="anchor-link">#overview</a></h1>
+
+    <p>The orchestration layer is the central nervous system of the FORGE platform. It consists of three tightly coupled components: the Master Scheduler, the Watchdog, and the Redis State Store. Together they are responsible for knowing what every agent is doing at every moment, ensuring work progresses through the pipeline correctly, recovering from any failure automatically, and enforcing all cost and retry limits.</p>
+
+    <p>No agent acts without instruction from the Master Scheduler. No status changes in Jira without the Scheduler or an authorized agent making that change. No failure goes undetected for more than 3 minutes. The orchestration layer is the single point of authority over all task state in the platform.</p>
+
+    <div class="callout blue">
+      <div class="callout-label">Design Principle</div>
+      The Master Scheduler is the only component with global write access to task state. All agents report their results to the Scheduler, which then decides the next action. Agents never directly trigger other agents.
+    </div>
+  </div>
+
+  <!-- ══ MASTER SCHEDULER ══ -->
+  <div class="section">
+    <a class="section-anchor" id="master-scheduler"></a>
+    <h1 class="sh">Master Scheduler <a href="#master-scheduler" class="anchor-link">#master-scheduler</a></h1>
+
+    <p>The Master Scheduler is a long-running Python process. It runs continuously and is the first process started when the platform boots. It maintains the complete state of every active task across all developers and all tenants. It reads from the Redis State Store and writes to both Redis and Jira via the Jira Integration Layer.</p>
+
+    <a class="section-anchor" id="state-machine"></a>
+    <h2 class="sh">State Machine <a href="#state-machine" class="anchor-link">#state-machine</a></h2>
+
+    <p>Every task ticket has a status. The Scheduler owns all status transitions. The valid transitions are defined below. Any transition not listed here is illegal — the Scheduler will reject it and log an anomaly.</p>
+
+    <pre>
+CREATED
+  └─► QUEUED                    (dependencies satisfied)
+
+QUEUED
+  └─► IN PROGRESS               (Code Agent dequeues)
+
+IN PROGRESS
+  └─► CODE COMPLETE             (Code Agent reports files committed)
+
+CODE COMPLETE
+  └─► SECURITY SCAN IN PROGRESS (Scheduler dispatches Security Agent)
+
+SECURITY SCAN IN PROGRESS
+  ├─► TESTING IN PROGRESS       (no Critical/High findings)
+  └─► QUEUED                    (Critical/High found — fix first)
+
+TESTING IN PROGRESS
+  ├─► PERFORMANCE TESTING       (all tests pass, coverage met)
+  └─► TESTS FAILING             (any test fails or coverage short)
+
+TESTS FAILING
+  └─► QUEUED                    (all linked bugs closed)
+
+PERFORMANCE TESTING IN PROGRESS
+  ├─► COMPLETED                 (all metrics within threshold)
+  └─► PERFORMANCE FAILING       (any metric outside threshold)
+
+PERFORMANCE FAILING
+  └─► QUEUED                    (all linked bugs closed)
+
+COMPLETED WITH ERRORS
+  └─► COMPLETED                 (all follow-on bugs closed)
+
+Any status
+  └─► SUSPENDED                 (suspension condition met)
+
+SUSPENDED
+  └─► QUEUED                    (human manually resets)
+    </pre>
+
+    <a class="section-anchor" id="dag-execution"></a>
+    <h2 class="sh">DAG Execution <a href="#dag-execution" class="anchor-link">#dag-execution</a></h2>
+
+    <p>The Scheduler maintains a Directed Acyclic Graph (DAG) of all tasks within a tenant. Each node is a task. Each directed edge represents a dependency — the source task must reach COMPLETED status before the target task can advance from CREATED to QUEUED.</p>
+
+    <p>The DAG is rebuilt every 30 seconds by reading all active Jira dependency links. If a user changes a dependency in Jira, the Scheduler picks it up on the next rebuild cycle. The Scheduler does not cache dependency state beyond one cycle.</p>
+
+    <p><strong>Parallelism:</strong> The Scheduler identifies all tasks with no unresolved dependencies and dispatches them simultaneously to available developer droplets. Tasks that share a file lock (detected by the Conflict Detector) are serialized automatically — the Conflict Detector holds the lower-priority task in QUEUED until the file lock is released.</p>
+
+    <p><strong>Cycle detection:</strong> On every DAG rebuild, the Scheduler runs a depth-first search to detect cycles. If a cycle is found, all tasks in the cycle are moved to SUSPENDED with a comment in Jira identifying the circular dependency. Human intervention is required to break the cycle.</p>
+
+    <a class="section-anchor" id="task-dispatch"></a>
+    <h2 class="sh">Task Dispatch <a href="#task-dispatch" class="anchor-link">#task-dispatch</a></h2>
+
+    <p>When a task is ready to advance, the Scheduler does not call the agent directly. It places the task descriptor on the agent's work queue (a Redis list). The agent polls its queue, dequeues the task, processes it, and writes its result back to a Redis result queue. The Scheduler reads from the result queue on a 5-second polling interval.</p>
+
+    <p>This queue-based dispatch means the Scheduler is never blocked waiting for an agent. It places work and moves on. If an agent is slow or unavailable, the Watchdog detects it via the heartbeat system — not by the Scheduler timing out on a direct call.</p>
+
+    <table>
+      <tr><th>Agent</th><th>Triggered By</th><th>Input Queue</th><th>Result Queue</th></tr>
+      <tr><td>Code Agent</td><td>QUEUED task or bug available</td><td><code>queue:code:{developer_id}</code></td><td><code>result:code:{developer_id}</code></td></tr>
+      <tr><td>Build Agent</td><td>CODE COMPLETE status detected</td><td><code>queue:build:{developer_id}</code></td><td><code>result:build:{developer_id}</code></td></tr>
+      <tr><td>Security Agent</td><td>Build Agent reports success</td><td><code>queue:security:{tenant_id}</code></td><td><code>result:security:{tenant_id}</code></td></tr>
+      <tr><td>Test Agent</td><td>Security Agent reports no Critical/High</td><td><code>queue:test:{developer_id}</code></td><td><code>result:test:{developer_id}</code></td></tr>
+      <tr><td>Performance Agent</td><td>Test Agent reports all pass</td><td><code>queue:perf:{developer_id}</code></td><td><code>result:perf:{developer_id}</code></td></tr>
+      <tr><td>Deploy Agent</td><td>Performance Agent reports pass (staging) or human approval (prod)</td><td><code>queue:deploy:{developer_id}</code></td><td><code>result:deploy:{developer_id}</code></td></tr>
+      <tr><td>Integration Test Agent</td><td>Deploy Agent reports healthy container</td><td><code>queue:integration:{developer_id}</code></td><td><code>result:integration:{developer_id}</code></td></tr>
+      <tr><td>Audit Agent</td><td>Any agent reports unhandled failure</td><td><code>queue:audit:{tenant_id}</code></td><td><code>result:audit:{tenant_id}</code></td></tr>
+    </table>
+
+    <a class="section-anchor" id="cost-enforcement"></a>
+    <h2 class="sh">Cost Enforcement <a href="#cost-enforcement" class="anchor-link">#cost-enforcement</a></h2>
+
+    <p>The Scheduler is the sole enforcer of all cost limits. Before dispatching any agent task that involves an LLM API call, the Scheduler checks the current spend against all applicable caps. If any cap would be breached by the next call, the Scheduler does not dispatch the task. It pauses the pipeline, writes a comment to the Jira ticket, and sends an alert notification to the operator.</p>
+
+    <table>
+      <tr><th>Cap</th><th>Default</th><th>Scope</th><th>On Breach</th></tr>
+      <tr><td>Daily spend cap</td><td>$5.00</td><td>Per developer</td><td>Pause all that developer's tasks until midnight UTC</td></tr>
+      <tr><td>Monthly spend cap</td><td>$50.00</td><td>Per developer</td><td>Pause all tasks until next billing cycle, alert operator</td></tr>
+      <tr><td>Tenant daily cap</td><td>$500.00</td><td>Per tenant</td><td>Pause all tenant tasks, immediate operator alert</td></tr>
+      <tr><td>Per-call token budget</td><td>Varies by agent</td><td>Per API call</td><td>Hard <code>max_tokens</code> enforced in API call — cannot be exceeded</td></tr>
+    </table>
+
+    <p>Every LLM API call response is read by the Scheduler immediately. Input and output token counts are extracted from the response metadata and added to the running spend tracker in Redis. The spend tracker is updated atomically — there is no window where a burst of calls can collectively exceed the cap before the tracker catches up.</p>
+
+    <a class="section-anchor" id="escalation"></a>
+    <h2 class="sh">Human Escalation <a href="#escalation" class="anchor-link">#escalation</a></h2>
+
+    <p>The Scheduler escalates to a human in exactly four situations. In all other situations it resolves the issue autonomously.</p>
+
+    <table>
+      <tr><th>Escalation Trigger</th><th>Action Taken</th></tr>
+      <tr><td>Code failure retry count reaches 3</td><td>Task moved to SUSPENDED. Jira comment with full failure history. Operator notified.</td></tr>
+      <tr><td>Resiliency retry count reaches 3</td><td>Task moved to SUSPENDED. Jira comment with infrastructure failure history. Operator notified.</td></tr>
+      <tr><td>Daily or monthly budget cap breached</td><td>All affected tasks paused. Operator notified with current spend breakdown.</td></tr>
+      <tr><td>Requirement ambiguity detected by Spec Generator</td><td>Pipeline does not start. Product owner notified with one specific clarifying question.</td></tr>
+    </table>
+
+    <div class="callout red">
+      <div class="callout-label">Non-Negotiable</div>
+      The Scheduler never guesses when a situation is ambiguous. It never merges its own code to main. It never deploys to production without explicit human approval. These three behaviors are hardcoded and cannot be overridden by configuration.
+    </div>
+
+    <a class="section-anchor" id="master-context"></a>
+    <h2 class="sh">MASTER_CONTEXT.md <a href="#master-context" class="anchor-link">#master-context</a></h2>
+
+    <p>MASTER_CONTEXT.md is a structured markdown file maintained per active task. It is the recovery document — when a fresh agent picks up a requeued task after a crash, it reads this file first and continues from the last checkpoint rather than starting from the beginning.</p>
+
+    <p><strong>Written by:</strong> Every agent writes to it after every meaningful unit of progress. The Code Agent writes after every file. The Build Agent writes after build completion. The Test Agent writes after the test run. All writes go through the Scheduler to prevent concurrent write conflicts.</p>
+
+    <p><strong>Maximum size:</strong> 3,000 tokens, enforced on every write. When a write would exceed this limit, the Scheduler prunes the oldest entries, keeping the most recent progress state, all file completion records, and all key decisions.</p>
+
+    <p><strong>Structure:</strong></p>
+    <pre>
+# MASTER_CONTEXT — FORGE-291 — Add Stripe payment retry
+## Task Summary
+Parent: FORGE-288 (payment service)
+Branch: feature/FORGE-291-stripe-retry
+Developer: dev-042
+Started: 2026-05-02T14:23:00Z
+
+## Progress
+Status: IN PROGRESS — Code Agent writing
+Files complete: 3 of 6
+  ✓ src/payments/stripe_client.rs
+  ✓ src/payments/retry_policy.rs
+  ✓ tests/stripe_client_tests.rs
+  ○ src/payments/webhook_handler.rs
+  ○ src/payments/charge_service.rs
+  ○ tests/integration_stripe_tests.rs
+Last commit: a3f92bc
+
+## Key Decisions
+- Using exponential backoff with jitter: base=1s, max=30s, factor=2
+- Retry on: 402, 429, 500, 502, 503 — not on 400, 401, 403, 404
+- Webhook validation: Stripe-Signature header HMAC-SHA256
+
+## Retry State
+Code failures: 0 of 3
+Resiliency failures: 0 of 3
+    </pre>
+  </div>
+
+  <!-- ══ WATCHDOG ══ -->
+  <div class="section">
+    <a class="section-anchor" id="watchdog"></a>
+    <h1 class="sh">Watchdog <a href="#watchdog" class="anchor-link">#watchdog</a></h1>
+
+    <p>The Watchdog is a subprocess of the Master Scheduler. It runs in a dedicated thread and operates independently of the main dispatch loop. Its sole responsibility is detecting when something has gone wrong and triggering the appropriate recovery action. It never dispatches agents directly — it signals the Scheduler, which handles dispatch.</p>
+
+    <a class="section-anchor" id="heartbeat"></a>
+    <h2 class="sh">Heartbeat System <a href="#heartbeat" class="anchor-link">#heartbeat</a></h2>
+
+    <p>Every agent emits a heartbeat to the Redis State Store every 30 seconds while it is working on a task. The heartbeat is a lightweight JSON write to a Redis key with a 90-second TTL. If the key expires without being refreshed, the agent has gone silent.</p>
+
+    <div class="schema-head">
+      <div>Field</div><div>Type</div><div>Description</div>
+    </div>
+    <div class="schema-row"><div class="schema-field">agent_id</div><div class="schema-type">string</div><div class="schema-desc">Unique identifier for this agent instance, e.g. <code>code-agent-dev-042</code></div></div>
+    <div class="schema-row"><div class="schema-field">task_id</div><div class="schema-type">string</div><div class="schema-desc">Jira ticket ID of the task being worked on, e.g. <code>FORGE-291</code></div></div>
+    <div class="schema-row"><div class="schema-field">tenant_id</div><div class="schema-type">string</div><div class="schema-desc">Tenant identifier for isolation and cost attribution</div></div>
+    <div class="schema-row"><div class="schema-field">status</div><div class="schema-type">enum</div><div class="schema-desc"><code>working</code> | <code>waiting</code> | <code>finalizing</code></div></div>
+    <div class="schema-row"><div class="schema-field">started_at</div><div class="schema-type">ISO 8601</div><div class="schema-desc">When this agent began working on this task</div></div>
+    <div class="schema-row"><div class="schema-field">last_beat</div><div class="schema-type">ISO 8601</div><div class="schema-desc">Timestamp of this heartbeat emission</div></div>
+    <div class="schema-row"><div class="schema-field">progress_note</div><div class="schema-type">string</div><div class="schema-desc">Free text describing current progress, e.g. <code>Writing stripe_client.rs — function 3 of 7</code>. Watchdog compares this across cycles to detect hung agents.</div></div>
+    <div class="schema-row"><div class="schema-field">files_complete</div><div class="schema-type">int</div><div class="schema-desc">For Code Agent: number of files written so far in this task</div></div>
+    <div class="schema-row"><div class="schema-field">retry_count</div><div class="schema-type">int</div><div class="schema-desc">Current resiliency retry count for this task</div></div>
+
+    <p style="margin-top:16px;"><strong>Redis key:</strong> <code>heartbeat:{agent_id}</code> with TTL 90 seconds. If the Watchdog finds no key for an agent that should be active, the agent has gone silent for at least 90 seconds — triggering the recovery decision tree.</p>
+
+    <a class="section-anchor" id="timeouts"></a>
+    <h2 class="sh">Status-Specific Timeout Thresholds <a href="#timeouts" class="anchor-link">#timeouts</a></h2>
+
+    <p>Different pipeline stages have legitimately different durations. The Watchdog uses per-status thresholds rather than a single global timeout, so it does not falsely flag a legitimately long security scan as a hung agent.</p>
+
+    <table>
+      <tr><th>Task Status</th><th>Expected Duration</th><th>Timeout Threshold</th><th>Extended Timeout (once)</th></tr>
+      <tr><td>IN PROGRESS — code generation</td><td>2–15 min</td><td>30 min</td><td>45 min</td></tr>
+      <tr><td>IN PROGRESS — bug fix</td><td>2–15 min</td><td>30 min</td><td>45 min</td></tr>
+      <tr><td>CODE COMPLETE — awaiting build</td><td>&lt;2 min</td><td>10 min</td><td>—</td></tr>
+      <tr><td>SECURITY SCAN IN PROGRESS</td><td>3–10 min</td><td>20 min</td><td>30 min</td></tr>
+      <tr><td>TESTING IN PROGRESS</td><td>2–10 min</td><td>20 min</td><td>30 min</td></tr>
+      <tr><td>VERIFYING — bug re-check</td><td>2–10 min</td><td>20 min</td><td>—</td></tr>
+      <tr><td>PERFORMANCE TESTING IN PROGRESS</td><td>5–20 min</td><td>45 min</td><td>60 min</td></tr>
+      <tr><td>FIX COMPLETE — awaiting verify</td><td>&lt;2 min</td><td>10 min</td><td>—</td></tr>
+    </table>
+
+    <p>When a task reaches its timeout threshold and the agent appears to be making some progress (heartbeat present, progress note changing slowly), the Watchdog extends the timeout once by 50% before triggering recovery. This handles legitimately slow operations such as large file generation or a slow compiler. After the extended timeout expires, recovery is triggered regardless.</p>
+
+    <a class="section-anchor" id="recovery"></a>
+    <h2 class="sh">Recovery Decision Tree <a href="#recovery" class="anchor-link">#recovery</a></h2>
+
+    <p>When the Watchdog detects a stalled or failed task, it executes the following decision tree before taking any recovery action. The tree is evaluated in order — the first matching branch determines the action.</p>
+
+    <pre>
+Watchdog detects stalled task
+         │
+         ▼
+Is the agent process still running?
+    NO  ──►  CRASH RECOVERY (see §5.4.1)
+    │
+    YES
+    ▼
+Is the GPU droplet reachable? (ping /health endpoint)
+    NO  ──►  DROPLET RECOVERY (see §5.4.2)
+    │
+    YES
+    ▼
+Is the progress_note changing between Watchdog cycles?
+    NO  ──►  HUNG AGENT RECOVERY (see §5.4.3)
+    │
+    YES (agent is making progress, just slow)
+    ▼
+Is elapsed time within the extended timeout?
+    YES ──►  Continue monitoring — no action
+    │
+    NO
+    ▼
+Force recovery — treat as HUNG AGENT
+    </pre>
+
+    <a class="section-anchor" id="scenarios"></a>
+    <h2 class="sh">Recovery Scenarios <a href="#scenarios" class="anchor-link">#scenarios</a></h2>
+
+    <h3 class="sh">Scenario 1 — Agent Crashed <a href="#scenario-crash" class="anchor-link">#scenario-crash</a></h3>
+    <p>The agent process terminated. Heartbeat key expired in Redis. The task is stuck in a mid-pipeline status with no agent working it.</p>
+
+    <ol>
+      <li>Watchdog signals Scheduler: agent <code>{agent_id}</code> is silent, task <code>{task_id}</code> needs recovery.</li>
+      <li>Scheduler checks the git feature branch for committed work.</li>
+      <li><strong>If no commits exist:</strong> Move task to <span class="state queued">QUEUED</span>. Increment resiliency retry counter. Add Jira comment. Spin up fresh agent instance on same droplet.</li>
+      <li><strong>If partial commits exist:</strong> Roll back the branch to the last clean commit recorded in MASTER_CONTEXT.md. Move task to <span class="state queued">QUEUED</span>. Increment resiliency retry counter. Add Jira comment. Spin up fresh agent.</li>
+      <li><strong>If all files are committed:</strong> Advance task to the next stage normally. No retry counter increment — the agent completed its work before crashing.</li>
+    </ol>
+
+    <div class="callout gold">
+      <div class="callout-label">Jira Comment Template — Agent Crash</div>
+      "FORGE Bot: Code Agent (dev-042) became unresponsive at 14:47 UTC. 2 of 6 files were committed before failure. Partial work rolled back to commit a3f92bc. Task requeued for attempt 2 of 3. Recovery triggered automatically."
+    </div>
+
+    <h3 class="sh">Scenario 2 — GPU Droplet Down <a href="#scenario-droplet" class="anchor-link">#scenario-droplet</a></h3>
+    <p>The droplet is unreachable. Health ping fails for 2 consecutive Watchdog cycles (2 minutes). Any work in memory is lost. Work committed to git may still be intact.</p>
+
+    <ol>
+      <li>Watchdog signals Scheduler: droplet <code>{droplet_id}</code> unreachable for developer <code>{developer_id}</code>.</li>
+      <li>Scheduler checks git branch for committed work (same evaluation as Scenario 1).</li>
+      <li>Resource Controller attempts droplet restart via cloud API. Waits 3 minutes for restart.</li>
+      <li><strong>If restart succeeds:</strong> Requeue task on the restarted droplet. Increment resiliency retry counter.</li>
+      <li><strong>If restart fails:</strong> Multi-Cloud Provisioner provisions a replacement on the next cheapest available cloud. Requeue task on the new droplet. Increment resiliency retry counter.</li>
+      <li>Add Jira comment with droplet ID, cloud provider, failure detail, and recovery action taken.</li>
+    </ol>
+
+    <h3 class="sh">Scenario 3 — Agent Hung <a href="#scenario-hung" class="anchor-link">#scenario-hung</a></h3>
+    <p>The agent is alive. The droplet is reachable. The heartbeat is present. But the <code>progress_note</code> field has not changed for 2× the expected duration — the agent is not making progress despite being alive.</p>
+
+    <ol>
+      <li>Watchdog signals Scheduler: agent <code>{agent_id}</code> appears hung on task <code>{task_id}</code>.</li>
+      <li>Scheduler sends SIGTERM to the agent process. Waits 30 seconds for graceful shutdown.</li>
+      <li>If agent does not shut down cleanly within 30 seconds: send SIGKILL.</li>
+      <li>Evaluate committed work on git branch (same as Scenario 1).</li>
+      <li>Requeue task. Increment resiliency retry counter. Spin up fresh agent instance.</li>
+    </ol>
+
+    <h3 class="sh">Scenario 4 — Jira Sync Inconsistency <a href="#scenario-jira" class="anchor-link">#scenario-jira</a></h3>
+    <p>The internal Redis state and the Jira ticket status disagree for more than 10 minutes. This can happen after a Jira API outage, network partition, or failed write.</p>
+
+    <ol>
+      <li>Watchdog detects mismatch: Redis says <code>CODE_COMPLETE</code>, Jira says <code>IN_PROGRESS</code>.</li>
+      <li>Jira Integration Layer attempts re-sync: write the Redis state to Jira.</li>
+      <li>If re-sync succeeds within 3 attempts: continue pipeline normally. Log the inconsistency for audit.</li>
+      <li>If re-sync fails 3 times: operator is alerted. Pipeline continues using Redis as the source of truth. Jira is updated when connectivity is restored. The discrepancy is logged and included in the next operator report.</li>
+    </ol>
+
+    <a class="section-anchor" id="retry-counters"></a>
+    <h2 class="sh">Retry Counter Separation <a href="#retry-counters" class="anchor-link">#retry-counters</a></h2>
+
+    <p>Every task and bug ticket carries two independent retry counters. They never share a budget.</p>
+
+    <table>
+      <tr><th>Counter</th><th>Incremented By</th><th>Default Max</th><th>Tracks</th></tr>
+      <tr><td><code>code_failure_retries</code></td><td>Scheduler when Code Agent fix attempt fails test/security/perf re-check</td><td>3</td><td>Build errors, test failures, security findings, performance regressions</td></tr>
+      <tr><td><code>resiliency_retries</code></td><td>Watchdog on every infrastructure recovery event</td><td>3</td><td>Agent crashes, droplet failures, hung agents</td></tr>
+    </table>
+
+    <p>A task is moved to SUSPENDED only when either counter reaches its maximum. A task that suffers two infrastructure failures and then has one code failure still has two code failure retries remaining. An infrastructure failure does not consume the code failure budget, and vice versa.</p>
+
+    <div class="callout green">
+      <div class="callout-label">Example</div>
+      Task FORGE-291: agent crashes twice (resiliency_retries = 2), then a test fails (code_failure_retries = 1), then another crash (resiliency_retries = 3 → SUSPENDED). The code failure budget of 3 was never exhausted — but the resiliency budget was. Human intervention resolves the infrastructure issue, resets resiliency_retries to 0, and the task resumes with code_failure_retries still at 1.
+    </div>
+  </div>
+
+  <!-- ══ STATE STORE ══ -->
+  <div class="section">
+    <a class="section-anchor" id="state-store"></a>
+    <h1 class="sh">State Store (Redis) <a href="#state-store" class="anchor-link">#state-store</a></h1>
+
+    <p>The Redis State Store is the authoritative internal source of truth for all runtime state. It is not a cache of Jira — it is the primary state store. Jira is the external representation. Redis is kept in sync with Jira by the Jira Integration Layer, with Redis always winning on conflict.</p>
+
+    <p>Redis is chosen for the state store because it supports: atomic operations (preventing race conditions on counter increments), key expiry (used for heartbeat TTL), list structures (used for agent work queues), and pub/sub (used for Watchdog event notifications). It handles 100,000+ writes per second — the heartbeat volume of 100 active agents is not a load concern.</p>
+
+    <a class="section-anchor" id="redis-schema"></a>
+    <h2 class="sh">Redis Key Schema <a href="#redis-schema" class="anchor-link">#redis-schema</a></h2>
+
+    <table>
+      <tr><th>Key Pattern</th><th>Type</th><th>TTL</th><th>Content</th></tr>
+      <tr><td><code>heartbeat:{agent_id}</code></td><td>JSON string</td><td>90 sec</td><td>Full heartbeat payload — expires if agent goes silent</td></tr>
+      <tr><td><code>task:{task_id}:state</code></td><td>JSON string</td><td>None</td><td>Full task state including status, retry counters, cost, timestamps</td></tr>
+      <tr><td><code>task:{task_id}:context</code></td><td>string</td><td>None</td><td>Full MASTER_CONTEXT.md content for this task</td></tr>
+      <tr><td><code>task:{task_id}:locks</code></td><td>Set</td><td>None</td><td>File paths locked by this task. Released on PR merge.</td></tr>
+      <tr><td><code>queue:code:{developer_id}</code></td><td>List (FIFO)</td><td>None</td><td>Task descriptors queued for the Code Agent on this droplet</td></tr>
+      <tr><td><code>queue:build:{developer_id}</code></td><td>List</td><td>None</td><td>Task descriptors queued for the Build Agent</td></tr>
+      <tr><td><code>queue:security:{tenant_id}</code></td><td>List</td><td>None</td><td>Task descriptors queued for the Security Agent (shared per tenant)</td></tr>
+      <tr><td><code>queue:test:{developer_id}</code></td><td>List</td><td>None</td><td>Task descriptors queued for the Test Agent</td></tr>
+      <tr><td><code>queue:perf:{developer_id}</code></td><td>List</td><td>None</td><td>Task descriptors queued for the Performance Agent</td></tr>
+      <tr><td><code>result:{agent_type}:{developer_id}</code></td><td>List</td><td>None</td><td>Agent result payloads awaiting Scheduler pickup</td></tr>
+      <tr><td><code>spend:{developer_id}:daily</code></td><td>Float string</td><td>Until midnight UTC</td><td>Running daily spend total in USD</td></tr>
+      <tr><td><code>spend:{developer_id}:monthly</code></td><td>Float string</td><td>Until month end</td><td>Running monthly spend total in USD</td></tr>
+      <tr><td><code>spend:{tenant_id}:daily</code></td><td>Float string</td><td>Until midnight UTC</td><td>Running tenant-level daily spend total in USD</td></tr>
+      <tr><td><code>dag:{tenant_id}</code></td><td>JSON string</td><td>None</td><td>Current serialized DAG for this tenant. Rebuilt every 30 sec.</td></tr>
+      <tr><td><code>lock:file:{file_path_hash}</code></td><td>string</td><td>None</td><td>Task ID currently holding this file lock. Absent = unlocked.</td></tr>
+    </table>
+
+    <a class="section-anchor" id="sync"></a>
+    <h2 class="sh">Jira Sync <a href="#sync" class="anchor-link">#sync</a></h2>
+
+    <p>The Jira Integration Layer maintains a background sync loop that runs every 60 seconds. It compares the status of every active task in Redis against the corresponding Jira ticket status. Any discrepancy triggers an immediate re-sync write to Jira. Sync failures are retried up to 3 times with exponential backoff (1s, 2s, 4s). After 3 failures the discrepancy is logged and the operator is notified on the next heartbeat report.</p>
+
+    <p>Writes to Jira are batched where possible to stay within Jira's API rate limits. The Integration Layer maintains a write queue with a maximum of 10 writes per second per tenant. Status changes are prioritized over comment writes in the queue. Comment writes are coalesced — if multiple comments are queued for the same ticket, they are combined into a single API call.</p>
+  </div>
+
+  <!-- ══ JSON INTERFACES ══ -->
+  <div class="section">
+    <a class="section-anchor" id="interfaces"></a>
+    <h1 class="sh">JSON Interfaces <a href="#interfaces" class="anchor-link">#interfaces</a></h1>
+
+    <p>All data structures crossing component boundaries are defined here. These schemas are the contract between the Scheduler and all agents. Any agent returning a payload that does not validate against its schema causes the Scheduler to log a schema violation, move the task to SUSPENDED, and alert the operator.</p>
+
+    <a class="section-anchor" id="task-descriptor"></a>
+    <h2 class="sh">Task Descriptor <a href="#task-descriptor" class="anchor-link">#task-descriptor</a></h2>
+
+    <p>The Task Descriptor is the JSON object the Scheduler places on an agent's work queue. It contains everything the agent needs to do its job — it never needs to fetch additional context from Jira or any other system.</p>
+
+    <pre>
+{
+  "task_id":           "FORGE-291",
+  "task_type":         "feature",           // "feature" | "bug" | "security_fix" | "perf_fix"
+  "tenant_id":         "acme-corp",
+  "developer_id":      "dev-042",
+  "title":             "Add Stripe payment retry with exponential backoff",
+  "description":       "Full natural language description as entered by product owner...",
+  "acceptance_criteria": [
+    "Charge retried on 402, 429, 500, 502, 503 status codes",
+    "Exponential backoff: base 1s, max 30s, factor 2, jitter enabled",
+    "Maximum 5 retry attempts before marking charge as failed",
+    "All retry events logged with attempt number and delay"
+  ],
+  "input_interfaces": [
+    { "name": "ChargeService", "source_task": "FORGE-288", "type": "rust_trait" }
+  ],
+  "output_interfaces": [
+    { "name": "RetryableChargeService", "type": "rust_trait" },
+    { "name": "RetryPolicy", "type": "rust_struct" }
+  ],
+  "files_to_write": [
+    "src/payments/retry_policy.rs",
+    "src/payments/stripe_client.rs",
+    "src/payments/webhook_handler.rs",
+    "tests/stripe_client_tests.rs"
+  ],
+  "language":          "rust",
+  "test_coverage_threshold": 85,
+  "performance_thresholds": {
+    "p95_latency_ms":  200,
+    "rps_minimum":     500,
+    "error_rate_max":  0.001
+  },
+  "llm_model":         "qwen2.5-coder-32b-company-adapter-v4",
+  "gpu_tier":          2,
+  "token_budget":      4096,
+  "branch":            "feature/FORGE-291-stripe-retry",
+  "parent_task_id":    "FORGE-288",
+  "depends_on":        ["FORGE-288"],
+  "blocks":            ["FORGE-295", "FORGE-296"],
+  "priority":          2,
+  "code_failure_retries": 0,
+  "resiliency_retries":   0,
+  "master_context_key":   "task:FORGE-291:context"
+}
+    </pre>
+
+    <a class="section-anchor" id="agent-result"></a>
+    <h2 class="sh">Agent Result Payload <a href="#agent-result" class="anchor-link">#agent-result</a></h2>
+
+    <p>Every agent returns a result payload to its result queue when it finishes. The Scheduler reads this payload to determine the next state transition. The payload must include a <code>status</code> field — either <code>"success"</code> or <code>"failure"</code> — and the appropriate result data for that outcome.</p>
+
+    <pre>
+// SUCCESS example — Code Agent
+{
+  "agent_type":     "code_agent",
+  "task_id":        "FORGE-291",
+  "developer_id":   "dev-042",
+  "status":         "success",
+  "files_written": [
+    "src/payments/retry_policy.rs",
+    "src/payments/stripe_client.rs",
+    "src/payments/webhook_handler.rs",
+    "tests/stripe_client_tests.rs"
+  ],
+  "commit_sha":     "b7e3a12",
+  "tokens_used":    { "input": 3840, "output": 3912 },
+  "cost_usd":       0.0705,
+  "duration_sec":   47,
+  "notes":          "Used exponential backoff with jitter per task spec."
+}
+
+// FAILURE example — Test Agent
+{
+  "agent_type":     "test_agent",
+  "task_id":        "FORGE-291",
+  "developer_id":   "dev-042",
+  "status":         "failure",
+  "tests_run":      24,
+  "tests_passed":   21,
+  "tests_failed":   3,
+  "coverage_pct":   78.4,
+  "coverage_required": 85,
+  "bugs_created": [
+    {
+      "bug_id":      "FORGE-BUG-041",
+      "title":       "RetryPolicy: backoff not applying jitter on first retry",
+      "severity":    "P2",
+      "file":        "src/payments/retry_policy.rs",
+      "line":        87,
+      "test_name":   "test_backoff_jitter_first_retry",
+      "expected":    "delay between 800ms and 1200ms",
+      "actual":      "delay always exactly 1000ms",
+      "stack_trace": "..."
+    }
+  ],
+  "tokens_used":    { "input": 1240, "output": 890 },
+  "cost_usd":       0.0041,
+  "duration_sec":   23
+}
+    </pre>
+  </div>
+
+  <!-- ══ CONFIGURATION ══ -->
+  <div class="section">
+    <a class="section-anchor" id="config"></a>
+    <h1 class="sh">Configuration Reference <a href="#config" class="anchor-link">#config</a></h1>
+
+    <p>All Scheduler and Watchdog configuration is set in <code>forge.config.yaml</code> per tenant. Defaults are shown below. All values can be overridden per tenant and per developer tier.</p>
+
+    <table>
+      <tr><th>Key</th><th>Default</th><th>Description</th></tr>
+      <tr><td><code>scheduler.dag_rebuild_interval_sec</code></td><td>30</td><td>How often to rebuild the task DAG from Jira dependency links</td></tr>
+      <tr><td><code>scheduler.result_poll_interval_sec</code></td><td>5</td><td>How often Scheduler polls agent result queues</td></tr>
+      <tr><td><code>scheduler.max_code_failure_retries</code></td><td>3</td><td>Max code failure retries before SUSPENDED</td></tr>
+      <tr><td><code>scheduler.max_resiliency_retries</code></td><td>3</td><td>Max infrastructure failure retries before SUSPENDED</td></tr>
+      <tr><td><code>scheduler.max_bugs_per_task</code></td><td>15</td><td>Bug count threshold before task is SUSPENDED</td></tr>
+      <tr><td><code>scheduler.same_bug_reopen_limit</code></td><td>5</td><td>Same bug reopened N times triggers SUSPENDED</td></tr>
+      <tr><td><code>watchdog.heartbeat_ttl_sec</code></td><td>90</td><td>Redis TTL on heartbeat keys</td></tr>
+      <tr><td><code>watchdog.check_interval_sec</code></td><td>60</td><td>How often Watchdog scans all active tasks</td></tr>
+      <tr><td><code>watchdog.droplet_ping_fail_cycles</code></td><td>2</td><td>Consecutive failed pings before droplet recovery triggered</td></tr>
+      <tr><td><code>watchdog.hung_agent_progress_cycles</code></td><td>2</td><td>Cycles with unchanged progress_note before hung agent recovery</td></tr>
+      <tr><td><code>costs.daily_cap_usd</code></td><td>5.00</td><td>Daily spend cap per developer in USD</td></tr>
+      <tr><td><code>costs.monthly_cap_usd</code></td><td>50.00</td><td>Monthly spend cap per developer in USD</td></tr>
+      <tr><td><code>costs.tenant_daily_cap_usd</code></td><td>500.00</td><td>Daily spend cap across all developers in a tenant</td></tr>
+      <tr><td><code>costs.api_route_threshold_tokens</code></td><td>500</td><td>Tasks below this token estimate are routed to Claude API instead of GPU</td></tr>
+      <tr><td><code>context.max_tokens</code></td><td>3000</td><td>Maximum size of MASTER_CONTEXT.md in tokens</td></tr>
+      <tr><td><code>jira.sync_interval_sec</code></td><td>60</td><td>How often Jira sync loop runs</td></tr>
+      <tr><td><code>jira.write_rate_limit_per_sec</code></td><td>10</td><td>Max Jira API writes per second per tenant</td></tr>
+      <tr><td><code>jira.sync_fail_retries</code></td><td>3</td><td>Retry attempts before operator alert on Jira sync failure</td></tr>
+    </table>
+  </div>
+
+  <!-- PAGE NAV -->
+  <div class="page-nav">
+    <a href="index.html">← Index</a>
+    <a href="spec-B-functional-spec-agent.html">Spec B — Functional Spec Generator &amp; Jira →</a>
+  </div>
+
+  <div class="spec-footer">
+    FORGE Platform Specification · Spec A · Version 1.0 · May 2026 · Confidential
+  </div>
+
+</main>
+</div>
+
+<script>
+  // Highlight active nav item based on scroll position
+  const sections = document.querySelectorAll('.section-anchor');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + id) {
+            item.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

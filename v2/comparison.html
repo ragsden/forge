@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE vs The Field — Why FORGE Wins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:    #080808;
+    --dark:     #0f0f0f;
+    --panel:    #161616;
+    --border:   #242424;
+    --border2:  #2e2e2e;
+    --forge:    #00e5a0;
+    --forge2:   #00b87a;
+    --red:      #ff4444;
+    --yellow:   #f5c542;
+    --blue:     #4488ff;
+    --text:     #e8e8e8;
+    --muted:    #888;
+    --dim:      #444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 16px 60px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(8,8,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--forge); letter-spacing: 2px; text-decoration: none; }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 2px; text-transform: uppercase; }
+  .nav-links a:hover { color: var(--forge); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 160px 60px 100px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,229,160,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--forge); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before { content: ''; display: block; width: 40px; height: 1px; background: var(--forge); }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(60px, 10vw, 120px);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    margin-bottom: 32px;
+  }
+  .hero-title .line1 { color: var(--text); display: block; }
+  .hero-title .line2 { color: var(--forge); display: block; }
+  .hero-subtitle {
+    font-size: 18px; color: var(--muted); max-width: 600px;
+    line-height: 1.7; margin-bottom: 48px;
+  }
+  .hero-subtitle strong { color: var(--text); font-weight: 500; }
+
+  /* ── SECTION WRAPPER ── */
+  .section { padding: 80px 60px; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--forge); margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 5vw, 56px);
+    letter-spacing: 1px; line-height: 1;
+    margin-bottom: 48px;
+  }
+
+  /* ── THE HONEST SUMMARY STRIP ── */
+  .summary-strip {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--forge);
+    padding: 28px 40px;
+    margin: 0 60px 80px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .summary-cell {
+    padding: 0 28px;
+    border-right: 1px solid var(--border);
+  }
+  .summary-cell:first-child { padding-left: 0; }
+  .summary-cell:last-child { border-right: none; }
+  .summary-cell-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .summary-cell-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px; color: var(--forge); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .summary-cell-note { font-size: 12px; color: var(--muted); }
+
+  /* ── COMPETITOR CARDS ── */
+  .competitors { padding: 0 60px 80px; }
+  .comp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+
+  .comp-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .comp-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--card-color, var(--dim));
+  }
+  .comp-card.forge-card::before { background: var(--forge); }
+  .comp-card.forge-card { border-color: rgba(0,229,160,0.2); background: rgba(0,229,160,0.03); }
+
+  .comp-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .comp-tagline { font-size: 12px; color: var(--muted); margin-bottom: 24px; font-style: italic; }
+
+  .comp-price {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+  }
+  .comp-price-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .comp-price-value { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--text); }
+  .comp-price-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .comp-facts { margin-bottom: 24px; }
+  .comp-fact {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .comp-fact:last-child { border-bottom: none; }
+  .fact-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .fact-text { color: var(--muted); line-height: 1.5; }
+  .fact-text strong { color: var(--text); font-weight: 500; }
+
+  .verdict {
+    padding: 14px 16px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .verdict.red { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.2); color: #ff8888; }
+  .verdict.yellow { background: rgba(245,197,66,0.08); border: 1px solid rgba(245,197,66,0.2); color: #f5c542; }
+  .verdict.green { background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2); color: var(--forge); }
+
+  /* ── GIANT COMPARISON TABLE ── */
+  .comparison { padding: 0 60px 80px; }
+
+  .comp-table { width: 100%; border-collapse: collapse; }
+  .comp-table thead tr {
+    background: var(--dark);
+    border-bottom: 2px solid var(--border2);
+  }
+  .comp-table th {
+    padding: 20px 16px;
+    text-align: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    font-weight: normal;
+  }
+  .comp-table th:first-child { text-align: left; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); width: 240px; }
+  .comp-table th.forge-col { color: var(--forge); }
+  .comp-table th.other-col { color: var(--muted); font-size: 16px; }
+
+  .comp-table .category-row td {
+    background: var(--dark);
+    border-top: 2px solid var(--border2);
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .comp-table tbody tr:not(.category-row) {
+    border-bottom: 1px solid var(--border);
+  }
+  .comp-table tbody tr:not(.category-row):hover { background: rgba(255,255,255,0.02); }
+
+  .comp-table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .comp-table td:first-child {
+    color: var(--muted); font-size: 13px;
+    line-height: 1.5;
+  }
+  .comp-table td.forge-col {
+    text-align: center;
+    background: rgba(0,229,160,0.03);
+    border-left: 1px solid rgba(0,229,160,0.1);
+    border-right: 1px solid rgba(0,229,160,0.1);
+  }
+  .comp-table td.other-col { text-align: center; }
+
+  .check { color: var(--forge); font-size: 18px; }
+  .cross { color: var(--red); font-size: 16px; }
+  .partial { color: var(--yellow); font-size: 14px; }
+
+  .cell-val { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+  .cell-val.good { color: var(--forge); }
+  .cell-val.bad { color: var(--red); }
+  .cell-val.warn { color: var(--yellow); }
+
+  /* ── THE REAL DIFFERENCES ── */
+  .diffs { padding: 0 60px 80px; }
+  .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+
+  .diff-card { background: var(--panel); border: 1px solid var(--border); padding: 36px; }
+  .diff-card.forge { border-color: rgba(0,229,160,0.25); background: rgba(0,229,160,0.03); }
+  .diff-number { font-family: 'Bebas Neue', sans-serif; font-size: 80px; color: var(--border2); line-height: 1; margin-bottom: 12px; }
+  .diff-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--text); letter-spacing: 1px; margin-bottom: 12px; }
+  .diff-card.forge .diff-title { color: var(--forge); }
+  .diff-body { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .diff-body strong { color: var(--text); font-weight: 500; }
+
+  /* ── THE FLYWHEEL ── */
+  .flywheel-section { padding: 80px 60px; background: var(--dark); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .flywheel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+  .flywheel-chart { }
+  .flywheel-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .flywheel-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .flywheel-bar-wrap { height: 8px; background: var(--border); border-radius: 0; position: relative; }
+  .flywheel-bar { height: 8px; background: var(--forge); border-radius: 0; transition: width 1s ease; }
+  .flywheel-bar.comp { background: var(--dim); }
+  .flywheel-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); text-align: right; }
+  .flywheel-val.good { color: var(--forge); }
+
+  /* ── ROI CALCULATOR ── */
+  .roi { padding: 80px 60px; }
+  .roi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
+  .roi-card { background: var(--panel); border: 1px solid var(--border); padding: 32px; }
+  .roi-card.forge { background: rgba(0,229,160,0.04); border-color: rgba(0,229,160,0.3); }
+  .roi-scenario { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .roi-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; margin-bottom: 20px; }
+  .roi-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .roi-line:last-of-type { border-bottom: 2px solid var(--border2); }
+  .roi-line .rl { color: var(--muted); }
+  .roi-line .rv { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .roi-total { display: flex; justify-content: space-between; padding-top: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; }
+  .roi-total .rt-label { color: var(--muted); }
+  .roi-total .rt-val { color: var(--forge); }
+  .roi-saving { margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .roi-saving strong { color: var(--forge); }
+
+  /* ── CTA ── */
+  .cta-section {
+    padding: 100px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(0,229,160,0.05) 0%, transparent 70%);
+  }
+  .cta-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 8vw, 96px); letter-spacing: 2px; line-height: 0.9; margin-bottom: 32px; }
+  .cta-sub { font-size: 17px; color: var(--muted); margin-bottom: 48px; }
+  .cta-btn {
+    display: inline-block;
+    padding: 16px 48px;
+    background: var(--forge);
+    color: var(--black);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .cta-btn:hover { background: var(--forge2); transform: translateY(-2px); }
+  .cta-btn-outline {
+    display: inline-block;
+    padding: 16px 48px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+    text-decoration: none;
+    margin-left: 16px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .cta-btn-outline:hover { border-color: var(--forge); color: var(--forge); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 60px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--forge); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.7s ease both; }
+  .fade-up-d1 { animation-delay: 0.1s; }
+  .fade-up-d2 { animation-delay: 0.2s; }
+  .fade-up-d3 { animation-delay: 0.3s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .comp-grid { grid-template-columns: 1fr 1fr; }
+    .diff-grid { grid-template-columns: 1fr; }
+    .roi-grid { grid-template-columns: 1fr; }
+    .flywheel-grid { grid-template-columns: 1fr; }
+    .summary-strip { grid-template-columns: 1fr 1fr; }
+    nav { padding: 16px 24px; }
+    .hero, .section, .competitors, .comparison, .diffs, .roi, .cta-section, footer { padding-left: 24px; padding-right: 24px; }
+    .summary-strip { margin-left: 24px; margin-right: 24px; }
+  }
+  @media (max-width: 700px) {
+    .comp-grid { grid-template-columns: 1fr; }
+    .summary-strip { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+    .comp-table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">FORGE</a>
+  <div class="nav-links">
+    <a href="index.html">Spec Index</a>
+    <a href="spec-C-agents.html">Agents</a>
+    <a href="spec-D-resource-and-cloud.html">Infrastructure</a>
+    <a href="spec-E-knowledge-and-models.html">Intelligence</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Competitive Analysis</div>
+  <h1 class="hero-title">
+    <span class="line1 fade-up">FORGE VS</span>
+    <span class="line2 fade-up fade-up-d1">THE FIELD</span>
+  </h1>
+  <p class="hero-subtitle fade-up fade-up-d2">
+    GitHub Copilot helps you type faster. Devin runs tasks autonomously but doesn't know your codebase.
+    <strong>FORGE is the only platform that builds production software end-to-end, learns your codebase every week, and gets measurably smarter over time.</strong>
+  </p>
+</div>
+
+<!-- SUMMARY STRIP -->
+<div class="summary-strip fade-up fade-up-d3">
+  <div class="summary-cell">
+    <div class="summary-cell-label">Competitors compared</div>
+    <div class="summary-cell-value">5</div>
+    <div class="summary-cell-note">Copilot, Devin, Cursor, Windsurf, Amazon Q</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-cell-label">FORGE advantage</div>
+    <div class="summary-cell-value">18</div>
+    <div class="summary-cell-note">Distinct capabilities no competitor has</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-cell-label">Cost vs Devin Team</div>
+    <div class="summary-cell-value">40%</div>
+    <div class="summary-cell-note">Less per developer at Professional tier</div>
+  </div>
+  <div class="summary-cell">
+    <div class="summary-cell-label">Only platform with</div>
+    <div class="summary-cell-value">LoRA</div>
+    <div class="summary-cell-note">Company-specific fine-tuning, zero labeling</div>
+  </div>
+</div>
+
+<!-- COMPETITOR CARDS -->
+<div class="competitors">
+  <div class="section-label">The Landscape</div>
+  <h2 class="section-title">What You're Actually Choosing Between</h2>
+
+  <div class="comp-grid">
+
+    <!-- GitHub Copilot -->
+    <div class="comp-card" style="--card-color:#6e40c9;">
+      <div class="comp-name" style="color:#6e40c9;">GitHub Copilot</div>
+      <div class="comp-tagline">Microsoft's AI code completion tool</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$19 – $39 /dev/mo</div>
+        <div class="comp-price-note">Business $19 · Enterprise $39</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Excellent IDE integration.</strong> Works inside VS Code, JetBrains, Neovim. Developers never leave their environment.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Mature, battle-tested.</strong> Millions of developers use it daily. Reliable code completion with low hallucination rate.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Completion only.</strong> Suggests code as you type. It does not build features, run tests, fix bugs, or deploy anything autonomously.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Generic model.</strong> The same model for every company. No learning from your specific codebase, patterns, or conventions.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No pipeline.</strong> No build verification, security scanning, test execution, or deployment. Human does all of it.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Individual developer productivity. Worst for: Replacing any meaningful portion of the development pipeline.</div>
+    </div>
+
+    <!-- Devin -->
+    <div class="comp-card" style="--card-color:#4488ff;">
+      <div class="comp-name" style="color:#4488ff;">Devin 2.0</div>
+      <div class="comp-tagline">Cognition AI's autonomous software engineer</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$20 Core · $500 Team</div>
+        <div class="comp-price-note">Core = 9 ACUs (~2.25 hrs work) · Team = 250 ACUs · Additional ACUs $2 each</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Genuine autonomy.</strong> Takes a task, plans it, executes it, opens a PR. Closest existing competitor to FORGE in terms of ambition.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Parallel agents.</strong> Devin 2.0 lets you spin up multiple instances simultaneously for concurrent tasks.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Unpredictable costs.</strong> ACU pricing makes budgeting impossible. Complex tasks drain credits fast. $500/month Team plan yields only ~62.5 hours of active work.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Generic model, no fine-tuning.</strong> Devin uses GPT-4o class models. It does not learn your codebase. Every session starts cold.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No security or performance pipeline.</strong> Devin writes code and opens PRs. It does not run CVE scans, security SAST, load tests, or performance validation.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>15–30% real-world success rate.</strong> Independent testing found Devin completed 3 of 20 tasks successfully (15%). SWE-bench score: 13.86%.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Delegating isolated, well-defined tasks to a capable junior agent. Worst for: A full software factory with quality gates, learning, and predictable cost.</div>
+    </div>
+
+    <!-- Cursor -->
+    <div class="comp-card" style="--card-color:#888;">
+      <div class="comp-name" style="color:#aaa;">Cursor</div>
+      <div class="comp-tagline">AI-first code editor built on VS Code</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$20 /dev/mo</div>
+        <div class="comp-price-note">Pro plan · Hobby free tier available</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Best developer experience.</strong> Fast, responsive, deep codebase awareness within the session. Developers love it.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Agent mode.</strong> Can run multi-step tasks within the IDE with developer in the loop. Good for focused coding sessions.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Developer-in-the-loop required.</strong> Cursor augments developers, it does not replace the development loop. Human must review every step.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No autonomous pipeline.</strong> No build, test, security, or deployment automation. Cursor ends when the developer closes their laptop.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No multi-tenant scale.</strong> Designed for individual developers. No concept of 100 concurrent pipelines, dependency DAG, or conflict detection.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: The individual developer who wants maximum coding productivity. Worst for: Organizations trying to automate the build-test-deploy pipeline itself.</div>
+    </div>
+
+    <!-- Windsurf -->
+    <div class="comp-card" style="--card-color:#888;">
+      <div class="comp-name" style="color:#aaa;">Windsurf (Codeium)</div>
+      <div class="comp-tagline">Codeium's agentic IDE</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$15 – $60 /dev/mo</div>
+        <div class="comp-price-note">Pro $15 · Teams $30 · Enterprise $60</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Cascade agent.</strong> Multi-step autonomous coding within the IDE. Handles refactors, multi-file changes, and dependencies.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Lower price than Cursor.</strong> Competitive pricing, especially for teams wanting agentic IDE capabilities.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>IDE-bound.</strong> All autonomy lives inside the editor. No background pipeline running while developers sleep.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No company fine-tuning.</strong> Uses general-purpose models. Does not learn from your team's code, reviews, or patterns.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No Jira integration as source of truth.</strong> Work lives in the IDE session, not in your project management system.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Teams wanting more autonomy than Copilot without paying Cursor prices. Worst for: End-to-end pipeline automation with quality gates and auditability.</div>
+    </div>
+
+    <!-- Amazon Q -->
+    <div class="comp-card" style="--card-color:#f90;">
+      <div class="comp-name" style="color:#f90;">Amazon Q Developer</div>
+      <div class="comp-tagline">AWS's AI coding and dev assistant</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">Free – $19 /dev/mo</div>
+        <div class="comp-price-note">Free Individual tier · Pro $19/dev/mo</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Deep AWS integration.</strong> Best-in-class for teams already on AWS. Understands CloudFormation, Lambda, IAM policies natively.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Enterprise security.</strong> SOC2, HIPAA eligibility, data residency in AWS regions. No training on customer code by default.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>AWS-locked.</strong> Value proposition collapses if you're not on AWS. Not cloud-agnostic or multi-cloud aware.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Completion and chat only.</strong> Q Developer is an assistant, not an autonomous pipeline. No build-test-deploy loop.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No company learning.</strong> Does not fine-tune on your codebase. Same generic model experience for every team.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: AWS-native teams wanting AI assistance with infrastructure and code. Worst for: Cloud-agnostic teams who want autonomous end-to-end software delivery.</div>
+    </div>
+
+    <!-- FORGE -->
+    <div class="comp-card" style="--card-color:#f26207;">
+      <div class="comp-name" style="color:#f26207;">Replit Agent</div>
+      <div class="comp-tagline">Replit's AI agent — builds and hosts full apps from a prompt</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$25 – $40 /mo</div>
+        <div class="comp-price-note">Core $25 · Teams $40/dev · Includes hosting</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Full-stack from scratch.</strong> Generates frontend, backend, and database from a single prompt. Best-in-class for new greenfield projects.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Hosting included.</strong> Deploys to Replit's infrastructure instantly. Zero DevOps setup for simple projects.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Prototype quality, not production.</strong> Generated code lacks enterprise patterns, security hardening, and proper test coverage. Not appropriate for customer-facing production systems.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Locked to Replit infrastructure.</strong> No support for your existing cloud, your existing codebase, or your existing Jira workflow.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No security or performance pipeline.</strong> No CVE scanning, no SAST, no load testing, no SOC2 controls. Security is entirely the developer's responsibility.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Solo developers building MVPs or demos fast. Worst for: Production software at any company with compliance, security, or quality requirements.</div>
+    </div>
+
+    <div class="comp-card" style="--card-color:#7c3aed;">
+      <div class="comp-name" style="color:#7c3aed;">Lovable</div>
+      <div class="comp-tagline">AI-powered full-stack app builder for non-developers</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$20 – $50 /mo</div>
+        <div class="comp-price-note">Starter $20 · Pro $50 · Credit-based generation</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>No-code to full-stack.</strong> Non-developers can prompt their way to a working React + Supabase app without writing a single line.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Visual editing.</strong> Select elements on screen and ask Lovable to change them. Bridges no-code and code.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Designed for non-developers.</strong> Not a tool for engineering teams. No concept of code review, CI/CD, Jira integration, or existing codebases.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Credit-based pricing limits scale.</strong> Complex apps burn credits quickly. Not designed for teams generating high volumes of code continuously.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No enterprise pipeline.</strong> No security scanning, no performance testing, no audit trail, no multi-tenant isolation for developer teams.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Founders and product managers who need to ship a prototype without engineers. Worst for: Engineering teams with existing codebases and quality requirements.</div>
+    </div>
+
+    <div class="comp-card" style="--card-color:#0ea5e9;">
+      <div class="comp-name" style="color:#0ea5e9;">Base44</div>
+      <div class="comp-tagline">Prompt-to-app builder with built-in backend</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">Free – $49 /mo</div>
+        <div class="comp-price-note">Free tier · Pro $49 · Business pricing available</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Integrated backend.</strong> Database, auth, and API all generated together from a single prompt. Lower setup friction than Replit or Lovable.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Rapid iteration.</strong> Edit-in-chat makes quick changes fast. Good for building internal tools and admin dashboards.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Consumer-grade output.</strong> No automated testing, no security pipeline, no coverage requirements. Code quality is not enforced.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No enterprise integration.</strong> No Jira, no existing Git workflows, no PR process. Everything lives inside Base44's platform.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Platform lock-in.</strong> Apps are hosted on Base44's infrastructure. Exporting to your own cloud requires significant rework.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Internal tools, admin panels, and prototypes that don't need to meet enterprise quality standards. Worst for: Production software at scale.</div>
+    </div>
+
+    <div class="comp-card" style="--card-color:#e11d48;">
+      <div class="comp-name" style="color:#e11d48;">Bolt.new</div>
+      <div class="comp-tagline">StackBlitz's in-browser AI full-stack builder</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">Free – $30 /mo</div>
+        <div class="comp-price-note">Free (limited tokens) · Pro $20 · Teams $30/dev</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Instant in-browser dev environment.</strong> No installation. Full-stack app running in the browser within seconds of prompting.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Strong framework support.</strong> React, Vue, Astro, SvelteKit — best-in-class for modern frontend frameworks specifically.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Token limits frustrate complex projects.</strong> Free tier runs out quickly. Paid tiers still hit limits on larger codebases and multi-file refactors.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Frontend-first, not enterprise-ready.</strong> Backend support is limited. No security pipeline, no automated tests, no audit trail.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No connection to your existing workflow.</strong> No Jira, no existing Git repo integration, no code review process, no multi-tenant team isolation.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Frontend prototypes and demos with modern JS frameworks. Worst for: Backend-heavy systems, enterprise codebases, or anything requiring a security and quality pipeline.</div>
+    </div>
+
+        <div class="comp-card forge-card">
+      <div class="comp-name" style="color:var(--forge);">FORGE</div>
+      <div class="comp-tagline">The autonomous software factory</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$99 – $499 /dev/mo</div>
+        <div class="comp-price-note">Starter $99 · Professional $299 · Enterprise $499</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon" style="color:var(--forge);">★</div><div class="fact-text"><strong>Full pipeline.</strong> Code → Security scan → Build &amp; Test Monitor → Log Monitor → Performance Monitor. FORGE integrates with your existing CI/CD and auto-fixes what breaks.</div></div>
+        <div class="comp-fact"><div class="fact-icon" style="color:var(--forge);">★</div><div class="fact-text"><strong>Company fine-tuning.</strong> LoRA adapter trained on your codebase every week. Zero human labeling. Gets smarter automatically.</div></div>
+        <div class="comp-fact"><div class="fact-icon" style="color:var(--forge);">★</div><div class="fact-text"><strong>Jira as source of truth.</strong> Every bug, task, status, and PR lives in your existing project management system. Zero new workflows.</div></div>
+        <div class="comp-fact"><div class="fact-icon" style="color:var(--forge);">★</div><div class="fact-text"><strong>Multi-cloud, multi-tenant.</strong> 100 developers, 6 cloud providers, automatic failover, predictable flat pricing per developer.</div></div>
+        <div class="comp-fact"><div class="fact-icon" style="color:var(--forge);">★</div><div class="fact-text"><strong>Security, Log &amp; Performance monitoring.</strong> CVE scanning, SAST, secrets detection — plus continuous monitoring of your own CI/CD, logs, and APM. All issues auto-queued and auto-fixed.</div></div>
+      </div>
+      <div class="verdict green">Best for: Any organization that builds software and wants the entire development supply chain — not just coding assistance — automated end to end.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAILED COMPARISON TABLE -->
+<div class="comparison">
+  <div class="section-label">Feature by Feature</div>
+  <h2 class="section-title">The Detail That Matters</h2>
+
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Capability</th>
+        <th class="forge-col">FORGE</th>
+        <th class="other-col">Copilot</th>
+        <th class="other-col">Devin</th>
+        <th class="other-col">Replit</th>
+        <th class="other-col">Lovable</th>
+        <th class="other-col">Bolt</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr class="category-row"><td colspan="6">Autonomy &amp; Pipeline</td></tr>
+      <tr>
+        <td>Autonomous code generation</td>
+        <td class="forge-col"><span class="check">✓</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Completion only</span></td>
+        <td class="other-col"><span class="check">✓</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Agent mode, in IDE</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Assistant only</span></td>
+      </tr>
+      <tr>
+        <td>Autonomous build verification</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">8 languages</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Basic</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Security scanning (CVE + SAST)</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">OSV, NVD, Snyk, Semgrep</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">CodeGuru only</span></td>
+      </tr>
+      <tr>
+        <td>Automated test execution</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Coverage-gated</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Limited</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Load / performance testing</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">p50/p95/p99 + RPS</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Automated CI/CD integration</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Docker + health checks</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Basic</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Log &amp; APM monitoring</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Continuous monitoring</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+
+      <tr class="category-row"><td colspan="6">Intelligence &amp; Learning</td></tr>
+      <tr>
+        <td>Company-specific fine-tuning</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">LoRA, weekly, zero labeling</span></td>
+        <td class="other-col"><span class="cross">✗</span><span class="cell-val bad">Generic model only</span></td>
+        <td class="other-col"><span class="cross">✗</span><span class="cell-val bad">GPT-4o, generic</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Learns from your git history</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">PRs, reviews, commits</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Gets smarter over time</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">94% approval rate by month 6</span></td>
+        <td class="other-col"><span class="cross">✗</span><span class="cell-val bad">Same model forever</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Automatic model migration</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">7-day canary pipeline</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Microsoft decides</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Cognition decides</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Vendor decides</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">AWS decides</span></td>
+      </tr>
+      <tr>
+        <td>Multi-LLM routing by task type</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">9 task classes, 6 models</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+
+      <tr class="category-row"><td colspan="6">Project Management Integration</td></tr>
+      <tr>
+        <td>Jira as source of work</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Full bidirectional sync</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Basic integration</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Auto-creates bug tickets on failure</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Test + Security + Perf agents</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Natural language → spec → tasks</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Functional Spec Generator</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Interactive Planning</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Status updates visible in Jira</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Every stage transition</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+
+      <tr class="category-row"><td colspan="6">Scale &amp; Operations</td></tr>
+      <tr>
+        <td>100+ concurrent developers</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Dedicated droplet per dev</span></td>
+        <td class="other-col"><span class="check">✓</span><span class="cell-val">IDE per developer</span></td>
+        <td class="other-col"><span class="partial">~</span><span class="cell-val warn">Parallel agents, shared</span></td>
+        <td class="other-col"><span class="check">✓</span><span class="cell-val">IDE per developer</span></td>
+        <td class="other-col"><span class="check">✓</span><span class="cell-val">IDE per developer</span></td>
+      </tr>
+      <tr>
+        <td>Feature dependency DAG resolver</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Automatic parallelism</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Merge conflict prevention</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">File lock registry</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+      <tr>
+        <td>Multi-cloud GPU provisioning</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">6 clouds, price-optimized</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span><span class="cell-val bad">AWS only</span></td>
+      </tr>
+      <tr>
+        <td>Predictable flat pricing</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">$/dev/month, fixed</span></td>
+        <td class="other-col"><span class="check">✓</span></td>
+        <td class="other-col"><span class="cross">✗</span><span class="cell-val bad">ACU credits, unpredictable</span></td>
+        <td class="other-col"><span class="check">✓</span></td>
+        <td class="other-col"><span class="check">✓</span></td>
+      </tr>
+      <tr>
+        <td>Infrastructure failure recovery</td>
+        <td class="forge-col"><span class="check">✓</span><span class="cell-val good">Watchdog + auto-failover</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+        <td class="other-col"><span class="cross">✗</span></td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- THE REAL DIFFERENCES -->
+<div class="diffs">
+  <div class="section-label">The Fundamental Gaps</div>
+  <h2 class="section-title">Why This Is Not a Close Race</h2>
+
+  <div class="diff-grid">
+
+    <div class="diff-card">
+      <div class="diff-number">01</div>
+      <div class="diff-title">Every Competitor Stops at the IDE</div>
+      <div class="diff-body">
+        Copilot, Cursor, Windsurf, and Amazon Q are all <strong>tools that augment human developers.</strong> They make the human faster. They never eliminate the human from the build-test-security-deploy loop. When the developer closes their laptop, work stops.
+        <br><br>
+        Devin is the only competitor that attempts genuine autonomy — but it opens a PR and stops. <strong>It does not run security scans. It does not load-test the result. It does not create bug tickets when tests fail.</strong> The pipeline still requires humans after every PR.
+        <br><br>
+        FORGE is the only platform where one-liner requirement → production-deployed, tested, security-scanned software happens without any human in the implementation loop.
+      </div>
+    </div>
+
+    <div class="diff-card forge">
+      <div class="diff-number">02</div>
+      <div class="diff-title">The Model Learns. No One Else's Does.</div>
+      <div class="diff-body">
+        Every competitor uses a <strong>generic model that knows nothing about your company.</strong> Your 500,000 lines of Rust, your naming conventions, your error handling patterns, your architecture decisions — invisible to Copilot on day 1 and invisible to Copilot on day 500.
+        <br><br>
+        FORGE trains a LoRA adapter on your codebase <strong>every week, automatically, with zero human labeling.</strong> By month 6, context windows are 95% smaller (meaning 10× faster inference), and first-pass PR approval rates reach 94%. By month 12: 97%.
+        <br><br>
+        The platform that knows your codebase will always outperform the platform that doesn't — by a margin that grows every week you use it.
+      </div>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-number">03</div>
+      <div class="diff-title">Devin's Pricing Is a Trap</div>
+      <div class="diff-body">
+        Devin's $20/month Core plan sounds cheap. <strong>It includes 9 ACUs — approximately 2.25 hours of active work.</strong> A single moderately complex feature easily consumes 3–5 ACUs. The $500/month Team plan yields 250 ACUs — roughly 62.5 hours of work per month for your entire team.
+        <br><br>
+        At a company with 10 active developers, that's 6.25 hours of AI work per developer per month. At the pace of modern software development, <strong>Devin's Team plan runs out in days.</strong>
+        <br><br>
+        FORGE costs $299/developer/month and includes unlimited pipeline execution. A developer's GPU droplet costs ~$94/month at 25% utilization. The rest is margin. <strong>There are no surprise credit overages.</strong>
+      </div>
+    </div>
+
+    <div class="diff-card forge">
+      <div class="diff-number">04</div>
+      <div class="diff-title">Jira Is the Source of Truth. Always.</div>
+      <div class="diff-body">
+        Every competitor requires you to <strong>adopt a new workflow.</strong> Devin lives in Slack. Cursor lives in VS Code. Copilot lives in your editor. You manage work in one place and AI in another.
+        <br><br>
+        FORGE behaves exactly like a human developer inside Jira. It dequeues QUEUED tickets, moves them to IN PROGRESS, adds comments at every stage ("Build passed. Starting tests."), creates bug tickets when tests fail, links PRs to tickets, and marks tickets COMPLETED when done.
+        <br><br>
+        <strong>Your product owner sees work happening in Jira — the same place they've always looked.</strong> No new dashboards to check. No new tools to learn. The team's workflow doesn't change; it just happens automatically.
+      </div>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-number">05</div>
+      <div class="diff-title">Security Is Not Optional Tooling</div>
+      <div class="diff-body">
+        No competitor runs security scanning as an <strong>integrated, blocking pipeline stage.</strong> With Copilot or Cursor, security scanning is a separate tool your team runs separately, if it remembers, manually, on its own schedule.
+        <br><br>
+        FORGE's Security Agent runs after every successful build — automatically — scanning for CVEs in dependencies (OSV, NVD, Snyk), hardcoded secrets (Gitleaks), SQL injection, insecure auth patterns, license violations, and SOC 2 control gaps.
+        <br><br>
+        <strong>Critical and High findings block the pipeline.</strong> The Code Agent is dispatched to fix them before the code can proceed. Every security finding creates a Jira ticket. Security is not a phase — it is continuous.
+      </div>
+    </div>
+
+    <div class="diff-card forge">
+      <div class="diff-number">06</div>
+      <div class="diff-title">100 Developers. Zero Coordination Meetings.</div>
+      <div class="diff-body">
+        With 100 developers generating features concurrently, every other platform devolves into merge conflicts, blocked PRs, and coordination overhead. <strong>This is why large teams need project managers, tech leads, and sprint planning just to avoid stepping on each other.</strong>
+        <br><br>
+        FORGE's Feature Dependency DAG Resolver determines what can run in parallel and what must wait — automatically. The Conflict Detector prevents any two agents from writing to the same file simultaneously. The PR Merge Orchestrator sequences merges to keep main stable.
+        <br><br>
+        At 100 developers, FORGE delivers <strong>20–40% faster feature delivery through automatic parallelism</strong> — without a single coordination meeting.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FLYWHEEL VISUALIZATION -->
+<div class="flywheel-section">
+  <div class="flywheel-grid">
+    <div>
+      <div class="section-label">The Learning Flywheel</div>
+      <h2 class="section-title" style="margin-bottom:24px;">FORGE Gets Better.<br>Others Stay the Same.</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.8;max-width:420px;">
+        Every competitor's model quality is frozen at whatever the vendor last shipped.
+        FORGE trains on your codebase every week. The gap between FORGE and competitors
+        grows every month you use it.
+      </p>
+    </div>
+    <div class="flywheel-chart">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;display:grid;grid-template-columns:80px 1fr 80px;gap:12px;">
+        <div>Period</div><div>PR Approval Rate</div><div>Value</div>
+      </div>
+
+      <div class="flywheel-row">
+        <div class="flywheel-label">Copilot</div>
+        <div class="flywheel-bar-wrap"><div class="flywheel-bar comp" style="width:55%;"></div></div>
+        <div class="flywheel-val">~55%</div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:12px;padding-left:92px;">Flat. Same day 1 as day 500.</div>
+
+      <div class="flywheel-row">
+        <div class="flywheel-label">FORGE W1</div>
+        <div class="flywheel-bar-wrap"><div class="flywheel-bar" style="width:68%;opacity:0.5;"></div></div>
+        <div class="flywheel-val">68%</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-label">FORGE M1</div>
+        <div class="flywheel-bar-wrap"><div class="flywheel-bar" style="width:74%;opacity:0.65;"></div></div>
+        <div class="flywheel-val">74%</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-label">FORGE M3</div>
+        <div class="flywheel-bar-wrap"><div class="flywheel-bar" style="width:84%;opacity:0.8;"></div></div>
+        <div class="flywheel-val">84%</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-label">FORGE M6</div>
+        <div class="flywheel-bar-wrap"><div class="flywheel-bar" style="width:94%;"></div></div>
+        <div class="flywheel-val good">94%</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-label">FORGE M12</div>
+        <div class="flywheel-bar-wrap"><div class="flywheel-bar" style="width:97%;"></div></div>
+        <div class="flywheel-val good">97%</div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--forge);margin-top:12px;padding-left:92px;">↑ Improves every week automatically. Zero human effort.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ROI COMPARISON -->
+<div class="roi">
+  <div class="section-label">The Numbers</div>
+  <h2 class="section-title">Cost Reality for a 20-Developer Team</h2>
+
+  <div class="roi-grid">
+
+    <div class="roi-card">
+      <div class="roi-scenario">Scenario A</div>
+      <div class="roi-name">GitHub Copilot Enterprise<br>+ Human Team Intact</div>
+      <div class="roi-line"><div class="rl">Copilot Enterprise</div><div class="rv">$780/mo (20 devs × $39)</div></div>
+      <div class="roi-line"><div class="rl">Developer salaries</div><div class="rv">$250,000/mo (20 × $150k/yr)</div></div>
+      <div class="roi-line"><div class="rl">Security tooling (separate)</div><div class="rv">$500/mo</div></div>
+      <div class="roi-line"><div class="rl">QA / testing (separate)</div><div class="rv">$2,000/mo</div></div>
+      <div class="roi-total"><div class="rt-label">Monthly Total</div><div class="rt-val" style="color:var(--text);">$253,280</div></div>
+      <div class="roi-saving">Productivity gain: <strong style="color:var(--yellow);">~10–20%</strong> — developers type faster but every other step is manual.</div>
+    </div>
+
+    <div class="roi-card">
+      <div class="roi-scenario">Scenario B</div>
+      <div class="roi-name">Devin Team<br>+ Reduced Human Team</div>
+      <div class="roi-line"><div class="rl">Devin Team plan</div><div class="rv">$500/mo flat (250 ACUs total)</div></div>
+      <div class="roi-line"><div class="rl">Developer salaries (15 devs)</div><div class="rv">$187,500/mo</div></div>
+      <div class="roi-line"><div class="rl">Security tooling (separate)</div><div class="rv">$500/mo</div></div>
+      <div class="roi-line"><div class="rl">ACU overages (estimated)</div><div class="rv">$1,500/mo</div></div>
+      <div class="roi-total"><div class="rt-label">Monthly Total</div><div class="rt-val" style="color:var(--text);">$190,000</div></div>
+      <div class="roi-saving">Caveat: <strong style="color:var(--yellow);">250 ACUs = ~62.5 hrs of AI work for the whole team.</strong> Runs out in days. Real costs are higher.</div>
+    </div>
+
+    <div class="roi-card forge">
+      <div class="roi-scenario">Scenario C — FORGE</div>
+      <div class="roi-name">FORGE Professional<br>+ Lean Human Team</div>
+      <div class="roi-line"><div class="rl">FORGE Professional</div><div class="rv">$5,980/mo (20 devs × $299)</div></div>
+      <div class="roi-line"><div class="rl">Developer salaries (8 devs)</div><div class="rv">$100,000/mo (review + product)</div></div>
+      <div class="roi-line"><div class="rl">Security tooling</div><div class="rv">$0 (built into FORGE)</div></div>
+      <div class="roi-line"><div class="rl">QA tooling</div><div class="rv">$0 (built into FORGE)</div></div>
+      <div class="roi-total"><div class="rt-label">Monthly Total</div><div class="rt-val">$105,980</div></div>
+      <div class="roi-saving">Annual saving vs Scenario A: <strong>$1.77M</strong> — delivering the same output with a lean review team and full autonomous pipeline.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2 class="cta-title">Ready to See<br><span style="color:var(--forge);">The Difference</span>?</h2>
+  <p class="cta-sub">Read the full platform specification or start the conversation about a design partnership.</p>
+  <a href="index.html" class="cta-btn">Read the Full Spec</a>
+  <a href="spec-C-agents.html" class="cta-btn-outline">See the Agents</a>
+</div>
+
+<footer>
+  <a href="index.html">FORGE Platform</a>
+  <span>Competitive Analysis · May 2026</span>
+  <span>Devin pricing sourced from Cognition's published pricing page and TechCrunch, April 2025</span>
+</footer>
+
+</body>
+</html>
