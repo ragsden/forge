@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -262,7 +263,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
   <div class="phase-block" id="phase4">
     <div class="phase-header">
       <div class="phase-num">04</div>
-      <div><div class="phase-title">Product Owner Approval Gate</div><div class="phase-subtitle">Human reviews and approves — hard gate, no pipeline work begins without it</div></div>
+      <div><div class="phase-title">Spec Approval Gate</div><div class="phase-subtitle">Product owner reviews functional spec — hard gate before architecture begins</div></div>
       <div class="phase-status pending" id="p4s">Pending</div>
     </div>
     <div id="ac"></div>
@@ -271,26 +272,44 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
   <div class="phase-block" id="phase5">
     <div class="phase-header">
       <div class="phase-num">05</div>
-      <div><div class="phase-title">Autonomous Pipeline Execution</div><div class="phase-subtitle">8 agents — code, build, security, test, performance, deploy, integrate, audit</div></div>
+      <div><div class="phase-title">Architecture Agent</div><div class="phase-subtitle">System design, data model, interface contracts, ADRs — creates all Jira tasks</div></div>
       <div class="phase-status pending" id="p5s">Pending</div>
     </div>
-    <div id="pc"></div>
+    <div id="archc"></div>
+  </div>
+
+  <div class="phase-block" id="phase5b">
+    <div class="phase-header">
+      <div class="phase-num">05b</div>
+      <div><div class="phase-title">Architecture Approval Gate</div><div class="phase-subtitle">Tech lead reviews architecture, ADRs, and implementation task list before code begins</div></div>
+      <div class="phase-status pending" id="p5bs">Pending</div>
+    </div>
+    <div id="arch-approval"></div>
   </div>
 
   <div class="phase-block" id="phase6">
     <div class="phase-header">
       <div class="phase-num">06</div>
-      <div><div class="phase-title">Jira — Live Activity Feed</div><div class="phase-subtitle">Every status change, bug ticket, and PR link exactly as your team sees it</div></div>
+      <div><div class="phase-title">Autonomous Pipeline Execution</div><div class="phase-subtitle">8 agents — code against architecture contracts, build, security, test, performance, deploy</div></div>
       <div class="phase-status pending" id="p6s">Pending</div>
     </div>
-    <div id="jc"></div>
+    <div id="pc"></div>
   </div>
 
   <div class="phase-block" id="phase7">
     <div class="phase-header">
       <div class="phase-num">07</div>
-      <div><div class="phase-title">Result</div><div class="phase-subtitle">Deployed, tested, security-scanned, performance-validated — awaiting production approval</div></div>
+      <div><div class="phase-title">Jira — Live Activity Feed</div><div class="phase-subtitle">Every status change, bug ticket, and PR link exactly as your team sees it</div></div>
       <div class="phase-status pending" id="p7s">Pending</div>
+    </div>
+    <div id="jc"></div>
+  </div>
+
+  <div class="phase-block" id="phase8">
+    <div class="phase-header">
+      <div class="phase-num">08</div>
+      <div><div class="phase-title">Result</div><div class="phase-subtitle">Deployed, tested, security-scanned, performance-validated — awaiting production approval</div></div>
+      <div class="phase-status pending" id="p8s">Pending</div>
     </div>
     <div id="rc"></div>
   </div>
@@ -335,7 +354,7 @@ async function claude(system, user){
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       model:'claude-sonnet-4-5',
-      max_tokens:10000,
+      max_tokens:20000,
       system,
       messages:[{role:'user',content:user}]
     })
@@ -353,33 +372,50 @@ Given any product requirement, generate 4-6 targeted one-at-a-time questions cov
 Keep PM answers short and natural (1-2 sentences). End with FORGE saying it has enough to generate the specification.
 Return ONLY valid JSON: {"turns":[{"role":"pm","msg":"..."},{"role":"forge","msg":"..."},...]}`;
 
-const P_SPEC = `You generate a functional specification and task breakdown for an autonomous software factory called FORGE.
-Given a product requirement and its clarifying conversation, produce:
-- A concise functional spec (scope, out-of-scope, performance expectations)
-- 4-10 atomic implementation tasks, each independently testable
-- Realistic dependencies between tasks (some parallel, some sequential)
-- GPU tier per task: L40S (standard code), RTX (lighter tasks), CPU (no LLM needed)
-- Test coverage threshold per task (80-90%, or — for integration/test tasks)
+const P_SPEC = `You generate a functional specification for FORGE, an autonomous software factory.
+Given a product requirement and clarifying conversation, produce a concise functional spec only — NOT tasks (those come from the Architecture Agent).
 Return ONLY valid JSON:
-{"spec":{"title":"...","scope":"...","outOfScope":"...","perf":"..."},"tasks":[{"id":"T-01","name":"...","desc":"one sentence","deps":"Blocks: T-XX or Depends: T-XX | Blocks: T-XX","tier":"L40S","cov":"85%"},...]}`;
+{"spec":{"title":"...","scope":"one paragraph","outOfScope":"comma-separated list","perf":"one sentence on performance expectations","users":"who uses this","integrations":"external systems involved"}}`;
+
+const P_ARCH = `You are FORGE's Architecture Agent. Given a functional spec, design the complete technical architecture and decompose it into concrete implementation tasks.
+
+Produce:
+1. architecture: system design (service boundaries, technology choices with brief rationale, data flow)
+2. dataModel: key tables/collections with important fields (concise — 3-5 entities max)
+3. interfaces: 2-3 key interface contracts (trait/interface signatures or API endpoints)
+4. adrs: 2-3 Architecture Decision Records (id, title, decision, rationale)
+5. tasks: 5-8 concrete implementation tasks derived from the architecture
+
+Each task must include exact file paths, interface references, and dependency links.
+Return ONLY valid JSON:
+{
+  "architecture": "multi-line string describing service boundaries, tech stack choices, data flow",
+  "dataModel": "multi-line string with key schema definitions",
+  "interfaces": "multi-line string with key interface/trait/API definitions",
+  "adrs": [{"id":"ADR-001","title":"...","decision":"...","rationale":"..."}],
+  "tasks": [{"id":"T-01","name":"...","desc":"one sentence","files":["src/..."],"deps":"Blocks: T-XX","iface_in":"interface it consumes","iface_out":"interface it produces","tier":"L40S or RTX or CPU","cov":"85%"}],
+  "tasksCreated": 6,
+  "estimatedHrs": "X.X",
+  "cost": "$X.XX"
+}`;
 
 const P_DAG = `You generate an ASCII dependency graph for FORGE's task execution planner.
 Given tasks and their dependencies, output parallel execution waves showing which tasks run simultaneously.
 Keep it clean: show wave headers as // Wave N — description, task IDs and short names, ← parallel annotations, and end with a calendar time savings estimate.
 Return ONLY valid JSON: {"dag":"multi-line string with the DAG visualization"}`;
 
-const P_PIPE = `You simulate FORGE's 8-agent autonomous pipeline for one complex task.
+const P_PIPE = `You simulate FORGE's 8-agent autonomous pipeline for one complex task. The Code Agent now reads from an Architecture Document so it implements against defined interfaces rather than inventing its own design.
 Agents in order: ⚙️ Code Agent, 🔨 Build Agent, 🔍 Security Agent, 🧪 Test Agent, 🚀 Deploy Agent, 🔗 Integration Agent, ⚡ Perf Agent.
-Include ONE realistic failure (test or build) that gets auto-fixed on retry. Make metrics specific and realistic.
+Include ONE realistic failure (test or build) that gets auto-fixed on retry. Make metrics specific and realistic. Note in the Code Agent detail that it is "implementing against architecture contracts".
 Return ONLY valid JSON:
 {"pipeline":[{"agent":"⚙️ Code Agent","detail":"what it did","note":"technical detail","status":"pass"},...],
 "bugTicket":{"id":"FORGE-BUG-041","severity":"P2","title":"short bug title","detail":"file·line·expected vs actual","resolution":"how Code Agent fixed it"}}`;
 
-const P_JIRA = `You simulate FORGE's Jira activity feed for a software project.
-Generate 10-14 realistic Jira events showing: task creation, status transitions (QUEUED→IN PROGRESS→CODE COMPLETE→TESTING→COMPLETED), FORGE Bot comments at key stages, at least one bug ticket creation and resolution, and a PR opened event.
-Use HTML for status badges inside msg field like: <span class='s sq'>QUEUED</span>, <span class='s sp'>IN PROGRESS</span>, <span class='s sc'>CODE COMPLETE</span>, <span class='s st'>TESTING</span>, <span class='s sd'>COMPLETED</span>, <span class='s sb'>BUG</span>
+const P_JIRA = `You simulate FORGE's Jira activity feed for a software project that went through an Architecture Agent phase.
+Generate 12-15 realistic Jira events showing: architecture epic creation, implementation task creation by Architecture Agent, status transitions (QUEUED→IN PROGRESS→CODE COMPLETE→TESTING→COMPLETED), FORGE Bot comments, at least one bug created and resolved, and a PR opened event.
+Use HTML spans for status badges: <span class='s sq'>QUEUED</span>, <span class='s sp'>IN PROGRESS</span>, <span class='s sc'>CODE COMPLETE</span>, <span class='s st'>TESTING</span>, <span class='s sd'>COMPLETED</span>, <span class='s sb'>BUG</span>
 Return ONLY valid JSON:
-{"events":[{"time":"09:00","ticket":"FORGE-T01","msg":"Activity with optional <span class='s sq'>STATUS</span>"},...],
+{"events":[{"time":"09:00","ticket":"FORGE-T01","msg":"Activity with optional status badge"},...],
 "summary":{"tasks":"N","bugs":"N","autoFixed":"N","time":"X.X hrs","humanTime":"~X min","cost":"$X.XX"}}`;
 
 // ── RENDER ────────────────────────────────────────────────────
@@ -432,15 +468,83 @@ async function renderDAG(dag){
   $('dc').innerHTML=`<div class="sec-label">Execution DAG — Parallel Waves</div><div class="dag-box"><pre>${dag}</pre></div>`;
 }
 
-async function renderApproval(){
-  $('ac').innerHTML=`<div class="approval-card" style="border-color:rgba(245,197,66,.3);border-left-color:var(--yellow);">
-    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--yellow);margin-bottom:8px;">⏸ Waiting for Product Owner Approval</div>
-    <div style="font-size:13px;color:var(--muted);">Reviewing the functional spec, task list, and dependency graph. The PM can edit any task, add new ones, change dependency links, or adjust priorities before approving.<br><br><em>Hard gate — no pipeline work begins without explicit approval.</em></div>
+async function renderArch(arch){
+  const c=$('archc');
+  // Architecture document
+  c.innerHTML=`
+    <div class="sec-label">System Architecture</div>
+    <div class="spec-card" style="border-left-color:#7c3aed;margin-bottom:12px;">
+      <div class="spec-card-head" style="border-bottom:1px solid var(--border);">
+        <div class="spec-card-title" style="color:#9b7fff;">🏗️ Architecture Agent — Running on H100 · Llama-3.1-70B · 8,192 token budget</div>
+      </div>
+      <div class="spec-card-body">
+        <strong style="color:var(--text);">System Design</strong><br>
+        <pre style="background:transparent;border:none;padding:4px 0;font-size:11px;white-space:pre-wrap;">${arch.architecture}</pre>
+      </div>
+    </div>
+    <div class="sec-label" style="margin-top:16px;">Data Model</div>
+    <div class="dag-box" style="border-left:3px solid #7c3aed;"><pre style="font-size:11px;">${arch.dataModel}</pre></div>
+    <div class="sec-label" style="margin-top:16px;">Interface Contracts</div>
+    <div class="dag-box" style="border-left:3px solid #7c3aed;"><pre style="font-size:11px;">${arch.interfaces}</pre></div>
+    <div class="sec-label" style="margin-top:16px;">Architecture Decision Records</div>
+    <div id="adrs-list"></div>
+    <div class="sec-label" style="margin-top:16px;">Implementation Tasks — Created in Jira by Architecture Agent</div>
+    <div class="task-list" id="arch-tl"></div>
+    <div class="spec-card" style="border-left-color:var(--blue);margin-top:12px;">
+      <div class="spec-card-body" style="font-size:13px;">
+        <strong>${arch.tasksCreated} tasks created in Jira</strong> · Estimated: ${arch.estimatedHrs} hrs · Architecture cost: ${arch.cost}
+      </div>
+    </div>`;
+
+  // ADRs
+  const adrList=$('adrs-list');
+  for(const adr of arch.adrs){
+    await delay(300);
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--panel);border:1px solid var(--border);border-left:3px solid #7c3aed;padding:14px 18px;margin-bottom:8px;animation:fadeUp .4s ease both;';
+    d.innerHTML=`<div style="font-family:monospace;font-size:10px;color:#9b7fff;margin-bottom:4px;">${adr.id}</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;">${adr.title}</div>
+      <div style="font-size:12px;color:var(--muted);"><strong style="color:var(--text);">Decision:</strong> ${adr.decision}<br>
+      <strong style="color:var(--text);">Rationale:</strong> ${adr.rationale}</div>`;
+    adrList.appendChild(d);
+  }
+
+  // Tasks
+  const tl=$('arch-tl');
+  for(const t of arch.tasks){
+    await delay(160);
+    const d=document.createElement('div');
+    d.className='task-item';
+    d.style.borderLeftColor='#7c3aed';
+    d.innerHTML=`
+      <div class="task-id" style="color:#9b7fff;">${t.id}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+        <div style="font-family:monospace;font-size:9px;color:#9b7fff;margin-top:3px;">${t.deps||''}</div>
+        <div style="font-family:monospace;font-size:9px;color:var(--muted);margin-top:2px;">
+          ${t.files?t.files.slice(0,2).join(' · '):''}${t.files&&t.files.length>2?' + '+(t.files.length-2)+' more':''}
+        </div>
+      </div>
+      <div class="task-meta">
+        <span class="task-tier">${t.tier||'L40S'}</span>
+        <span class="task-cov">${t.cov||'85%'}</span>
+      </div>`;
+    tl.appendChild(d);
+    await delay(20); d.classList.add('show');
+  }
+}
+
+async function renderApproval(containerId, title, waitMsg, doneMsg){
+  const id = containerId;
+  $(id).innerHTML=`<div class="approval-card" style="border-color:rgba(245,197,66,.3);border-left-color:var(--yellow);">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--yellow);margin-bottom:8px;">⏸ ${title}</div>
+    <div style="font-size:13px;color:var(--muted);">${waitMsg}</div>
   </div>`;
   await delay(1800);
-  $('ac').innerHTML=`<div class="approval-card" style="border-color:rgba(0,229,160,.3);border-left-color:var(--forge);">
-    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--forge);margin-bottom:8px;">✓ Product Owner Approved — Jira tickets created · Pipeline starting</div>
-    <div style="font-size:13px;color:var(--muted);">All tasks created in Jira with full details, correct dependency links, and initial QUEUED status. <strong style="color:var(--text);">Pipeline starting now.</strong></div>
+  $(id).innerHTML=`<div class="approval-card" style="border-color:rgba(0,229,160,.3);border-left-color:var(--forge);">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--forge);margin-bottom:8px;">✓ ${doneMsg}</div>
+    <div style="font-size:13px;color:var(--muted);"></div>
   </div>`;
 }
 
@@ -514,88 +618,135 @@ async function runDemo(){
   const btn=$('runBtn');
   btn.disabled=true; btn.textContent='Generating…';
 
-  ['cc','sc','tc','dc','ac','pc','jc','rc'].forEach(id=>{const e=$(id);if(e)e.innerHTML='';});
-  ['p1s','p2s','p3s','p4s','p5s','p6s','p7s'].forEach(id=>setSt(id,'pending'));
+  ['cc','sc','tc','dc','ac','archc','arch-approval','pc','jc','rc'].forEach(id=>{const e=$(id);if(e)e.innerHTML='';});
+  ['p1s','p2s','p3s','p4s','p5s','p5bs','p6s','p7s','p8s'].forEach(id=>{const e=$(id);if(e)setSt(id,'pending');});
 
   $('flowOutput').classList.add('visible');
   $('loadingBar').classList.add('active');
   $('flowOutput').scrollIntoView({behavior:'smooth',block:'start'});
-
-  let convoData, specData, dagData, pipeData, jiraData;
 
   try {
     // Phase 1 — Conversation
     setSt('p1s','running'); setProgress(4);
     showSpin('cc','generating clarifying conversation for your requirement…');
     goTo('phase1');
-    convoData = await claude(P_CONVO, prompt);
-    setProgress(16);
+    const convoData = await claude(P_CONVO, prompt);
+    setProgress(12);
     $('cc').innerHTML='';
     await renderConvo(convoData.turns);
     setSt('p1s','done');
     await delay(400);
 
-    // Phase 2 — Spec + Tasks
-    setSt('p2s','running'); setProgress(22);
+    // Phase 2 — Functional Spec (no tasks — arch agent does that)
+    setSt('p2s','running'); setProgress(18);
     const ctx = convoData.turns.map(t=>`${t.role.toUpperCase()}: ${t.msg}`).join('\n');
-    showSpin('sc','generating functional specification and task breakdown…');
-    showSpin('tc','');
+    showSpin('sc','generating functional specification…');
+    $('tc').innerHTML='';
     goTo('phase2');
-    specData = await claude(P_SPEC, `Requirement: ${prompt}\n\nConversation:\n${ctx}`);
-    setProgress(38);
-    $('sc').innerHTML=''; $('tc').innerHTML='';
-    await renderSpec(specData.spec, specData.tasks);
+    const specData = await claude(P_SPEC, `Requirement: ${prompt}\n\nConversation:\n${ctx}`);
+    setProgress(28);
+    $('sc').innerHTML='';
+    $('sc').innerHTML=`
+      <div class="sec-label">Functional Specification</div>
+      <div class="spec-card">
+        <div class="spec-card-head"><div class="spec-card-title">${specData.spec.title}</div></div>
+        <div class="spec-card-body">
+          <strong>Scope:</strong> ${specData.spec.scope}<br><br>
+          <strong>Out of Scope:</strong> ${specData.spec.outOfScope}<br><br>
+          <strong>Performance:</strong> ${specData.spec.perf}<br><br>
+          <strong>Users:</strong> ${specData.spec.users||'—'}<br><br>
+          <strong>Integrations:</strong> ${specData.spec.integrations||'—'}
+        </div>
+      </div>
+      <div class="spec-card" style="border-left-color:var(--yellow);">
+        <div class="spec-card-body" style="font-size:13px;">
+          <strong style="color:var(--yellow);">⚠ Task decomposition deferred to Architecture Agent</strong><br>
+          The Spec Generator captures business requirements only. Architecture Agent will design the technical architecture and create implementation tasks.
+        </div>
+      </div>`;
     setSt('p2s','done');
     await delay(400);
 
-    // Phase 3 — DAG
-    setSt('p3s','running'); setProgress(46);
-    const tsum = specData.tasks.map(t=>`${t.id}: ${t.name} | ${t.deps||'no dependencies'}`).join('\n');
-    showSpin('dc','resolving dependency graph and computing parallel execution waves…');
-    goTo('phase3');
-    dagData = await claude(P_DAG, `Tasks:\n${tsum}`);
-    setProgress(56);
-    $('dc').innerHTML='';
-    await renderDAG(dagData.dag);
+    // Phase 3 — DAG placeholder (will be filled after arch)
+    setSt('p3s','running'); setProgress(32);
+    $('dc').innerHTML=`<div class="spec-card" style="border-left-color:var(--yellow);">
+      <div class="spec-card-body" style="font-size:13px;color:var(--muted);">
+        ⏳ DAG will be computed after Architecture Agent creates implementation tasks.
+      </div>
+    </div>`;
     setSt('p3s','done');
     await delay(400);
 
-    // Phase 4 — Approval
-    setSt('p4s','running'); setProgress(61);
+    // Phase 4 — Spec Approval
+    setSt('p4s','running'); setProgress(36);
     goTo('phase4');
-    await renderApproval();
+    await renderApproval('ac',
+      'Waiting for Product Owner Approval — Functional Spec',
+      'Reviewing the functional specification, scope, and out-of-scope items. PM approves before Architecture Agent begins.',
+      'Functional Spec Approved — Architecture Agent starting now');
     setSt('p4s','done');
     await delay(400);
 
-    // Phase 5 — Pipeline
-    setSt('p5s','running'); setProgress(65);
-    showSpin('pc','simulating 8-agent autonomous pipeline execution…');
+    // Phase 5 — Architecture Agent
+    setSt('p5s','running'); setProgress(42);
+    showSpin('archc','Architecture Agent running — designing system architecture on H100 · Llama-3.1-70B…');
     goTo('phase5');
-    pipeData = await claude(P_PIPE,
-      `Requirement: ${prompt}\nTasks: ${specData.tasks.map(t=>t.name).join(', ')}`);
-    setProgress(76);
-    $('pc').innerHTML='';
-    await renderPipeline(pipeData.pipeline, pipeData.bugTicket);
+    const archData = await claude(P_ARCH,
+      `Requirement: ${prompt}\n\nFunctional Spec:\nScope: ${specData.spec.scope}\nOut of Scope: ${specData.spec.outOfScope}\nPerformance: ${specData.spec.perf}\nIntegrations: ${specData.spec.integrations||'none'}`);
+    setProgress(58);
+    $('archc').innerHTML='';
+    await renderArch(archData);
     setSt('p5s','done');
     await delay(400);
 
-    // Phase 6 — Jira
-    setSt('p6s','running'); setProgress(82);
-    showSpin('jc','generating live Jira activity feed…');
+    // Phase 5b — Architecture Approval
+    setSt('p5bs','running'); setProgress(62);
+    goTo('phase5b');
+    await renderApproval('arch-approval',
+      'Waiting for Architecture Approval — Tech Lead Review',
+      'Tech lead reviews: system architecture, data model, interface contracts, ADRs, and implementation task list. Can request revisions before code begins.',
+      'Architecture Approved — Implementation tasks QUEUED · Code Agents starting');
+    setSt('p5bs','done');
+
+    // Now render the real DAG from arch tasks
+    if(archData.tasks && archData.tasks.length){
+      const tsum = archData.tasks.map(t=>`${t.id}: ${t.name} | ${t.deps||'no deps'}`).join('\n');
+      showSpin('dc','computing parallel execution waves from architecture tasks…');
+      const dagData = await claude(P_DAG, `Tasks:\n${tsum}`);
+      $('dc').innerHTML='';
+      await renderDAG(dagData.dag);
+    }
+    await delay(400);
+
+    // Phase 6 — Pipeline
+    setSt('p6s','running'); setProgress(68);
+    showSpin('pc','simulating 8-agent pipeline — Code Agent implements against architecture contracts…');
     goTo('phase6');
-    jiraData = await claude(P_JIRA,
-      `Requirement: ${prompt}\nTasks: ${JSON.stringify(specData.tasks.map(t=>({id:t.id,name:t.name})))}`);
-    setProgress(95);
-    $('jc').innerHTML='';
-    await renderJira(jiraData.events);
+    const taskNames = archData.tasks ? archData.tasks.map(t=>t.name).join(', ') : 'implementation tasks';
+    const pipeData = await claude(P_PIPE, `Requirement: ${prompt}\nTasks: ${taskNames}`);
+    setProgress(80);
+    $('pc').innerHTML='';
+    await renderPipeline(pipeData.pipeline, pipeData.bugTicket);
     setSt('p6s','done');
     await delay(400);
 
-    // Phase 7 — Summary
-    setSt('p7s','running'); setProgress(99);
+    // Phase 7 — Jira
+    setSt('p7s','running'); setProgress(86);
+    showSpin('jc','generating Jira activity feed including Architecture Agent events…');
     goTo('phase7');
-    await renderSummary(jiraData.summary);
+    const jiraData = await claude(P_JIRA,
+      `Requirement: ${prompt}\nArchitecture tasks: ${JSON.stringify((archData.tasks||[]).map(t=>({id:t.id,name:t.name})))}`);
+    setProgress(96);
+    $('jc').innerHTML='';
+    await renderJira(jiraData.events);
     setSt('p7s','done');
+    await delay(400);
+
+    // Phase 8 — Summary
+    setSt('p8s','running'); setProgress(99);
+    goTo('phase8');
+    await renderSummary(jiraData.summary);
+    setSt('p8s','done');
     setProgress(100);
     await delay(300);
     $('loadingBar').classList.remove('active');
@@ -604,13 +755,7 @@ async function runDemo(){
     console.error(err);
     $('loadingBar').classList.remove('active');
     $('cc').innerHTML=`<div class="error-box">
-      <strong>Could not reach the Claude API.</strong><br><br>
-      This page calls the Anthropic API directly from your browser. Browsers block direct API calls due to CORS restrictions — you need a small proxy server that adds your API key and the required headers.<br><br>
-      <strong>Quickest way to run this locally:</strong><br>
-      1. Install Node.js<br>
-      2. Run: <code>npx @anthropic-ai/proxy --key YOUR_KEY --port 3001</code><br>
-      3. Change the fetch URL in this file from <code>/api/claude</code> to <code>http://localhost:3001/v1/messages</code><br><br>
-      Alternatively, embed this as a React artifact in Claude.ai where the API is available directly.<br><br>
+      <strong>API Error</strong><br><br>
       <em>Error detail: ${err.message}</em>
     </div>`;
     setSt('p1s','pending');
