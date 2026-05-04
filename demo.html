@@ -348,7 +348,7 @@ function goTo(id){
 }
 
 // ── CLAUDE API ────────────────────────────────────────────────
-async function claude(system, user, maxTokens=1500){
+async function claude(system, user, maxTokens=2500){
   const res = await fetch('/api/claude',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -397,19 +397,16 @@ Given tasks and their dependencies, output parallel execution waves showing whic
 Keep it clean: show wave headers as // Wave N — description, task IDs and short names, ← parallel annotations, and end with a calendar time savings estimate.
 Return ONLY valid JSON: {"dag":"multi-line string with the DAG visualization"}`;
 
-const P_PIPE = `You simulate FORGE's 8-agent autonomous pipeline for one complex task. The Code Agent now reads from an Architecture Document so it implements against defined interfaces rather than inventing its own design.
-Agents in order: ⚙️ Code Agent, 🔨 Build Agent, 🔍 Security Agent, 🧪 Test Agent, 🚀 Deploy Agent, 🔗 Integration Agent, ⚡ Perf Agent.
-Include ONE realistic failure (test or build) that gets auto-fixed on retry. Make metrics specific and realistic. Note in the Code Agent detail that it is "implementing against architecture contracts".
-Return ONLY valid JSON:
-{"pipeline":[{"agent":"⚙️ Code Agent","detail":"what it did","note":"technical detail","status":"pass"},...],
-"bugTicket":{"id":"FORGE-BUG-041","severity":"P2","title":"short bug title","detail":"file·line·expected vs actual","resolution":"how Code Agent fixed it"}}`;
+const P_PIPE = `Simulate FORGE's 7-agent pipeline for one task. All strings under 12 words. Be very concise.
+Agents: ⚙️ Code Agent, 🔨 Build Agent, 🔍 Security Agent, 🧪 Test Agent, 🚀 Deploy Agent, 🔗 Integration Agent, ⚡ Perf Agent.
+ONE agent must fail and be auto-fixed. Code Agent detail must include "architecture contracts".
+Return ONLY valid JSON — keep every string SHORT:
+{"pipeline":[{"agent":"⚙️ Code Agent","detail":"short action","note":"short metric","status":"pass or fail"}],"bugTicket":{"id":"FORGE-BUG-041","severity":"P2","title":"short","detail":"short","resolution":"short"}}`;
 
-const P_JIRA = `You simulate FORGE's Jira activity feed for a software project that went through an Architecture Agent phase.
-Generate 12-15 realistic Jira events showing: architecture epic creation, implementation task creation by Architecture Agent, status transitions (QUEUED→IN PROGRESS→CODE COMPLETE→TESTING→COMPLETED), FORGE Bot comments, at least one bug created and resolved, and a PR opened event.
-Use HTML spans for status badges: <span class='s sq'>QUEUED</span>, <span class='s sp'>IN PROGRESS</span>, <span class='s sc'>CODE COMPLETE</span>, <span class='s st'>TESTING</span>, <span class='s sd'>COMPLETED</span>, <span class='s sb'>BUG</span>
+const P_JIRA = `Simulate a Jira activity feed. Generate exactly 10 short events. One sentence per msg. No HTML.
+Include: arch epic created, 2 task creations, status changes, 1 bug created+resolved, 1 PR opened.
 Return ONLY valid JSON:
-{"events":[{"time":"09:00","ticket":"FORGE-T01","msg":"Activity with optional status badge"},...],
-"summary":{"tasks":"N","bugs":"N","autoFixed":"N","time":"X.X hrs","humanTime":"~X min","cost":"$X.XX"}}`;
+{"events":[{"time":"09:00","ticket":"FORGE-T01","msg":"plain short message","status":"queued or progress or code or testing or done or bug or pr"}],"summary":{"tasks":"5","bugs":"1","autoFixed":"1","time":"6.0 hrs","humanTime":"~20 min","cost":"$2.10"}}`;
 
 // ── RENDER ────────────────────────────────────────────────────
 async function renderConvo(turns){
@@ -716,7 +713,7 @@ async function runDemo(){
     showSpin('pc','simulating 8-agent pipeline — Code Agent implements against architecture contracts…');
     goTo('phase6');
     const taskNames = archData.tasks ? archData.tasks.map(t=>t.name).join(', ') : 'implementation tasks';
-    const pipeData = await claude(P_PIPE, `Requirement: ${prompt}\nTasks: ${taskNames}`);
+    const pipeData = await claude(P_PIPE, `Requirement: ${prompt}\nTasks: ${taskNames}`, 2000);
     setProgress(80);
     $('pc').innerHTML='';
     await renderPipeline(pipeData.pipeline, pipeData.bugTicket);
@@ -728,7 +725,7 @@ async function runDemo(){
     showSpin('jc','generating Jira activity feed including Architecture Agent events…');
     goTo('phase7');
     const jiraData = await claude(P_JIRA,
-      `Requirement: ${prompt}\nArchitecture tasks: ${JSON.stringify((archData.tasks||[]).map(t=>({id:t.id,name:t.name})))}`);
+      `Requirement: ${prompt}\nTasks: ${(archData.tasks||[]).map(t=>t.name).join(', ')}`, 2000);
     setProgress(96);
     $('jc').innerHTML='';
     await renderJira(jiraData.events);
@@ -747,11 +744,14 @@ async function runDemo(){
   } catch(err){
     console.error(err);
     $('loadingBar').classList.remove('active');
-    $('cc').innerHTML=`<div class="error-box">
+    // Show error in whichever container is currently active
+    const errContainers = ['archc','pc','jc','cc'];
+    const errTarget = errContainers.find(id => $(id) && $(id).innerHTML.includes('generating')) || 'cc';
+    $(errTarget).innerHTML=`<div class="error-box">
       <strong>API Error</strong><br><br>
-      <em>Error detail: ${err.message}</em>
+      <em>${err.message}</em>
     </div>`;
-    setSt('p1s','pending');
+    ['p1s','p2s','p3s','p4s','p5s','p5bs','p6s','p7s','p8s'].forEach(id=>{const e=$(id);if(e&&e.textContent==='● Running')setSt(id,'pending');});
   }
 
   btn.disabled=false; btn.textContent='Run Again →';
