@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec F — Multi-Tenant Architecture & Operations | FORGE Platform</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --muted: #555; --light: #888; --border: #ddd;
+    --bg-alt: #fafafa; --bg-code: #f4f4f4;
+    --accent: #1d4ed8; --accent-light: #eff6ff;
+    --warn: #b91c1c; --warn-light: #fef2f2;
+    --ok: #15803d; --ok-light: #f0fdf4;
+    --gold: #92400e; --gold-light: #fffbeb;
+    --purple: #6b21a8; --purple-light: #faf5ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; font-size: 16px; line-height: 1.75; color: var(--ink); background: #fff; }
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+  .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: #f9f9f9; border-right: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 12px; }
+  .sidebar-brand { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: bold; }
+  .sidebar-brand a { text-decoration: none; color: var(--ink); }
+  .sidebar-brand a:hover { color: var(--accent); }
+  .sidebar-doc-title { padding: 12px 20px 0; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); }
+  .sidebar-doc-name { padding: 4px 20px 14px; font-size: 12px; font-weight: bold; color: var(--accent); border-bottom: 1px solid var(--border); }
+  .nav-section { padding: 12px 0 4px 20px; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); }
+  .nav-item { display: block; padding: 5px 20px 5px 24px; color: var(--muted); text-decoration: none; line-height: 1.4; border-left: 2px solid transparent; }
+  .nav-item:hover { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); }
+  .nav-item.active { color: var(--accent); font-weight: bold; border-left-color: var(--accent); }
+  .nav-item.sub { padding-left: 36px; font-size: 11px; }
+  .sidebar-files { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 4px; }
+  .nav-file { display: block; padding: 5px 20px; color: var(--light); text-decoration: none; font-size: 11px; }
+  .nav-file:hover { color: var(--accent); }
+  .nav-file.current { color: var(--ink); font-weight: bold; }
+
+  .main { padding: 60px 80px 100px; max-width: 880px; }
+  .breadcrumb { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); margin-bottom: 36px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { margin: 0 6px; }
+  .doc-header { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 40px; }
+  .doc-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); margin-bottom: 10px; }
+  .doc-title { font-size: 36px; font-weight: bold; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .doc-desc { font-size: 16px; color: var(--muted); font-style: italic; margin-bottom: 16px; }
+  .doc-meta { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); display: flex; gap: 24px; flex-wrap: wrap; }
+
+  .section { margin-bottom: 72px; }
+  .section-anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+  h1.sh { font-size: 26px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 20px; display: flex; align-items: baseline; gap: 12px; }
+  h2.sh { font-size: 19px; margin-top: 36px; margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; }
+  h3.sh { font-size: 15px; margin-top: 24px; margin-bottom: 8px; font-style: italic; display: flex; align-items: baseline; gap: 8px; }
+  .anchor-link { font-family: 'Courier New', monospace; font-size: 11px; color: var(--border); text-decoration: none; font-style: normal; font-weight: normal; }
+  .anchor-link:hover, h1.sh:hover .anchor-link, h2.sh:hover .anchor-link, h3.sh:hover .anchor-link { color: var(--accent); }
+
+  p { margin-bottom: 14px; }
+  ul, ol { margin: 0 0 14px 0; padding-left: 24px; }
+  li { margin-bottom: 6px; line-height: 1.7; }
+
+  .callout { padding: 16px 20px; margin: 20px 0; border-left: 4px solid var(--ink); background: var(--bg-alt); font-size: 15px; }
+  .callout.blue { border-color: var(--accent); background: var(--accent-light); }
+  .callout.red { border-color: var(--warn); background: var(--warn-light); }
+  .callout.green { border-color: var(--ok); background: var(--ok-light); }
+  .callout.gold { border-color: var(--gold); background: var(--gold-light); }
+  .callout.purple { border-color: var(--purple); background: var(--purple-light); }
+  .callout-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 6px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; }
+  th { background: var(--ink); color: #fff; padding: 9px 13px; text-align: left; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: normal; }
+  td { padding: 8px 13px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tr:nth-child(even) td { background: var(--bg-alt); }
+
+  pre { background: var(--bg-code); border: 1px solid var(--border); padding: 16px 20px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; margin: 16px 0 24px; white-space: pre; }
+  code { font-family: 'Courier New', monospace; font-size: 12.5px; background: #eee; padding: 2px 5px; }
+
+  /* isolation layers */
+  .isolation-stack { border: 1px solid var(--border); margin: 20px 0 28px; }
+  .isolation-layer { display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid var(--border); }
+  .isolation-layer:last-child { border-bottom: none; }
+  .isolation-label { background: var(--ink); color: #fff; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; }
+  .isolation-content { padding: 14px 18px; font-size: 14px; line-height: 1.6; }
+  .isolation-content strong { color: var(--accent); }
+
+  /* dag example */
+  .dag-example { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0 28px; }
+  .dag-panel { border: 1px solid var(--border); padding: 18px; }
+  .dag-panel-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+
+  /* conflict scenarios */
+  .conflict-example { border: 1px solid var(--border); margin: 16px 0 24px; }
+  .conflict-header { background: var(--bg-alt); padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  .conflict-body { padding: 14px 16px; font-size: 13px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .conflict-dev { border-right: 1px solid var(--border); padding-right: 20px; }
+  .conflict-dev:last-child { border-right: none; padding-right: 0; }
+  .conflict-dev-label { font-family: 'Courier New', monospace; font-size: 10px; color: var(--light); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .conflict-resolution { background: var(--ok-light); border-top: 1px solid var(--border); padding: 10px 16px; font-size: 13px; color: var(--ok); }
+
+  /* dashboard mockup */
+  .dashboard { border: 1px solid var(--border); margin: 20px 0 28px; }
+  .dashboard-header { background: var(--ink); color: #fff; padding: 12px 20px; font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 2px; display: flex; justify-content: space-between; align-items: center; }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); }
+  .dashboard-metric { padding: 18px 20px; border-right: 1px solid var(--border); }
+  .dashboard-metric:last-child { border-right: none; }
+  .dashboard-metric-label { font-family: 'Courier New', monospace; font-size: 9px; color: var(--light); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .dashboard-metric-value { font-size: 28px; font-weight: bold; line-height: 1; margin-bottom: 2px; }
+  .dashboard-metric-sub { font-size: 11px; color: var(--muted); }
+  .dashboard-metric-value.ok { color: var(--ok); }
+  .dashboard-metric-value.warn { color: var(--gold); }
+  .dashboard-metric-value.bad { color: var(--warn); }
+  .dashboard-table { padding: 16px 20px; font-size: 13px; }
+  .dashboard-table-title { font-family: 'Courier New', monospace; font-size: 10px; color: var(--light); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .dashboard-row { display: grid; grid-template-columns: 60px 160px 100px 100px 80px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px solid #eee; align-items: center; font-family: 'Courier New', monospace; font-size: 11px; }
+  .dashboard-row:last-child { border-bottom: none; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .status-dot.running { background: var(--ok); }
+  .status-dot.queued { background: var(--accent); }
+  .status-dot.suspended { background: var(--warn); }
+  .status-dot.complete { background: var(--border); }
+
+  /* soc2 control */
+  .control-row { display: grid; grid-template-columns: 200px 80px 1fr; gap: 0; border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px; }
+  .control-name { font-family: 'Courier New', monospace; font-size: 11px; color: var(--ink); }
+  .control-status { font-family: 'Courier New', monospace; font-size: 10px; padding: 2px 6px; border: 1px solid currentColor; text-transform: uppercase; letter-spacing: 1px; width: fit-content; }
+  .control-status.implemented { color: var(--ok); }
+  .control-status.planned { color: var(--gold); }
+  .control-desc { color: var(--muted); padding-left: 12px; line-height: 1.5; }
+
+  /* onboarding timeline */
+  .onboarding { border-left: 2px solid var(--border); margin: 20px 0 28px; padding-left: 24px; }
+  .onboarding-step { margin-bottom: 20px; position: relative; }
+  .onboarding-step::before { content: ''; position: absolute; left: -30px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; }
+  .onboarding-step-time { font-family: 'Courier New', monospace; font-size: 10px; color: var(--light); letter-spacing: 1px; margin-bottom: 3px; }
+  .onboarding-step-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+  .onboarding-step-detail { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  .page-nav { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 12px; }
+  .page-nav a { color: var(--accent); text-decoration: none; }
+  .page-nav a:hover { text-decoration: underline; }
+  .spec-footer { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .main { padding: 40px 24px 80px; }
+    .dag-example { grid-template-columns: 1fr; }
+    .conflict-body { grid-template-columns: 1fr; }
+    .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-row { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand"><a href="index.html">← FORGE Platform</a></div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec F — Multi-Tenant &amp; Ops</div>
+
+  <div class="nav-section">Sections</div>
+  <a href="#overview" class="nav-item">Overview</a>
+  <a href="#isolation" class="nav-item">Isolation Architecture</a>
+  <a href="#tenant-isolation" class="nav-item sub">Tenant-Level Isolation</a>
+  <a href="#developer-isolation" class="nav-item sub">Developer-Level Isolation</a>
+  <a href="#isolation-boundaries" class="nav-item sub">Isolation Boundaries</a>
+  <a href="#dag-resolver" class="nav-item">Feature Dependency DAG</a>
+  <a href="#dag-construction" class="nav-item sub">DAG Construction</a>
+  <a href="#dag-parallelism" class="nav-item sub">Parallelism Extraction</a>
+  <a href="#dag-cycle-detection" class="nav-item sub">Cycle Detection</a>
+  <a href="#dag-user-editing" class="nav-item sub">User Editing</a>
+  <a href="#conflict-detector" class="nav-item">Conflict Detector</a>
+  <a href="#file-locks" class="nav-item sub">File Lock Registry</a>
+  <a href="#conflict-scenarios" class="nav-item sub">Conflict Scenarios</a>
+  <a href="#conflict-resolution" class="nav-item sub">Resolution Strategies</a>
+  <a href="#pr-orchestrator" class="nav-item">PR Merge Orchestrator</a>
+  <a href="#pr-sequence" class="nav-item sub">Merge Sequencing</a>
+  <a href="#pr-rebase" class="nav-item sub">Rebase Strategy</a>
+  <a href="#dashboard" class="nav-item">Developer Dashboard</a>
+  <a href="#dashboard-views" class="nav-item sub">Dashboard Views</a>
+  <a href="#dashboard-alerts" class="nav-item sub">Alert System</a>
+  <a href="#scale-design" class="nav-item">Scale Design Points</a>
+  <a href="#performance-targets" class="nav-item sub">Performance Targets</a>
+  <a href="#soc2" class="nav-item">SOC 2 Controls</a>
+  <a href="#soc2-controls" class="nav-item sub">Control Implementation</a>
+  <a href="#data-residency" class="nav-item sub">Data Residency</a>
+  <a href="#onboarding" class="nav-item">Customer Onboarding</a>
+
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-A-scheduler-and-watchdog.html" class="nav-file">A — Scheduler &amp; Watchdog</a>
+    <a href="spec-B-functional-spec-agent.html" class="nav-file">B — Spec Generator &amp; Jira</a>
+    <a href="spec-C-agents.html" class="nav-file">C — The Eight Agents</a>
+    <a href="spec-D-resource-and-cloud.html" class="nav-file">D — Resource &amp; Cloud</a>
+    <a href="spec-E-knowledge-and-models.html" class="nav-file">E — Knowledge &amp; Models</a>
+    <a href="spec-F-multitenant-and-ops.html" class="nav-file current">F — Multi-Tenant &amp; Ops</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="breadcrumb">
+    <a href="index.html">FORGE Platform Spec</a>
+    <span>›</span>
+    Spec F — Multi-Tenant Architecture &amp; Operations
+  </div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification F of F — Final Document</div>
+    <div class="doc-title">Multi-Tenant Architecture &amp; Operations</div>
+    <div class="doc-desc">How FORGE operates at scale with 100 concurrent developers per tenant — isolation boundaries, dependency resolution, conflict prevention, PR orchestration, the developer dashboard, SOC 2 controls, and customer onboarding.</div>
+    <div class="doc-meta">
+      <span>Components: 24–28</span>
+      <span>Version: 1.0</span>
+      <span>Status: Draft</span>
+      <span>May 2026</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <a class="section-anchor" id="overview"></a>
+    <h1 class="sh">Overview <a href="#overview" class="anchor-link">#overview</a></h1>
+
+    <p>The multi-tenant layer is what makes FORGE viable for real engineering teams rather than solo projects. At scale — 100 developers, hundreds of concurrent tasks, thousands of files changing simultaneously — coordination problems that are invisible at small scale become existential. Two developers modifying the same file, a feature that depends on another that hasn't been built yet, a PR merge that breaks another developer's branch: these are daily realities in any active engineering team.</p>
+
+    <p>FORGE handles all of these automatically. The Feature Dependency DAG Resolver determines what can run in parallel and what must wait. The Conflict Detector prevents two agents from ever writing to the same file simultaneously. The PR Merge Orchestrator sequences merges to keep the main branch stable. The Developer Dashboard gives the team full visibility into everything happening at once.</p>
+
+    <div class="callout blue">
+      <div class="callout-label">Design Goal</div>
+      A 100-developer team using FORGE should require fewer coordination meetings than a 10-developer team without it. Dependency ordering, conflict prevention, and merge sequencing are automated. The team focuses on requirements and review — not on who is working on what and in what order.
+    </div>
+  </div>
+
+  <!-- ISOLATION ARCHITECTURE -->
+  <div class="section">
+    <a class="section-anchor" id="isolation"></a>
+    <h1 class="sh">Isolation Architecture <a href="#isolation" class="anchor-link">#isolation</a></h1>
+
+    <a class="section-anchor" id="tenant-isolation"></a>
+    <h2 class="sh">Tenant-Level Isolation <a href="#tenant-isolation" class="anchor-link">#tenant-isolation</a></h2>
+
+    <p>Every customer organization is a completely isolated tenant. The following resources are never shared between tenants under any circumstances:</p>
+
+    <div class="isolation-stack">
+      <div class="isolation-layer">
+        <div class="isolation-label">Data</div>
+        <div class="isolation-content"><strong>Source code, git history, training examples, task descriptors, audit logs.</strong> Stored in tenant-namespaced object storage buckets. Cross-tenant access is architecturally impossible — no shared database tables, no shared object storage prefixes.</div>
+      </div>
+      <div class="isolation-layer">
+        <div class="isolation-label">Models</div>
+        <div class="isolation-content"><strong>LoRA adapter files.</strong> Each tenant's adapter is stored in their namespaced model registry. The base model weights are shared (they are not customer data), but adapters are exclusively per-tenant. A tenant's codebase knowledge never influences another tenant's model.</div>
+      </div>
+      <div class="isolation-layer">
+        <div class="isolation-label">Compute</div>
+        <div class="isolation-content"><strong>GPU droplets.</strong> Developer droplets are assigned to specific tenants and developers. No tenant's work runs on another tenant's droplet. Shared orchestration infrastructure (Redis, Scheduler) is namespace-partitioned with tenant_id as a mandatory key prefix.</div>
+      </div>
+      <div class="isolation-layer">
+        <div class="isolation-label">Network</div>
+        <div class="isolation-content"><strong>VPC isolation</strong> (Enterprise tier). Each tenant's compute resources run inside a dedicated VPC. No inter-tenant network routes exist. Standard tier tenants run in shared VPCs with network-level security group isolation between tenant namespaces.</div>
+      </div>
+      <div class="isolation-layer">
+        <div class="isolation-label">Credentials</div>
+        <div class="isolation-content"><strong>API keys, Jira tokens, cloud credentials, signing keys.</strong> Stored in a secrets manager with tenant-namespaced access policies. No service account has access to credentials outside its assigned tenant namespace.</div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="developer-isolation"></a>
+    <h2 class="sh">Developer-Level Isolation <a href="#developer-isolation" class="anchor-link">#developer-isolation</a></h2>
+
+    <p>Within a tenant, each developer's pipeline is isolated from every other developer's pipeline. This isolation prevents one developer's failing task from affecting another developer's work in any way.</p>
+
+    <table>
+      <tr><th>Resource</th><th>Per Developer?</th><th>Shared?</th><th>Notes</th></tr>
+      <tr><td>GPU droplet</td><td>Yes — dedicated</td><td>No</td><td>One droplet per developer. Powered on/off independently.</td></tr>
+      <tr><td>Git branch namespace</td><td>Yes</td><td>No</td><td>All feature branches for a developer are prefixed with their developer ID.</td></tr>
+      <tr><td>Docker environment</td><td>Yes</td><td>No</td><td>Separate Docker daemon or namespace per developer. Containers do not share networks.</td></tr>
+      <tr><td>Redis work queues</td><td>Yes</td><td>No</td><td>Queue keys include developer_id. No cross-developer queue reads.</td></tr>
+      <tr><td>MASTER_CONTEXT.md files</td><td>Per task</td><td>No</td><td>One context file per task, stored with task_id key. Developer-scoped.</td></tr>
+      <tr><td>Security Agent</td><td>No</td><td>Per tenant</td><td>Security scans are not developer-sensitive. One shared scanner per tenant is sufficient.</td></tr>
+      <tr><td>LoRA model adapter</td><td>No</td><td>Per tenant</td><td>All developers in a tenant share the same fine-tuned adapter — it captures the whole team's patterns.</td></tr>
+      <tr><td>Jira project</td><td>No</td><td>Per tenant</td><td>All developers share one Jira project. Tickets are tagged with developer_id for filtering.</td></tr>
+    </table>
+
+    <a class="section-anchor" id="isolation-boundaries"></a>
+    <h2 class="sh">Isolation Boundaries at 100 Developers <a href="#isolation-boundaries" class="anchor-link">#isolation-boundaries</a></h2>
+
+    <p>At 100 developers running concurrent pipelines, the following isolation boundaries are enforced simultaneously:</p>
+
+    <ul>
+      <li>100 dedicated GPU droplets, each with its own IP and network namespace</li>
+      <li>100 independent git branch namespaces — no developer's Code Agent can commit to another developer's branch</li>
+      <li>100 independent Docker environments — a crashing container in one developer's pipeline does not affect any other</li>
+      <li>200+ active Redis queue keys (code + result queues per developer) — Scheduler reads only the queues it owns</li>
+      <li>File lock registry in Redis prevents any two developers from acquiring a lock on the same file simultaneously</li>
+      <li>DAG resolver runs per tenant — all 100 developers' tasks are resolved in a single DAG, but execution is still isolated per developer</li>
+    </ul>
+  </div>
+
+  <!-- FEATURE DEPENDENCY DAG -->
+  <div class="section">
+    <a class="section-anchor" id="dag-resolver"></a>
+    <h1 class="sh">Feature Dependency DAG Resolver <a href="#dag-resolver" class="anchor-link">#dag-resolver</a></h1>
+
+    <p>The Feature Dependency DAG Resolver constructs and maintains a Directed Acyclic Graph of all tasks within a tenant. It is the component that transforms a flat list of Jira tickets into an ordered execution plan — determining what can run in parallel, what must wait, and what is blocked by a cycle.</p>
+
+    <a class="section-anchor" id="dag-construction"></a>
+    <h2 class="sh">DAG Construction <a href="#dag-construction" class="anchor-link">#dag-construction</a></h2>
+
+    <p>The DAG is rebuilt every 30 seconds by the Master Scheduler. Each rebuild reads all active Jira dependency links for the tenant and constructs a fresh graph. The rebuild is not incremental — it starts from scratch each cycle. This ensures that any user edit to a dependency link in Jira is picked up within 30 seconds without requiring any explicit notification to the platform.</p>
+
+    <pre>
+DAG construction algorithm:
+
+1. Fetch all active task tickets for tenant via Jira API
+   (status not in [COMPLETED, SUSPENDED])
+
+2. For each ticket: read "is blocked by" links → these are
+   incoming dependency edges for this node
+
+3. Build adjacency list:
+   graph = {task_id: [dependency_task_ids]}
+
+4. Run cycle detection (DFS)
+   If cycle found: mark all cycle members as SUSPENDED
+   Post Jira comment identifying the circular dependency
+
+5. Compute topological sort → execution order
+   Tasks with no unmet dependencies → ELIGIBLE set
+
+6. For each task in ELIGIBLE set:
+   Check file lock conflicts (see Conflict Detector)
+   If no conflict: advance from CREATED to QUEUED
+   If conflict: hold in CREATED, re-check next cycle
+
+7. Write serialized DAG to Redis: dag:{tenant_id}
+   Expires in 60 seconds — always rebuilt before expiry
+    </pre>
+
+    <a class="section-anchor" id="dag-parallelism"></a>
+    <h2 class="sh">Parallelism Extraction <a href="#dag-parallelism" class="anchor-link">#dag-parallelism</a></h2>
+
+    <p>The DAG resolver identifies all tasks that have no unresolved dependencies and no file lock conflicts, and queues them simultaneously. This is the primary mechanism for parallel execution. At 100 developers with 200+ tasks in flight, large portions of the DAG are typically runnable in parallel — particularly in the early phases of a large feature set where foundation tasks have already completed.</p>
+
+    <div class="dag-example">
+      <div class="dag-panel">
+        <div class="dag-panel-title">Dependency Graph (Resolved)</div>
+        <pre style="margin:0;border:none;background:none;padding:0;font-size:11px;">
+T-01 ──► T-02 ──► T-05
+    ╲                 ╲
+     ──► T-03 ──► T-06 ──► T-08
+    ╲
+     ──► T-04 ──► T-07
+        </pre>
+      </div>
+      <div class="dag-panel">
+        <div class="dag-panel-title">Execution Waves</div>
+        <pre style="margin:0;border:none;background:none;padding:0;font-size:11px;">
+Wave 1:  T-01
+         (no dependencies)
+
+Wave 2:  T-02, T-03, T-04
+         (all depend only on T-01)
+         (run in parallel)
+
+Wave 3:  T-05, T-06, T-07
+         (each depends on one Wave 2 task)
+         (run in parallel as parents complete)
+
+Wave 4:  T-08
+         (depends on T-05 and T-06)
+        </pre>
+      </div>
+    </div>
+
+    <p>In this example, a naive sequential execution would take 8 task durations. With DAG-aware parallel execution it takes 4 task durations — a 50% reduction in calendar time. In practice, real feature sets show 20–40% time savings from parallelism depending on how interconnected the dependency graph is.</p>
+
+    <a class="section-anchor" id="dag-cycle-detection"></a>
+    <h2 class="sh">Cycle Detection <a href="#dag-cycle-detection" class="anchor-link">#dag-cycle-detection</a></h2>
+
+    <p>A cycle in the dependency graph means two or more tasks each depend on each other — a situation where no task can ever start because each is waiting for the other. The DAG resolver runs depth-first search on every rebuild cycle. If a cycle is detected:</p>
+
+    <ol>
+      <li>All tasks in the cycle are identified by traversing the cycle path.</li>
+      <li>All tasks in the cycle are moved to SUSPENDED status.</li>
+      <li>A Jira comment is posted on each affected ticket identifying: the cycle members, the specific dependency link that creates the cycle, and the instruction to remove one of the links to break the cycle.</li>
+      <li>No pipeline work proceeds on any cycle member until a human resolves the dependency conflict.</li>
+      <li>The alert is also surfaced on the Developer Dashboard as a blocking anomaly.</li>
+    </ol>
+
+    <a class="section-anchor" id="dag-user-editing"></a>
+    <h2 class="sh">User Editing of the DAG <a href="#dag-user-editing" class="anchor-link">#dag-user-editing</a></h2>
+
+    <p>The product owner or any developer can modify the dependency graph at any time by editing the Jira dependency links directly in Jira. The platform picks up all changes within 30 seconds on the next DAG rebuild cycle. No notification to FORGE is required — the platform reads Jira as the source of truth for dependencies on every cycle.</p>
+
+    <p>Supported edits and their effects:</p>
+
+    <table>
+      <tr><th>Edit in Jira</th><th>Effect on Execution</th><th>Timing</th></tr>
+      <tr><td>Add "is blocked by" link: B blocked by A</td><td>B moves from QUEUED back to CREATED and waits for A to complete</td><td>Next DAG rebuild (≤30 sec)</td></tr>
+      <tr><td>Remove "is blocked by" link</td><td>B is re-evaluated for eligibility and may advance to QUEUED immediately</td><td>Next DAG rebuild (≤30 sec)</td></tr>
+      <tr><td>Change task priority</td><td>Code Agent dequeues highest priority QUEUED tasks first — changes priority in next selection</td><td>Next Code Agent dequeue cycle</td></tr>
+      <tr><td>Add a new task</td><td>New task enters CREATED and is evaluated for eligibility on next rebuild</td><td>Next DAG rebuild (≤30 sec)</td></tr>
+      <tr><td>Mark task as manual</td><td>Task remains in Jira but pipeline will not process it. Human must advance it to COMPLETED.</td><td>Immediate on Jira label read</td></tr>
+      <tr><td>Remove a task entirely (delete ticket)</td><td>Tasks that depended on it are re-evaluated. May become eligible immediately.</td><td>Next DAG rebuild (≤30 sec)</td></tr>
+    </table>
+
+    <div class="callout gold">
+      <div class="callout-label">Mid-Execution Edits</div>
+      If a task is currently IN PROGRESS and a dependency is added to it that is not yet complete, the platform does not interrupt the running task. The dependency constraint applies to the next pipeline stage — if the task reaches CODE COMPLETE, it will not advance to SECURITY SCAN IN PROGRESS until the newly added dependency is satisfied. Active work is never interrupted by dependency changes.
+    </div>
+  </div>
+
+  <!-- CONFLICT DETECTOR -->
+  <div class="section">
+    <a class="section-anchor" id="conflict-detector"></a>
+    <h1 class="sh">Conflict Detector <a href="#conflict-detector" class="anchor-link">#conflict-detector</a></h1>
+
+    <p>The Conflict Detector prevents merge conflicts before they occur. It does this by maintaining a file lock registry — a set of file paths that are currently being written by an active task. No two tasks can hold a lock on the same file simultaneously. By enforcing this at the QUEUED-to-IN PROGRESS transition, the platform ensures that two Code Agents never write to the same file at the same time.</p>
+
+    <a class="section-anchor" id="file-locks"></a>
+    <h2 class="sh">File Lock Registry <a href="#file-locks" class="anchor-link">#file-locks</a></h2>
+
+    <p>The file lock registry is implemented as a set of Redis keys. Each lock key stores the task ID currently holding the lock. Lock acquisition is atomic — it uses a Redis SET NX (set if not exists) operation, which is guaranteed to succeed for only one caller even under concurrent requests.</p>
+
+    <pre>
+Lock key format:  lock:file:{sha256(file_path)}
+Lock value:       {task_id}:{developer_id}:{acquired_at_iso}
+Lock TTL:         None — locks are released explicitly on PR merge
+
+// Acquisition (atomic):
+result = redis.SET(
+    f"lock:file:{sha256(file_path)}",
+    f"{task_id}:{developer_id}:{now_iso}",
+    nx=True  // only set if key does not exist
+)
+// result = True  → lock acquired
+// result = None  → lock held by another task — conflict
+
+// Release (on PR merge event from git webhook):
+redis.DELETE(f"lock:file:{sha256(file_path)}")
+    </pre>
+
+    <p>Lock acquisition happens before a task advances from CREATED to QUEUED. If any file in the task's <code>files_to_write</code> list is already locked, the task remains in CREATED and is re-checked on the next DAG rebuild cycle. The task does not fail — it waits. When the holding task's PR is merged and its locks are released, the waiting task advances to QUEUED automatically on the next cycle.</p>
+
+    <a class="section-anchor" id="conflict-scenarios"></a>
+    <h2 class="sh">Conflict Scenarios <a href="#conflict-scenarios" class="anchor-link">#conflict-scenarios</a></h2>
+
+    <div class="conflict-example">
+      <div class="conflict-header">Scenario 1 — Same File, Different Tasks, No Dependency</div>
+      <div class="conflict-body">
+        <div class="conflict-dev">
+          <div class="conflict-dev-label">Developer A — Task FORGE-291</div>
+          Adding Stripe payment retry logic.<br>
+          Files: <code>src/payments/stripe_client.rs</code>
+        </div>
+        <div class="conflict-dev">
+          <div class="conflict-dev-label">Developer B — Task FORGE-312</div>
+          Refactoring the payment error handling.<br>
+          Files: <code>src/payments/stripe_client.rs</code>
+        </div>
+      </div>
+      <div class="conflict-resolution">
+        ✓ Resolution: Developer A's task acquires the file lock first (higher priority). Developer B's task waits in CREATED. When FORGE-291 is merged and lock released, FORGE-312 advances to QUEUED and runs against the updated file — no merge conflict possible.
+      </div>
+    </div>
+
+    <div class="conflict-example">
+      <div class="conflict-header">Scenario 2 — Overlapping File Sets, Partial Conflict</div>
+      <div class="conflict-body">
+        <div class="conflict-dev">
+          <div class="conflict-dev-label">Developer C — Task FORGE-340</div>
+          New auth middleware.<br>
+          Files: <code>src/auth/middleware.rs</code>, <code>src/auth/session.rs</code>, <code>src/config.rs</code>
+        </div>
+        <div class="conflict-dev">
+          <div class="conflict-dev-label">Developer D — Task FORGE-341</div>
+          Update config loading.<br>
+          Files: <code>src/config.rs</code>, <code>src/env.rs</code>
+        </div>
+      </div>
+      <div class="conflict-resolution">
+        ✓ Resolution: <code>src/config.rs</code> creates a conflict. FORGE-340 runs first (acquired lock). FORGE-341 holds in CREATED. After FORGE-340 merges, FORGE-341 runs with the updated config.rs — incorporating Developer C's changes automatically.
+      </div>
+    </div>
+
+    <div class="conflict-example">
+      <div class="conflict-header">Scenario 3 — No Conflict (Independent File Sets)</div>
+      <div class="conflict-body">
+        <div class="conflict-dev">
+          <div class="conflict-dev-label">Developer E — Task FORGE-360</div>
+          Payment service.<br>
+          Files: <code>src/payments/*</code>
+        </div>
+        <div class="conflict-dev">
+          <div class="conflict-dev-label">Developer F — Task FORGE-361</div>
+          User profile service.<br>
+          Files: <code>src/users/*</code>
+        </div>
+      </div>
+      <div class="conflict-resolution">
+        ✓ Resolution: No shared files. Both tasks run in parallel immediately. No waiting, no conflict, no coordination required.
+      </div>
+    </div>
+
+    <a class="section-anchor" id="conflict-resolution"></a>
+    <h2 class="sh">Resolution Strategies <a href="#conflict-resolution" class="anchor-link">#conflict-resolution</a></h2>
+
+    <p>When a lock conflict is detected, the platform applies one of three resolution strategies based on the tasks' relationship:</p>
+
+    <table>
+      <tr><th>Scenario</th><th>Strategy</th><th>Outcome</th></tr>
+      <tr><td>Neither task depends on the other</td><td>Priority-based serialization. Higher priority task runs first. Lower priority task waits.</td><td>Lower priority task always gets the updated file — cleaner than the alternative.</td></tr>
+      <tr><td>Task B depends on Task A (via Jira link)</td><td>Dependency ordering. Task A runs first regardless of priority.</td><td>Task B naturally runs after Task A by DAG resolution — lock conflict is a symptom of a missing dependency link that the Spec Generator should have caught.</td></tr>
+      <tr><td>Tasks have equal priority and no dependency</td><td>First-come-first-served by lock acquisition timestamp.</td><td>The task that acquired the lock first runs. The other waits.</td></tr>
+    </table>
+
+    <p>In all cases, FORGE Bot posts a comment on the waiting task: "This task is waiting for FORGE-291 to complete and merge before it can start. The file <code>src/payments/stripe_client.rs</code> is currently locked by that task. Estimated wait: 15–30 minutes."</p>
+  </div>
+
+  <!-- PR MERGE ORCHESTRATOR -->
+  <div class="section">
+    <a class="section-anchor" id="pr-orchestrator"></a>
+    <h1 class="sh">PR Merge Orchestrator <a href="#pr-orchestrator" class="anchor-link">#pr-orchestrator</a></h1>
+
+    <p>The PR Merge Orchestrator manages the sequence in which open pull requests are merged to the main branch. With 100 developers generating PRs concurrently, uncoordinated merges would regularly produce a broken main branch — a developer merges their PR, breaking the tests for another PR that was passing moments before.</p>
+
+    <a class="section-anchor" id="pr-sequence"></a>
+    <h2 class="sh">Merge Sequencing <a href="#pr-sequence" class="anchor-link">#pr-sequence</a></h2>
+
+    <p>The Orchestrator maintains a merge queue — an ordered list of PRs that have been approved by a human reviewer and are ready to merge. PRs enter the queue when they receive the required approvals. They are dequeued and merged one at a time, in priority order.</p>
+
+    <p>Priority ordering for the merge queue:</p>
+    <ol>
+      <li>Bug fix PRs with P1 severity — highest priority, merged immediately</li>
+      <li>Security fix PRs — merged before feature PRs regardless of order</li>
+      <li>Feature PRs that are blocking other queued tasks (have dependents waiting)</li>
+      <li>Feature PRs by task priority (inherited from Jira task priority field)</li>
+      <li>Feature PRs by PR creation timestamp — first approved, first merged</li>
+    </ol>
+
+    <p>Only one PR is merged at a time. While a merge is in progress (typically 30–60 seconds including CI run on main), no other PR is dequeued. This prevents the race condition where two PRs are simultaneously merged and the combined change breaks something neither PR broke independently.</p>
+
+    <a class="section-anchor" id="pr-rebase"></a>
+    <h2 class="sh">Rebase Strategy <a href="#pr-rebase" class="anchor-link">#pr-rebase</a></h2>
+
+    <p>Before merging any PR, the Orchestrator rebases the feature branch onto the current tip of main. This ensures the PR always incorporates the latest changes from main — including any changes from PRs merged earlier in the queue.</p>
+
+    <pre>
+Merge sequence for PR FORGE-291:
+
+1. Dequeue FORGE-291 from merge queue
+2. Fetch current main branch tip: commit abc1234
+3. Rebase feature/FORGE-291-stripe-retry onto abc1234
+   - If rebase succeeds cleanly: continue
+   - If rebase conflict:
+       a. Post Jira comment: "Rebase conflict detected.
+          Human resolution required before this PR can merge."
+       b. Move PR to back of merge queue
+       c. Move next PR to front and continue
+4. Run CI on rebased branch (fast — typically 2–5 min)
+5. If CI passes: merge to main (fast-forward merge)
+6. Delete feature branch
+7. Release all file locks held by this task
+8. Post Jira comment: "Merged to main as commit xyz9876."
+9. Update Jira task to COMPLETED (if all bugs also closed)
+10. Dequeue next PR and repeat
+    </pre>
+
+    <p>In practice, rebase conflicts are rare because the Conflict Detector prevents two tasks from writing to the same file simultaneously. A rebase conflict can still occur if a task modifies a file that another task's test file references — a scenario the Conflict Detector does not catch because test files are not in the task's <code>files_to_write</code> list for the conflicting task. When it does occur, a human developer resolves the conflict, re-pushes the branch, and the PR re-enters the merge queue.</p>
+  </div>
+
+  <!-- DEVELOPER DASHBOARD -->
+  <div class="section">
+    <a class="section-anchor" id="dashboard"></a>
+    <h1 class="sh">Developer Dashboard <a href="#dashboard" class="anchor-link">#dashboard</a></h1>
+
+    <p>The Developer Dashboard is a real-time web interface showing the current state of all pipeline activity, costs, quality metrics, and anomalies for a tenant. It has three levels of granularity: tenant-wide overview, per-developer view, and per-task detail view.</p>
+
+    <a class="section-anchor" id="dashboard-views"></a>
+    <h2 class="sh">Dashboard Views <a href="#dashboard-views" class="anchor-link">#dashboard-views</a></h2>
+
+    <p>Below is a representation of the tenant-wide overview — the default landing page when a team lead or operator opens the dashboard:</p>
+
+    <div class="dashboard">
+      <div class="dashboard-header">
+        <span>FORGE Dashboard — Acme Corp — Live</span>
+        <span style="font-size:10px;opacity:0.6;">Updated 3 seconds ago</span>
+      </div>
+      <div class="dashboard-grid">
+        <div class="dashboard-metric">
+          <div class="dashboard-metric-label">Active Pipelines</div>
+          <div class="dashboard-metric-value ok">23</div>
+          <div class="dashboard-metric-sub">of 100 developers</div>
+        </div>
+        <div class="dashboard-metric">
+          <div class="dashboard-metric-label">Tasks Completed Today</div>
+          <div class="dashboard-metric-value ok">47</div>
+          <div class="dashboard-metric-sub">+12 vs yesterday</div>
+        </div>
+        <div class="dashboard-metric">
+          <div class="dashboard-metric-label">Open Bugs</div>
+          <div class="dashboard-metric-value warn">31</div>
+          <div class="dashboard-metric-sub">18 in progress</div>
+        </div>
+        <div class="dashboard-metric">
+          <div class="dashboard-metric-label">PR Approval Rate</div>
+          <div class="dashboard-metric-value ok">91%</div>
+          <div class="dashboard-metric-sub">trailing 7 days</div>
+        </div>
+        <div class="dashboard-metric">
+          <div class="dashboard-metric-label">Today's GPU Spend</div>
+          <div class="dashboard-metric-value ok">$84.20</div>
+          <div class="dashboard-metric-sub">of $500 daily cap</div>
+        </div>
+        <div class="dashboard-metric">
+          <div class="dashboard-metric-label">Suspended Tasks</div>
+          <div class="dashboard-metric-value bad">2</div>
+          <div class="dashboard-metric-sub">require attention</div>
+        </div>
+      </div>
+      <div class="dashboard-table">
+        <div class="dashboard-table-title">Active Pipelines</div>
+        <div class="dashboard-row" style="font-family:'Courier New',monospace;font-size:9px;color:var(--light);border-bottom:1px solid var(--border);padding-bottom:4px;">
+          <div>Status</div><div>Task</div><div>Developer</div><div>Stage</div><div>Cost</div><div>Duration</div>
+        </div>
+        <div class="dashboard-row">
+          <div><span class="status-dot running"></span></div>
+          <div>FORGE-291</div>
+          <div>dev-042</div>
+          <div>TESTING</div>
+          <div>$0.08</div>
+          <div>14 min</div>
+        </div>
+        <div class="dashboard-row">
+          <div><span class="status-dot running"></span></div>
+          <div>FORGE-312</div>
+          <div>dev-017</div>
+          <div>CODE GEN</div>
+          <div>$0.05</div>
+          <div>8 min</div>
+        </div>
+        <div class="dashboard-row">
+          <div><span class="status-dot queued"></span></div>
+          <div>FORGE-340</div>
+          <div>dev-089</div>
+          <div>QUEUED</div>
+          <div>—</div>
+          <div>Waiting: file lock</div>
+        </div>
+        <div class="dashboard-row">
+          <div><span class="status-dot suspended"></span></div>
+          <div>FORGE-298</div>
+          <div>dev-005</div>
+          <div>SUSPENDED</div>
+          <div>$0.31</div>
+          <div>Needs review</div>
+        </div>
+        <div class="dashboard-row">
+          <div><span class="status-dot complete"></span></div>
+          <div>FORGE-280</div>
+          <div>dev-033</div>
+          <div>COMPLETE</div>
+          <div>$0.12</div>
+          <div>32 min total</div>
+        </div>
+      </div>
+    </div>
+
+    <p>The per-task detail view shows: the full MASTER_CONTEXT.md, the live heartbeat status of the agent working the task, every Jira comment posted, all bugs linked to the task with their status, the cost breakdown per agent call, and the git branch with a link to the open PR if one exists.</p>
+
+    <a class="section-anchor" id="dashboard-alerts"></a>
+    <h2 class="sh">Alert System <a href="#dashboard-alerts" class="anchor-link">#dashboard-alerts</a></h2>
+
+    <p>The dashboard surfaces the following alert categories in real time. Alerts are also sent via email and optionally via Slack or PagerDuty for critical items.</p>
+
+    <table>
+      <tr><th>Alert Type</th><th>Severity</th><th>Trigger</th><th>Notification Channel</th></tr>
+      <tr><td>Task suspended</td><td>High</td><td>Any task reaches SUSPENDED status</td><td>Dashboard + email to task owner and tech lead</td></tr>
+      <tr><td>Budget cap approaching</td><td>Medium</td><td>Developer or tenant spend reaches 80% of daily/monthly cap</td><td>Dashboard + email to operator</td></tr>
+      <tr><td>Budget cap reached</td><td>Critical</td><td>Developer or tenant spend reaches cap — pipeline paused</td><td>Dashboard + email + Slack if configured</td></tr>
+      <tr><td>Circular dependency</td><td>High</td><td>Cycle detected in dependency DAG</td><td>Dashboard + Jira comment + email to product owner</td></tr>
+      <tr><td>GPU droplet anomaly</td><td>Medium</td><td>Any anomaly from Resource Controller (zombie, thrash, spike)</td><td>Dashboard + email to operator</td></tr>
+      <tr><td>PR approval rate drop</td><td>Medium</td><td>Trailing 7-day PR approval rate drops below 80%</td><td>Dashboard + email to tech lead</td></tr>
+      <tr><td>Security finding — Critical</td><td>Critical</td><td>Security Agent finds a Critical severity vulnerability</td><td>Dashboard + email + Slack if configured</td></tr>
+      <tr><td>Infrastructure failure</td><td>High</td><td>Cloud provider unreachable or droplet down</td><td>Dashboard + email to operator</td></tr>
+      <tr><td>Model quality regression</td><td>High</td><td>LLM-as-Judge scores new adapter below current in any criterion</td><td>Dashboard + email to operator</td></tr>
+      <tr><td>Jira sync failure</td><td>Medium</td><td>Jira Integration Layer fails to sync after 3 retries</td><td>Dashboard + email to operator</td></tr>
+    </table>
+  </div>
+
+  <!-- SCALE DESIGN POINTS -->
+  <div class="section">
+    <a class="section-anchor" id="scale-design"></a>
+    <h1 class="sh">Scale Design Points <a href="#scale-design" class="anchor-link">#scale-design</a></h1>
+
+    <a class="section-anchor" id="performance-targets"></a>
+    <h2 class="sh">Performance Targets at 100 Developers <a href="#performance-targets" class="anchor-link">#performance-targets</a></h2>
+
+    <table>
+      <tr><th>Metric</th><th>Target</th><th>Design Mechanism</th></tr>
+      <tr><td>DAG rebuild latency</td><td>&lt;5 seconds</td><td>In-memory graph construction. Jira API response is the bottleneck — batched reads per rebuild.</td></tr>
+      <tr><td>Task queue-to-dispatch latency</td><td>&lt;10 seconds</td><td>Scheduler polls result queues every 5 seconds. Queue placement to dispatch: 2 polling cycles max.</td></tr>
+      <tr><td>File lock acquisition latency</td><td>&lt;1 millisecond</td><td>Redis SET NX is a single round-trip. Redis handles 100K+ ops/sec — not a bottleneck at 100 developers.</td></tr>
+      <tr><td>Heartbeat write latency</td><td>&lt;5 milliseconds</td><td>Redis string SET with TTL. Trivial at 100 agents × 1 write per 30 seconds = ~3 writes/sec.</td></tr>
+      <tr><td>Jira sync lag</td><td>&lt;60 seconds</td><td>Sync loop runs every 60 seconds. Status changes are prioritized in the write queue.</td></tr>
+      <tr><td>Dashboard update frequency</td><td>Every 5 seconds</td><td>Dashboard reads from Redis (not Jira). Redis reads are near-instant.</td></tr>
+      <tr><td>Watchdog detection latency</td><td>&lt;3 minutes</td><td>Watchdog runs every 60 seconds. Heartbeat TTL is 90 seconds. Maximum detection time: 150 seconds.</td></tr>
+      <tr><td>PR merge queue throughput</td><td>1 merge per 2–3 minutes</td><td>Sequential merge with CI. At 100 devs, queue depth rarely exceeds 5–10 PRs — total wait under 30 min.</td></tr>
+      <tr><td>Concurrent active Code Agents</td><td>100 (one per developer)</td><td>Each runs on a dedicated droplet. No resource sharing contention.</td></tr>
+      <tr><td>Redis memory at 100 developers</td><td>&lt;500 MB</td><td">All keys estimated: 100 heartbeats (small) + 200 queues + task state + DAG + locks = well within bounds.</td></tr>
+    </table>
+
+    <h2 class="sh">Scaling Beyond 100 Developers <a href="#beyond-100" class="anchor-link">#beyond-100</a></h2>
+    <a class="section-anchor" id="beyond-100"></a>
+
+    <p>The platform is designed to scale beyond 100 developers per tenant with the following architectural changes that do not require re-engineering any existing component:</p>
+
+    <ul>
+      <li><strong>Master Scheduler sharding:</strong> At 200+ developers, the Scheduler is sharded by developer_id hash — each Scheduler instance owns a subset of developers. The DAG resolver runs on a dedicated process reading from all shards.</li>
+      <li><strong>Redis clustering:</strong> Standard Redis Cluster with hash-slot partitioning handles millions of keys. The key design (all keys namespaced with tenant_id and developer_id) is already cluster-compatible.</li>
+      <li><strong>Jira API rate limits:</strong> At 200+ developers, Jira's API rate limits become a bottleneck. Solution: batch all reads into bulk queries, use Jira webhooks to receive push notifications rather than polling, and cache ticket state in Redis with webhook-triggered invalidation.</li>
+      <li><strong>DAG rebuild time:</strong> At 500+ tasks per tenant, DAG rebuild may take 5–10 seconds. Solution: incremental DAG updates triggered by webhook events rather than full rebuild every 30 seconds.</li>
+    </ul>
+  </div>
+
+  <!-- SOC 2 CONTROLS -->
+  <div class="section">
+    <a class="section-anchor" id="soc2"></a>
+    <h1 class="sh">SOC 2 Controls <a href="#soc2" class="anchor-link">#soc2</a></h1>
+
+    <p>FORGE is designed to achieve SOC 2 Type II certification. The following controls address the five SOC 2 Trust Service Criteria: Security, Availability, Processing Integrity, Confidentiality, and Privacy.</p>
+
+    <a class="section-anchor" id="soc2-controls"></a>
+    <h2 class="sh">Control Implementation <a href="#soc2-controls" class="anchor-link">#soc2-controls</a></h2>
+
+    <div style="margin:20px 0 8px;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--light);display:grid;grid-template-columns:200px 80px 1fr;border-bottom:2px solid var(--border);padding-bottom:6px;">
+      <div>Control</div><div>Status</div><div>Implementation</div>
+    </div>
+
+    <div class="control-row">
+      <div class="control-name">Encryption at rest</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">All object storage encrypted with AES-256. All database volumes encrypted at the block storage layer. Encryption keys managed in a dedicated key management service (KMS) per tenant.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Encryption in transit</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">All API calls over TLS 1.3. Internal service-to-service calls over mTLS. No plaintext communication between any platform components.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Access control (RBAC)</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">Role-based access for all tenant users: Admin, Tech Lead, Developer, Read Only. Jira Integration Layer credentials scoped per tenant. No cross-tenant access possible at any privilege level.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">SSO / SAML integration</div>
+      <div><span class="control-status planned">Phase 7</span></div>
+      <div class="control-desc">SAML 2.0 and OIDC support for enterprise customers. Connects to Okta, Azure AD, Google Workspace, and other standard identity providers.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Audit logging</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">Every action taken by every agent, every status transition, every Jira write, and every human approval is written to an immutable audit log. Logs are retained for 12 months minimum. Tamper-evident using append-only storage with hash chaining.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Secrets management</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">All credentials stored in HashiCorp Vault (or cloud KMS equivalent). No secrets in environment variables, config files, or source code. Secrets rotated automatically on a 90-day schedule. Access logged and audited.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Vulnerability management</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">Security Agent scans all customer code. Platform's own infrastructure scanned weekly with Trivy and Grype. Critical CVEs remediated within 24 hours. High CVEs within 7 days. Patch process is documented and audited.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Incident response</div>
+      <div><span class="control-status planned">Phase 7</span></div>
+      <div class="control-desc">Documented incident response playbook. Severity classification (P1–P4). On-call rotation. Post-incident review for all P1 and P2 incidents. Customer notification within 4 hours for P1 incidents affecting their data.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Data retention &amp; deletion</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">Training data retained for the lifetime of the tenant account. On account termination: all data deleted within 30 days. Deletion is cryptographic — KMS key for the tenant's data is destroyed, making all encrypted data unrecoverable. Deletion certificate provided on request.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Penetration testing</div>
+      <div><span class="control-status planned">Phase 7</span></div>
+      <div class="control-desc">Annual third-party penetration test. Results reviewed by security team. Critical and High findings remediated before next customer onboarding. Reports available to Enterprise customers under NDA.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Change management</div>
+      <div><span class="control-status implemented">Done</span></div>
+      <div class="control-desc">All platform code changes require PR approval. Production deployments require a separate approval step. Rollback procedure documented and tested for all deployment types. Blue-green deployment for zero-downtime releases.</div>
+    </div>
+    <div class="control-row">
+      <div class="control-name">Availability / uptime SLA</div>
+      <div><span class="control-status planned">Phase 7</span></div>
+      <div class="control-desc">99.9% monthly uptime SLA for Enterprise tier. 99.5% for Professional tier. Measured per tenant. Excludes scheduled maintenance windows (communicated 7 days in advance). Status page at status.forgeplatform.ai.</div>
+    </div>
+
+    <a class="section-anchor" id="data-residency"></a>
+    <h2 class="sh">Data Residency <a href="#data-residency" class="anchor-link">#data-residency</a></h2>
+
+    <p>Enterprise customers can configure data residency constraints that restrict all their compute and storage to a specific geographic region. When data residency is configured:</p>
+
+    <ul>
+      <li>All GPU droplets for that tenant are provisioned only in cloud regions within the configured geography</li>
+      <li>The Multi-Cloud Provisioner's selection algorithm excludes any region outside the residency boundary (see Spec D §selection-algorithm)</li>
+      <li>All object storage buckets (source code, training data, model adapters, audit logs) are created in compliant regions only</li>
+      <li>The Claude API fallback is disabled for tenants with strict data residency requirements — all inference must run on self-hosted infrastructure within the boundary</li>
+      <li>Jira integration is unaffected — Jira is the customer's own system and is not subject to FORGE's data residency controls</li>
+    </ul>
+
+    <p>Supported residency zones at launch: EU (GDPR compliance), US (FedRAMP aligned), AU (Australia), UK (post-Brexit). Additional zones added on customer request with a 6-week lead time for infrastructure provisioning.</p>
+  </div>
+
+  <!-- CUSTOMER ONBOARDING -->
+  <div class="section">
+    <a class="section-anchor" id="onboarding"></a>
+    <h1 class="sh">Customer Onboarding <a href="#onboarding" class="anchor-link">#onboarding</a></h1>
+
+    <p>Onboarding a new customer organization takes approximately 2 hours of wall clock time, most of which is automated. Human effort from the customer: approximately 30 minutes to provide credentials and approve the initial spec. Human effort from FORGE: zero — the onboarding sequence is fully scripted.</p>
+
+    <div class="onboarding">
+      <div class="onboarding-step">
+        <div class="onboarding-step-time">T+0 — Account creation</div>
+        <div class="onboarding-step-title">Tenant provisioned, credentials collected</div>
+        <div class="onboarding-step-detail">Customer signs up. FORGE creates the tenant namespace, provisions the secrets manager with a blank tenant vault, creates the Jira project and FORGE Bot service account, and sends the customer a credential collection form. Customer fills in: git repository access token, Jira admin credentials, cloud account details (optional for Standard tier), and their preferred data residency region.</div>
+      </div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-time">T+15 min — Ingestion begins</div>
+        <div class="onboarding-step-title">Codebase ingestion and initial knowledge scan</div>
+        <div class="onboarding-step-detail">Ingestion Agent clones all configured repositories. Reads full git history. Extracts all training examples. Quality-scores each example. Writes approved examples to the tenant's training store. Generates a summary report: number of examples by source type, quality distribution, estimated training dataset size.</div>
+      </div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-time">T+45 min — Initial training</div>
+        <div class="onboarding-step-title">First LoRA adapter trained</div>
+        <div class="onboarding-step-detail">LoRA Training Orchestrator starts the initial training run on a provisioned H100. Takes 3–5 hours for a typical codebase. While training runs, the customer can begin using the platform with the generic base model — the adapter replaces it automatically when ready.</div>
+      </div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-time">T+60 min — Developer droplets provisioned</div>
+        <div class="onboarding-step-title">One droplet per developer, powered off</div>
+        <div class="onboarding-step-detail">Resource Controller provisions one GPU droplet per developer account (powered off, no billing). Each droplet gets the base model weights pre-loaded to disk so the first boot is fast. Developer dashboard activated and shared with the tech lead.</div>
+      </div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-time">T+90 min — First task submission</div>
+        <div class="onboarding-step-title">Customer submits first requirement</div>
+        <div class="onboarding-step-detail">Product owner submits a one-line requirement to the Functional Spec Generator. The conversation runs, the spec is approved, tickets are created in Jira. The pipeline begins. Customer sees their first FORGE task moving through Jira statuses within minutes.</div>
+      </div>
+      <div class="onboarding-step">
+        <div class="onboarding-step-time">T+4–5 hours — Fine-tuned model live</div>
+        <div class="onboarding-step-title">Company adapter promoted to production</div>
+        <div class="onboarding-step-detail">Initial training run completes. LLM-as-Judge validates the adapter quality vs. the generic base model. If quality is equal or better (it always is — any codebase data improves on the generic model), the adapter is promoted to production. All subsequent Code Agent calls use the company-specific model. Context windows begin shrinking immediately.</div>
+      </div>
+    </div>
+
+    <p>After onboarding, the customer receives a Welcome Report containing: the number of training examples extracted from their codebase, the initial PR approval rate benchmark, estimated context window reduction by month 6, the cost projection for their team size, and the link to their developer dashboard.</p>
+  </div>
+
+  <!-- COMPLETE COMPONENT INDEX -->
+  <div class="section">
+    <a class="section-anchor" id="complete-index"></a>
+    <h1 class="sh">Complete Component Index <a href="#complete-index" class="anchor-link">#complete-index</a></h1>
+
+    <p>This is the final document in the FORGE Platform Specification. The following table provides a complete reference of all 28 platform components, their specification location, and their primary dependencies.</p>
+
+    <table>
+      <tr><th>#</th><th>Component</th><th>Spec</th><th>Layer</th></tr>
+      <tr><td>01</td><td>Master Scheduler</td><td><a href="spec-A-scheduler-and-watchdog.html">Spec A</a></td><td>Orchestration</td></tr>
+      <tr><td>02</td><td>Watchdog</td><td><a href="spec-A-scheduler-and-watchdog.html">Spec A</a></td><td>Orchestration</td></tr>
+      <tr><td>03</td><td>State Store (Redis)</td><td><a href="spec-A-scheduler-and-watchdog.html">Spec A</a></td><td>Orchestration</td></tr>
+      <tr><td>04</td><td>Functional Spec Generator Agent</td><td><a href="spec-B-functional-spec-agent.html">Spec B</a></td><td>Intake</td></tr>
+      <tr><td>05</td><td>Jira Integration Layer</td><td><a href="spec-B-functional-spec-agent.html">Spec B</a></td><td>Intake</td></tr>
+      <tr><td>06</td><td>FORGE Bot Identity</td><td><a href="spec-B-functional-spec-agent.html">Spec B</a></td><td>Intake</td></tr>
+      <tr><td>07</td><td>Code Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>08</td><td>Build Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>09</td><td>Security Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>10</td><td>Test Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>11</td><td>Performance Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>12</td><td>Deploy Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>13</td><td>Integration Test Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>14</td><td>Audit Agent</td><td><a href="spec-C-agents.html">Spec C</a></td><td>Agent Pipeline</td></tr>
+      <tr><td>15</td><td>Resource Controller</td><td><a href="spec-D-resource-and-cloud.html">Spec D</a></td><td>Resource</td></tr>
+      <tr><td>16</td><td>Multi-Cloud Provisioner</td><td><a href="spec-D-resource-and-cloud.html">Spec D</a></td><td>Resource</td></tr>
+      <tr><td>17</td><td>GPU Droplet Tier Manager</td><td><a href="spec-D-resource-and-cloud.html">Spec D</a></td><td>Resource</td></tr>
+      <tr><td>18</td><td>LLM Selector</td><td><a href="spec-E-knowledge-and-models.html">Spec E</a></td><td>Intelligence</td></tr>
+      <tr><td>19</td><td>LLM Registry</td><td><a href="spec-E-knowledge-and-models.html">Spec E</a></td><td>Intelligence</td></tr>
+      <tr><td>20</td><td>Knowledge Layer / Ingestion Agent</td><td><a href="spec-E-knowledge-and-models.html">Spec E</a></td><td>Intelligence</td></tr>
+      <tr><td>21</td><td>LoRA Training Orchestrator</td><td><a href="spec-E-knowledge-and-models.html">Spec E</a></td><td>Intelligence</td></tr>
+      <tr><td>22</td><td>Model Version Controller</td><td><a href="spec-E-knowledge-and-models.html">Spec E</a></td><td>Intelligence</td></tr>
+      <tr><td>23</td><td>LLM-as-Judge Evaluator</td><td><a href="spec-E-knowledge-and-models.html">Spec E</a></td><td>Intelligence</td></tr>
+      <tr><td>24</td><td>Per-Developer Isolation Manager</td><td><a href="spec-F-multitenant-and-ops.html">Spec F</a></td><td>Multi-Tenant</td></tr>
+      <tr><td>25</td><td>Feature Dependency DAG Resolver</td><td><a href="spec-F-multitenant-and-ops.html">Spec F</a></td><td>Multi-Tenant</td></tr>
+      <tr><td>26</td><td>Conflict Detector</td><td><a href="spec-F-multitenant-and-ops.html">Spec F</a></td><td>Multi-Tenant</td></tr>
+      <tr><td>27</td><td>PR Merge Orchestrator</td><td><a href="spec-F-multitenant-and-ops.html">Spec F</a></td><td>Multi-Tenant</td></tr>
+      <tr><td>28</td><td>Developer Dashboard</td><td><a href="spec-F-multitenant-and-ops.html">Spec F</a></td><td>Multi-Tenant</td></tr>
+    </table>
+  </div>
+
+  <!-- PAGE NAV -->
+  <div class="page-nav">
+    <a href="spec-E-knowledge-and-models.html">← Spec E — Knowledge &amp; Models</a>
+    <a href="index.html">↑ Back to Index</a>
+  </div>
+
+  <div class="spec-footer">
+    FORGE Platform Specification · Spec F · Version 1.0 · May 2026 · Confidential<br>
+    End of specification — 7 documents, 28 components, complete platform definition
+  </div>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('.section-anchor');
+  const navItems = document.querySelectorAll('.nav-item');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + id) item.classList.add('active');
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
