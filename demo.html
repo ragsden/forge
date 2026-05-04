@@ -348,18 +348,18 @@ function goTo(id){
 }
 
 // ── CLAUDE API ────────────────────────────────────────────────
-async function claude(system, user){
+async function claude(system, user, maxTokens=1500){
   const res = await fetch('/api/claude',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
       model:'claude-sonnet-4-5',
-      max_tokens:20000,
+      max_tokens: maxTokens,
       system,
       messages:[{role:'user',content:user}]
     })
   });
-  if(!res.ok){ const err=await res.text(); throw new Error(`API ${res.status}: ${err.slice(0,200)}`); }
+  if(!res.ok){ const err=await res.text(); throw new Error(`API ${res.status}: ${err.slice(0,300)}`); }
   const d = await res.json();
   const txt = d.content.find(b=>b.type==='text')?.text||'';
   const clean = txt.replace(/^```(?:json)?\n?/,'').replace(/\n?```$/,'').trim();
@@ -377,27 +377,20 @@ Given a product requirement and clarifying conversation, produce a concise funct
 Return ONLY valid JSON:
 {"spec":{"title":"...","scope":"one paragraph","outOfScope":"comma-separated list","perf":"one sentence on performance expectations","users":"who uses this","integrations":"external systems involved"}}`;
 
-const P_ARCH = `You are FORGE's Architecture Agent. Given a functional spec, design the complete technical architecture and decompose it into concrete implementation tasks.
+const P_ARCH = `You are FORGE's Architecture Agent. Design a concise technical architecture and create implementation tasks. Be BRIEF — every field must be short.
 
-Produce:
-1. architecture: system design (service boundaries, technology choices with brief rationale, data flow)
-2. dataModel: key tables/collections with important fields (concise — 3-5 entities max)
-3. interfaces: 2-3 key interface contracts (trait/interface signatures or API endpoints)
-4. adrs: 2-3 Architecture Decision Records (id, title, decision, rationale)
-5. tasks: 5-8 concrete implementation tasks derived from the architecture
-
-Each task must include exact file paths, interface references, and dependency links.
-Return ONLY valid JSON:
+Return ONLY valid JSON (keep strings SHORT — max 3-4 lines each):
 {
-  "architecture": "multi-line string describing service boundaries, tech stack choices, data flow",
-  "dataModel": "multi-line string with key schema definitions",
-  "interfaces": "multi-line string with key interface/trait/API definitions",
-  "adrs": [{"id":"ADR-001","title":"...","decision":"...","rationale":"..."}],
-  "tasks": [{"id":"T-01","name":"...","desc":"one sentence","files":["src/..."],"deps":"Blocks: T-XX","iface_in":"interface it consumes","iface_out":"interface it produces","tier":"L40S or RTX or CPU","cov":"85%"}],
-  "tasksCreated": 6,
-  "estimatedHrs": "X.X",
-  "cost": "$X.XX"
-}`;
+  "architecture": "2-3 sentence summary: service type, tech stack, data flow",
+  "dataModel": "2-3 key entities with main fields only, like: accounts(id,name,mrr), contacts(id,account_id,email)",
+  "interfaces": "2 key interfaces/traits/endpoints in 1 line each",
+  "adrs": [{"id":"ADR-001","title":"short title","decision":"one sentence","rationale":"one sentence"}],
+  "tasks": [{"id":"T-01","name":"short name","desc":"one sentence","files":["src/main.rs"],"deps":"Blocks: T-02","tier":"L40S","cov":"85%"}],
+  "tasksCreated": 5,
+  "estimatedHrs": "8.0",
+  "cost": "$0.70"
+}
+Generate 4-6 tasks. Keep ALL string values SHORT.`;
 
 const P_DAG = `You generate an ASCII dependency graph for FORGE's task execution planner.
 Given tasks and their dependencies, output parallel execution waves showing which tasks run simultaneously.
@@ -692,7 +685,7 @@ async function runDemo(){
     showSpin('archc','Architecture Agent running — designing system architecture on H100 · Llama-3.1-70B…');
     goTo('phase5');
     const archData = await claude(P_ARCH,
-      `Requirement: ${prompt}\n\nFunctional Spec:\nScope: ${specData.spec.scope}\nOut of Scope: ${specData.spec.outOfScope}\nPerformance: ${specData.spec.perf}\nIntegrations: ${specData.spec.integrations||'none'}`);
+      `Requirement: ${prompt}\n\nScope: ${specData.spec.scope}\nOut of Scope: ${specData.spec.outOfScope}\nPerformance: ${specData.spec.perf}`, 3500);
     setProgress(58);
     $('archc').innerHTML='';
     await renderArch(archData);
