@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,6 +120,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
 .gpu-bar{height:100%;background:var(--yellow);border-radius:2px;width:0%;transition:width .9s ease;}
 
 /* cost line inside step */
+
+.model-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3px;padding:2px 6px;background:rgba(155,127,255,.12);border:1px solid rgba(155,127,255,.25);color:#c4b3ff;border-radius:2px;margin-top:4px;}
+
 .cost-line-inner{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;}
 .cost-line-inner .cv{font-family:'DM Mono',monospace;color:var(--forge);}
 
@@ -208,7 +212,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
     <span class="t2">Every Dollar.</span>
   </h1>
   <p class="hero-sub">
-    Watch the full FORGE pipeline animate in real time — from <strong>spec conversation to deployed software</strong>, including the GPU resource lifecycle and exactly what it cost versus always-on alternatives.
+    Watch the full FORGE pipeline animate in real time — from <strong>spec conversation to a clean build</strong>. Each phase spins up its own GPU, selects the right model, and tears down when done. Includes live cost breakdown and savings.
   </p>
 </div>
 
@@ -248,7 +252,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
     <div class="cost-head">
       <span style="font-size:18px;">💰</span>
       <div class="cost-head-title">Pipeline Cost Breakdown</div>
-      <div class="cost-head-sub" id="costHeadSub">GPU-controlled · L40S · Auto-provisioned</div>
+      <div class="cost-head-sub" id="costHeadSub">Per-phase model selection · On-demand GPU · Cost-tracked</div>
     </div>
 
     <div class="cost-body">
@@ -318,8 +322,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
 
   <!-- BOTTOM CTA -->
   <div class="bottom-cta">
-    <div class="cta-title">The Entire Pipeline. Fully Autonomous.</div>
-    <div class="cta-sub">No developers in the loop. Full audit trail in Jira. GPU spins up when needed and tears down when done.</div>
+    <div class="cta-title">Every Phase. Every Model. Every Dollar.</div>
+    <div class="cta-sub">Each agent selects the right model for its task. GPU spins up per phase and tears down immediately when done. No always-on waste.</div>
     <div class="cta-row">
       <a href="demo.html" class="cta-a">AI-Powered Demo</a>
       <a href="index.html" class="cta-b">Read the Full Spec</a>
@@ -338,87 +342,119 @@ function setP(el){ $('promptInput').value = el.textContent.trim(); }
 
 const COLUMNS = [
   {
-    id:'spec', icon:'💬', title:'Product Spec', sub:'Functional Spec Generator',
+    id:'spec', icon:'💬', title:'Product Spec', sub:'Spec Generator · Claude Sonnet API',
     steps:[
-      {l:'Conversation',    t:'FORGE asks targeted questions one at a time until the requirement is fully unambiguous.', type:'run',      dur:700},
-      {l:'Functional spec', t:'Scope, out-of-scope, performance requirements, and user flows documented.',               type:'run',      dur:600},
-      {l:'Jira tasks',      t:'High-level business tasks created in Jira for Architecture Agent to consume.',            type:'run',      dur:500},
-      {l:'Approval gate',   t:'Product owner reviews and approves before architecture design begins.',                    type:'approval', dur:700},
+      {l:'GPU spin-up',       t:'CPU droplet (no GPU needed). Claude Sonnet API called via HTTPS. No local model required.',                  type:'gpu-up',  dur:400, model:'Claude Sonnet 4.5 API'},
+      {l:'Conversation',      t:'FORGE asks targeted questions one at a time until the requirement is fully unambiguous.',                    type:'run',     dur:700},
+      {l:'Functional spec',   t:'Scope, out-of-scope, performance requirements, and user flows documented and saved.',                        type:'run',     dur:600},
+      {l:'Jira tasks',        t:'High-level business tasks created in Jira for Architecture Agent to consume.',                               type:'run',     dur:500},
+      {l:'Approval gate',     t:'Product owner reviews and approves. Claude API call ends. Zero GPU cost for this phase.',                    type:'approval',dur:700},
     ]
   },
   {
-    id:'arch', icon:'🏗', title:'Architecture', sub:'Architecture Agent · H100',
+    id:'arch', icon:'🏗', title:'Architecture', sub:'Architecture Agent · Llama-3.1-70B · H100',
     steps:[
-      {l:'System design',       t:'Service boundaries, technology stack choices, and data flow designed on H100.',       type:'run',      dur:900},
-      {l:'Data model',          t:'Full schema — tables, indexes, constraints — defined before any code is written.',    type:'run',      dur:600},
-      {l:'Interface contracts', t:'Every API endpoint, trait, and type signature explicitly defined.',                   type:'run',      dur:600},
-      {l:'ADRs written',        t:'Architecture Decision Records capture every significant technology choice made.',      type:'run',      dur:500},
-      {l:'Jira tasks created',  t:'Concrete implementation tasks with exact file paths and interface references.',        type:'run',      dur:700},
-      {l:'Approval gate',       t:'Tech lead reviews architecture, ADRs, and full task list before coding begins.',      type:'approval', dur:700},
+      {l:'GPU spin-up',         t:'H100 80GB provisioned. Llama-3.1-70B loaded (40GB VRAM at 4-bit). Boot: 68s.',                           type:'gpu-up',  dur:1000, bar:true, model:'Llama-3.1-70B on H100'},
+      {l:'System design',       t:'Service boundaries, technology stack, and data flow designed. 8,192 token budget.',                        type:'run',     dur:900},
+      {l:'Data model',          t:'Full schema — tables, indexes, constraints — defined before any code is written.',                        type:'run',     dur:600},
+      {l:'Interface contracts', t:'Every API endpoint, trait, and type signature explicitly defined as code contracts.',                      type:'run',     dur:600},
+      {l:'ADRs written',        t:'Architecture Decision Records capture every significant technology choice made.',                          type:'run',     dur:500},
+      {l:'Jira tasks created',  t:'Concrete implementation tasks with exact file paths and interface references. Cost: $0.71.',                type:'run',     dur:700, cost:'$0.71'},
+      {l:'GPU torn down',       t:'H100 powered OFF. Billing stops. Architecture artifacts written to MASTER_CONTEXT.md.',                   type:'gpu-down',dur:600},
+      {l:'Approval gate',       t:'Tech lead reviews architecture, ADRs, and full task list before coding begins.',                          type:'approval',dur:700},
     ]
   },
   {
-    id:'gpu', icon:'⚡', title:'Resource Scheduler', sub:'GPU Lifecycle Controller',
+    id:'code', icon:'⚙️', title:'Code Agent', sub:'Qwen2.5-Coder-32B · L40S GPU',
     steps:[
-      {l:'GPU spin-up',       t:'L40S droplet powered ON via DigitalOcean API. Pre-warm triggered by DAG scheduler.',    type:'gpu-up',   dur:1000, bar:true},
-      {l:'Boot complete',     t:'Health check passed. Qwen2.5-Coder-32B weights loaded. Ready in 68 seconds.',           type:'gpu-up',   dur:600},
-      {l:'Coding — active',   t:'GPU at full capacity. Code Agent executing tasks. Heartbeat every 30s to Redis.',       type:'gpu-up',   dur:1100, cost:'$0.031'},
-      {l:'Pipeline — active', t:'Build, Security, Test agents running. GPU shared across sequential stages.',             type:'gpu-up',   dur:900,  cost:'$0.022'},
-      {l:'Deploy — active',   t:'Deploy and Integration agents running. Performance load test executing.',                type:'gpu-up',   dur:700,  cost:'$0.018'},
-      {l:'Tasks complete',    t:'All tasks finished. Idle timer started. 15-minute countdown begins.',                    type:'gpu-down', dur:500},
-      {l:'Idle timeout',      t:'No new tasks queued after 15 minutes. Tear-down initiated automatically.',              type:'gpu-down', dur:600},
-      {l:'GPU torn down',     t:'L40S powered OFF. Billing stops immediately. Droplet retained for fast next boot.',     type:'gpu-down', dur:700},
-      {l:'Cost logged',       t:'GPU-active: 34 min · Actual cost: $0.89 · Savings vs always-on: 93%.',                 type:'cost',     dur:500},
+      {l:'GPU spin-up',         t:'L40S 48GB provisioned. Qwen2.5-Coder-32B loaded (24GB VRAM). Boot: 42s.',                                type:'gpu-up',  dur:900, bar:true, model:'Qwen2.5-Coder-32B on L40S'},
+      {l:'Reads architecture',  t:'Loads interface contracts from MASTER_CONTEXT.md. No design decisions needed.',                           type:'run',     dur:500},
+      {l:'Writes source + tests',t:'Source files and unit tests written simultaneously. 4,096 token budget per call.',                       type:'run',     dur:1000, cost:'$0.031'},
+      {l:'Checkpoint',          t:'Files committed. MASTER_CONTEXT.md updated. Heartbeat sent to Redis.',                                    type:'run',     dur:500},
+      {l:'Next task dequeued',  t:'Highest-priority QUEUED task picked automatically. Parallel tasks run concurrently on separate droplets.', type:'run',     dur:600, cost:'$0.028'},
+      {l:'GPU torn down',       t:'All tasks CODE COMPLETE. L40S powered OFF. Build agents take over.',                                      type:'gpu-down',dur:600},
     ]
   },
   {
-    id:'code', icon:'⚙️', title:'Code Agent', sub:'Qwen2.5-Coder-32B · L40S',
+    id:'build', icon:'🔨', title:'Build Agent', sub:'Rule Engine · Claude Haiku fallback',
     steps:[
-      {l:'Reads architecture', t:'Loads interface contracts from MASTER_CONTEXT.md. No design decisions needed.',        type:'run', dur:500},
-      {l:'Writes source + tests',t:'Source files and unit tests written simultaneously. 4,096 token budget per call.',   type:'run', dur:1000},
-      {l:'Checkpoint',          t:'Files committed. MASTER_CONTEXT.md updated with progress. Heartbeat active.',         type:'run', dur:500},
-      {l:'Next task dequeued',  t:'Highest-priority QUEUED task picked automatically. Parallel tasks run concurrently.', type:'run', dur:600},
+      {l:'GPU spin-up',       t:'CPU droplet for rule engine (no GPU). Claude Haiku API on fallback for unknown errors only.',               type:'gpu-up',  dur:400, model:'Rule engine + Claude Haiku API (fallback)'},
+      {l:'Compile',           t:'Language-specific executor: cargo build / npm build / mvn package. Pluggable per stack.',                   type:'run',     dur:700},
+      {l:'Rule engine',       t:'~80% of errors resolved by deterministic rules at zero LLM cost. Fast, predictable.',                       type:'run',     dur:600},
+      {l:'Error escalation',  t:'Unknown errors sent to Claude Haiku API. Structured fix applied to source files.',                          type:'run',     dur:700, model:'Claude Haiku API (error only)', cost:'$0.004'},
+      {l:'Build passed',      t:'Binary artefact produced. Lint and format checks clean. Security Agent dispatched.',                        type:'run',     dur:500},
+      {l:'GPU torn down',     t:'CPU droplet released. No GPU used this phase. Build cost: <$0.01.',                                         type:'gpu-down',dur:400},
     ]
   },
   {
-    id:'sec', icon:'🔍', title:'Security Agent', sub:'CVE · SAST · Secrets · SOC2',
+    id:'sec', icon:'🔍', title:'Security Agent', sub:'OSV · Semgrep · Gitleaks · Claude Haiku',
     steps:[
-      {l:'CVE scan',        t:'Dependencies checked against OSV, NVD, and Snyk. 0 critical, 0 high found.',             type:'run', dur:700},
-      {l:'SAST analysis',   t:'Injection, broken auth, insecure crypto scanned with Semgrep OWASP ruleset.',            type:'run', dur:700},
-      {l:'Secrets detection',t:'Hardcoded API keys, tokens, and credentials scanned with Gitleaks.',                    type:'run', dur:500},
-      {l:'Bug created',     t:'Medium severity finding → FORGE-BUG-041 created in Jira. Auto-assigned to Code Agent.',  type:'bug', dur:600},
-      {l:'Bug auto-fixed',  t:'Code Agent dequeues bug, applies fix. Security re-scan passes cleanly.',                 type:'run', dur:800},
-      {l:'SOC2 check',      t:'Access controls, audit logging, and data handling validated against SOC2 controls.',     type:'run', dur:500},
+      {l:'GPU spin-up',       t:'CPU droplet. Claude Haiku API for SAST pattern analysis. No local GPU needed.',                             type:'gpu-up',  dur:400, model:'Claude Haiku API + static tools'},
+      {l:'CVE scan',          t:'Dependencies checked against OSV, NVD, and Snyk databases. 0 critical found.',                             type:'run',     dur:700},
+      {l:'SAST analysis',     t:'Injection, broken auth, insecure crypto scanned with Semgrep OWASP ruleset.',                              type:'run',     dur:700},
+      {l:'Secrets detection', t:'Hardcoded API keys, tokens, and credentials scanned with Gitleaks.',                                       type:'run',     dur:500},
+      {l:'Bug created',       t:'Medium severity finding → FORGE-BUG-041 created in Jira. Auto-assigned to Code Agent.',                    type:'bug',     dur:600},
+      {l:'Bug auto-fixed',    t:'Code Agent spins up L40S, dequeues bug, applies fix. Security re-scan passes cleanly.',                    type:'run',     dur:800},
+      {l:'SOC2 check',        t:'Access controls, audit logging, and data handling validated. SOC2 controls confirmed.',                     type:'run',     dur:500},
+      {l:'GPU torn down',     t:'CPU droplet released. Total security cost: $0.008.',                                                        type:'gpu-down',dur:400},
     ]
   },
   {
-    id:'test', icon:'🧪', title:'Test + Deploy', sub:'Test · Perf · Deploy · Integration',
+    id:'test', icon:'🧪', title:'Test Agent', sub:'Unit · Coverage · Claude Haiku evaluator',
     steps:[
-      {l:'Unit tests',       t:'Test Agent runs full suite. 24/24 pass. Coverage: 87% (threshold: 85%). ✓',             type:'run',      dur:700},
-      {l:'Performance test', t:'p95: 142ms · RPS: 1,840 · Error rate: 0.00% · RAM: 280MB. All within thresholds.',     type:'run',      dur:800},
-      {l:'Docker deploy',    t:'Image built and pushed. Container started. Health check at /health → 200 OK.',          type:'run',      dur:600},
-      {l:'Integration verify',t:'Integration Agent verifies every acceptance criterion against the live deployment.',   type:'run',      dur:700},
-      {l:'PR opened',        t:'FORGE Bot opens PR #184. "All checks passed. p95: 142ms. Ready for review."',           type:'approval', dur:600},
+      {l:'GPU spin-up',     t:'CPU droplet. Claude Haiku API used as LLM-as-Judge evaluator for test quality.',                              type:'gpu-up',  dur:400, model:'Claude Haiku API (evaluator)'},
+      {l:'Unit tests',      t:'Full test suite run. 24/24 pass. Coverage: 87% (threshold: 85%). ✓',                                         type:'run',     dur:700},
+      {l:'Coverage gate',   t:'Per-task coverage threshold enforced. Below threshold → bug ticket created, Code Agent dispatched.',          type:'run',     dur:600},
+      {l:'LLM-as-Judge',    t:'Claude Haiku evaluates test quality — not just pass/fail but whether tests actually validate the spec.',      type:'run',     dur:700, cost:'$0.006'},
+      {l:'Bug created',     t:'Coverage gap detected → FORGE-BUG-044 created. Code Agent writes missing test cases.',                       type:'bug',     dur:500},
+      {l:'Bug resolved',    t:'Additional tests written. Coverage now 89%. LLM-as-Judge approves test quality.',                             type:'run',     dur:600},
+      {l:'PR opened',       t:'FORGE Bot opens PR. "All tests pass. Coverage 89%. Ready for review."',                                       type:'approval',dur:500},
+      {l:'GPU torn down',   t:'CPU droplet released. Test phase cost: $0.006.',                                                              type:'gpu-down',dur:400},
     ]
   },
   {
-    id:'jira', icon:'📋', title:'Jira — Live', sub:'Every status · Every comment',
+    id:'perf', icon:'⚡', title:'Performance Agent', sub:'Load test · Flame graphs · L40S',
     steps:[
-      {l:'Tasks created',    t:'Architecture Agent created 6 implementation tasks. All set to QUEUED status.',          type:'run',      dur:400},
-      {l:'IN PROGRESS',      t:'Code Agent assigned. FORGE Bot comment: "Starting code generation against contracts."', type:'run',      dur:400},
-      {l:'CODE COMPLETE',    t:'4 files committed to branch. Build and security scan dispatched automatically.',         type:'run',      dur:400},
-      {l:'BUG created',      t:'FORGE-BUG-041 · P2 · Security: hardcoded secret detected. Linked to parent task.',     type:'bug',      dur:500},
-      {l:'BUG resolved',     t:'Code Agent fix verified by Security re-scan. Bug closed. Task returned to queue.',      type:'run',      dur:400},
-      {l:'TESTING',          t:'24/24 pass · Coverage 87% · p95 142ms · All acceptance criteria verified.',             type:'run',      dur:400},
-      {l:'PR linked',        t:'PR #184 linked to task. FORGE Bot: "Deployed to staging. Awaiting your review."',      type:'approval', dur:400},
-      {l:'COMPLETED',        t:'PR approved and merged to main. Task marked COMPLETED. 3.2h logged.',                   type:'run',      dur:400},
+      {l:'GPU spin-up',       t:'L40S provisioned for load generation and flame graph analysis. Qwen2.5-32B loaded.',                        type:'gpu-up',  dur:800, bar:true, model:'Qwen2.5-32B on L40S'},
+      {l:'Load test',         t:'k6 load test: 100 VUs, 60s. p50: 38ms · p95: 142ms · p99: 290ms · RPS: 1,840.',                           type:'run',     dur:900, cost:'$0.019'},
+      {l:'Flame graph',       t:'CPU profile captured. LLM analyzes hot paths and identifies N+1 query at /api/accounts.',                   type:'run',     dur:800},
+      {l:'Threshold check',   t:'p95 threshold: 200ms. Actual: 142ms. ✓ RAM: 280MB / 512MB limit. ✓',                                      type:'run',     dur:500},
+      {l:'Perf bug created',  t:'N+1 query pattern flagged → FORGE-BUG-047 created. P2. Code Agent dispatched.',                            type:'bug',     dur:600},
+      {l:'Bug fixed + retest',t:'Query batched. Re-run: p95 now 88ms. 38% improvement. Bug closed automatically.',                          type:'run',     dur:800, cost:'$0.022'},
+      {l:'GPU torn down',     t:'L40S powered OFF. Performance phase complete. Cost: $0.041.',                                               type:'gpu-down',dur:600},
+    ]
+  },
+  {
+    id:'log', icon:'📡', title:'Log Monitor Agent', sub:'Continuous · Claude Haiku · L40S on alert',
+    steps:[
+      {l:'Monitor starts',    t:'Log Monitor Agent starts watching structured logs after build. Runs continuously on CPU droplet.',           type:'gpu-up',  dur:400, model:'Claude Haiku API (streaming logs)'},
+      {l:'Log ingestion',     t:'Application logs streamed via Fluentd. Errors, warnings, latency spikes parsed in real time.',              type:'run',     dur:600},
+      {l:'Anomaly detected',  t:'Claude Haiku detects repeated NullPointerException in OrderService at line 142. 3 occurrences/min.',        type:'bug',     dur:700, cost:'$0.003'},
+      {l:'GPU spin-up',       t:'L40S provisioned on-demand for Code Agent. Triggered by log anomaly, not by schedule.',                     type:'gpu-up',  dur:800, bar:true, model:'Qwen2.5-Coder-32B on L40S (on-demand)'},
+      {l:'Bug created',       t:'FORGE-BUG-051 created with full log context, stack trace, and suggested fix. Auto-assigned.',               type:'bug',     dur:500},
+      {l:'Code Agent fixes',  t:'Code Agent reads log context + stack trace. Null check added at OrderService:142. Tests updated.',          type:'run',     dur:900, cost:'$0.029'},
+      {l:'GPU torn down',     t:'L40S powered OFF after fix committed. Monitor resumes on CPU. Log-triggered cost: $0.029.',                 type:'gpu-down',dur:600},
+      {l:'Monitor continues', t:'Log Monitor stays active on CPU droplet. Next anomaly triggers same on-demand GPU cycle.',                  type:'run',     dur:400},
+    ]
+  },
+  {
+    id:'jira', icon:'📋', title:'Jira — Live', sub:'Every status · Every model · Every cost',
+    steps:[
+      {l:'Tasks created',   t:'Architecture Agent created 6 tasks. Model: Llama-3.1-70B. Cost logged: $0.71.',                               type:'run',      dur:400},
+      {l:'IN PROGRESS',     t:'Code Agent (Qwen2.5-Coder-32B) assigned. "Starting code generation against architecture contracts."',          type:'run',      dur:400},
+      {l:'Build passed',    t:'Build Agent: rule engine resolved 2 errors. Claude Haiku used once. Cost: $0.004.',                           type:'run',      dur:400},
+      {l:'BUG-041 created', t:'Security Agent: hardcoded secret detected. P2. Code Agent auto-assigned.',                                    type:'bug',      dur:500},
+      {l:'BUG-041 resolved',t:'Code Agent fix verified by Security re-scan. Bug closed. $0.031 logged.',                                     type:'run',      dur:400},
+      {l:'BUG-047 created', t:'Performance Agent: N+1 query at /api/accounts. P2. Code Agent auto-assigned.',                               type:'bug',      dur:500},
+      {l:'BUG-051 created', t:'Log Monitor: NullPointerException OrderService:142. L40S spun up on-demand.',                                type:'bug',      dur:500},
+      {l:'All bugs resolved',t:'3 bugs auto-fixed. PR opened. All models and costs logged per task.',                                        type:'approval', dur:400},
     ]
   },
 ];
 
 function buildBoard(){
   const board = $('board');
-  board.style.gridTemplateColumns = `repeat(${COLUMNS.length},1fr)`;
+  board.style.gridTemplateColumns = `repeat(${COLUMNS.length},minmax(130px,1fr))`;
   board.innerHTML = COLUMNS.map(col=>`
     <div class="col" id="col-${col.id}">
       <div class="col-head">
@@ -434,8 +470,9 @@ function buildBoard(){
               ${s.l}
             </div>
             <div class="step-text">${s.t}</div>
+            ${s.model?`<div class="model-badge">${s.model}</div>`:''}
             ${s.bar?`<div class="gpu-bar-wrap"><div class="gpu-bar" id="gbar-${col.id}-${i}"></div></div>`:''}
-            ${s.cost?`<div class="cost-line-inner"><span style="color:var(--muted);font-size:9px;">GPU cost this step</span><span class="cv">${s.cost}</span></div>`:''}
+            ${s.cost?`<div class="cost-line-inner"><span style="color:var(--muted);font-size:9px;">cost this step</span><span class="cv">${s.cost}</span></div>`:''}
             <div class="shim${s.type==='gpu-up'||s.type==='gpu-down'?' orange':''}" id="shim-${col.id}-${i}"></div>
           </div>`).join('')}
       </div>
@@ -542,7 +579,7 @@ async function runPipeline(){
   }
 
   const elapsed = Math.round((Date.now()-t0)/1000);
-  setStatus('Pipeline complete — software deployed · GPU powered down · audit trail in Jira', 100);
+  setStatus('Pipeline complete — build passed · all bugs fixed · PR opened · GPU torn down · cost logged', 100);
   await delay(400);
   showCostPanel(34, elapsed);
 
