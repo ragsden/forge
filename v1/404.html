@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Not Found — FORGE Platform Specification</title>
+<style>
+  :root { --ink: #1a1a1a; --muted: #555; --light: #888; --border: #ddd; --accent: #1d4ed8; --bg-code: #f4f4f4; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; font-size: 16px; line-height: 1.75; color: var(--ink); background: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .container { max-width: 560px; padding: 60px 40px; text-align: center; }
+  .code { font-family: 'Courier New', monospace; font-size: 80px; font-weight: bold; color: var(--bg-code); line-height: 1; margin-bottom: 8px; }
+  .title { font-size: 24px; font-weight: bold; margin-bottom: 12px; }
+  .desc { color: var(--muted); margin-bottom: 36px; font-size: 15px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+  .nav-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); margin-bottom: 16px; }
+  .nav-links { display: flex; flex-direction: column; gap: 8px; }
+  .nav-link { display: block; padding: 12px 20px; border: 1px solid var(--border); text-decoration: none; color: var(--ink); font-size: 14px; text-align: left; transition: background 0.15s; }
+  .nav-link:hover { background: #f7f7f7; border-color: var(--accent); color: var(--accent); }
+  .nav-link-num { font-family: 'Courier New', monospace; font-size: 10px; color: var(--light); margin-right: 10px; }
+  .home-btn { display: inline-block; margin-top: 28px; padding: 12px 28px; background: var(--ink); color: #fff; text-decoration: none; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+  .home-btn:hover { background: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="code">404</div>
+  <div class="title">Page not found</div>
+  <div class="desc">The spec document you're looking for doesn't exist at this URL. Use the links below to navigate to the right section.</div>
+
+  <a href="index.html" class="home-btn">← Back to Index</a>
+
+  <hr class="divider">
+
+  <div class="nav-label">Specification Documents</div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link"><span class="nav-link-num">00</span> Index — Overview, Architecture, Pricing, Roadmap</a>
+    <a href="spec-A-scheduler-and-watchdog.html" class="nav-link"><span class="nav-link-num">A</span> Master Scheduler, Watchdog &amp; State Store</a>
+    <a href="spec-B-functional-spec-agent.html" class="nav-link"><span class="nav-link-num">B</span> Functional Spec Generator &amp; Jira Integration</a>
+    <a href="spec-C-agents.html" class="nav-link"><span class="nav-link-num">C</span> The Eight Pipeline Agents</a>
+    <a href="spec-D-resource-and-cloud.html" class="nav-link"><span class="nav-link-num">D</span> Resource Controller &amp; Multi-Cloud Provisioner</a>
+    <a href="spec-E-knowledge-and-models.html" class="nav-link"><span class="nav-link-num">E</span> Knowledge Layer, LoRA Pipeline &amp; Model Version Controller</a>
+    <a href="spec-F-multitenant-and-ops.html" class="nav-link"><span class="nav-link-num">F</span> Multi-Tenant Architecture &amp; Operations</a>
+  </div>
+</div>
+</body>
+</html>

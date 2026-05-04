@@ -1,0 +1,15 @@
+# ── FORGE V1 ──────────────────────────────────────────────────
+# Netlify config for the V1 site
+# Publish directory: v1
+# No serverless functions (V1 demo uses hardcoded scenarios, no API calls)
+
+[build]
+  publish = "v1"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
