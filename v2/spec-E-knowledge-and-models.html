@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec E — Knowledge Layer & Models | FORGE Platform</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --muted: #555; --light: #888; --border: #ddd;
+    --bg-alt: #fafafa; --bg-code: #f4f4f4;
+    --accent: #1d4ed8; --accent-light: #eff6ff;
+    --warn: #b91c1c; --warn-light: #fef2f2;
+    --ok: #15803d; --ok-light: #f0fdf4;
+    --gold: #92400e; --gold-light: #fffbeb;
+    --purple: #6b21a8; --purple-light: #faf5ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; font-size: 16px; line-height: 1.75; color: var(--ink); background: #fff; }
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+  .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: #f9f9f9; border-right: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 12px; }
+  .sidebar-brand { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: bold; }
+  .sidebar-brand a { text-decoration: none; color: var(--ink); }
+  .sidebar-brand a:hover { color: var(--accent); }
+  .sidebar-doc-title { padding: 12px 20px 0; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); }
+  .sidebar-doc-name { padding: 4px 20px 14px; font-size: 12px; font-weight: bold; color: var(--accent); border-bottom: 1px solid var(--border); }
+  .nav-section { padding: 12px 0 4px 20px; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); }
+  .nav-item { display: block; padding: 5px 20px 5px 24px; color: var(--muted); text-decoration: none; line-height: 1.4; border-left: 2px solid transparent; }
+  .nav-item:hover { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); }
+  .nav-item.active { color: var(--accent); font-weight: bold; border-left-color: var(--accent); }
+  .nav-item.sub { padding-left: 36px; font-size: 11px; }
+  .sidebar-files { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 4px; }
+  .nav-file { display: block; padding: 5px 20px; color: var(--light); text-decoration: none; font-size: 11px; }
+  .nav-file:hover { color: var(--accent); }
+  .nav-file.current { color: var(--ink); font-weight: bold; }
+
+  .main { padding: 60px 80px 100px; max-width: 880px; }
+  .breadcrumb { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); margin-bottom: 36px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { margin: 0 6px; }
+  .doc-header { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 40px; }
+  .doc-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--light); margin-bottom: 10px; }
+  .doc-title { font-size: 36px; font-weight: bold; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .doc-desc { font-size: 16px; color: var(--muted); font-style: italic; margin-bottom: 16px; }
+  .doc-meta { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); display: flex; gap: 24px; flex-wrap: wrap; }
+
+  .section { margin-bottom: 72px; }
+  .section-anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+  h1.sh { font-size: 26px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 20px; display: flex; align-items: baseline; gap: 12px; }
+  h2.sh { font-size: 19px; margin-top: 36px; margin-bottom: 12px; display: flex; align-items: baseline; gap: 10px; }
+  h3.sh { font-size: 15px; margin-top: 24px; margin-bottom: 8px; font-style: italic; display: flex; align-items: baseline; gap: 8px; }
+  .anchor-link { font-family: 'Courier New', monospace; font-size: 11px; color: var(--border); text-decoration: none; font-style: normal; font-weight: normal; }
+  .anchor-link:hover, h1.sh:hover .anchor-link, h2.sh:hover .anchor-link, h3.sh:hover .anchor-link { color: var(--accent); }
+
+  p { margin-bottom: 14px; }
+  ul, ol { margin: 0 0 14px 0; padding-left: 24px; }
+  li { margin-bottom: 6px; line-height: 1.7; }
+
+  .callout { padding: 16px 20px; margin: 20px 0; border-left: 4px solid var(--ink); background: var(--bg-alt); font-size: 15px; }
+  .callout.blue { border-color: var(--accent); background: var(--accent-light); }
+  .callout.red { border-color: var(--warn); background: var(--warn-light); }
+  .callout.green { border-color: var(--ok); background: var(--ok-light); }
+  .callout.gold { border-color: var(--gold); background: var(--gold-light); }
+  .callout.purple { border-color: var(--purple); background: var(--purple-light); }
+  .callout-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 6px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; }
+  th { background: var(--ink); color: #fff; padding: 9px 13px; text-align: left; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: normal; }
+  td { padding: 8px 13px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+  tr:nth-child(even) td { background: var(--bg-alt); }
+
+  pre { background: var(--bg-code); border: 1px solid var(--border); padding: 16px 20px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; margin: 16px 0 24px; white-space: pre; }
+  code { font-family: 'Courier New', monospace; font-size: 12.5px; background: #eee; padding: 2px 5px; }
+
+  /* source quality cards */
+  .source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0 28px; }
+  .source-card { border: 1px solid var(--border); padding: 16px 18px; }
+  .source-name { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .source-score { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
+  .source-score.high { color: var(--ok); }
+  .source-score.med { color: var(--gold); }
+  .source-score.low { color: var(--muted); }
+  .source-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .source-volume { font-family: 'Courier New', monospace; font-size: 10px; color: var(--light); margin-top: 6px; }
+
+  /* flywheel */
+  .flywheel { border: 1px solid var(--border); padding: 24px; margin: 20px 0 28px; }
+  .flywheel-row { display: grid; grid-template-columns: 80px 1fr 120px 120px; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+  .flywheel-row:last-child { border-bottom: none; }
+  .flywheel-month { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); }
+  .flywheel-event { color: var(--ink); }
+  .flywheel-approval { font-family: 'Courier New', monospace; font-size: 12px; color: var(--ok); }
+  .flywheel-context { font-family: 'Courier New', monospace; font-size: 12px; color: var(--accent); }
+
+  /* migration timeline */
+  .migration-timeline { border-left: 2px solid var(--border); margin: 20px 0 28px; padding-left: 24px; }
+  .migration-day { margin-bottom: 20px; position: relative; }
+  .migration-day::before { content: ''; position: absolute; left: -30px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--border); border: 2px solid #fff; }
+  .migration-day.done::before { background: var(--ok); }
+  .migration-day.active::before { background: var(--accent); }
+  .migration-day-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 4px; }
+  .migration-day-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+  .migration-day-detail { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* model registry card */
+  .model-card { border: 1px solid var(--border); margin-bottom: 10px; }
+  .model-card-header { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 12px 16px; background: var(--bg-alt); border-bottom: 1px solid var(--border); }
+  .model-name { font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; color: var(--accent); }
+  .model-badges { display: flex; gap: 6px; }
+  .model-badge { font-family: 'Courier New', monospace; font-size: 9px; padding: 2px 7px; border: 1px solid var(--border); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .model-card-body { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .model-stat { padding: 10px 14px; border-right: 1px solid var(--border); font-size: 12px; }
+  .model-stat:last-child { border-right: none; }
+  .model-stat-label { font-family: 'Courier New', monospace; font-size: 9px; color: var(--light); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .model-stat-value { color: var(--ink); font-size: 13px; }
+
+  /* lora comparison */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin: 20px 0 28px; }
+  .compare-col { padding: 20px; }
+  .compare-col:first-child { border-right: 1px solid var(--border); }
+  .compare-head { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--light); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .compare-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px dotted #eee; }
+  .compare-label { color: var(--muted); }
+  .compare-value { font-family: 'Courier New', monospace; font-size: 12px; }
+  .compare-value.good { color: var(--ok); }
+  .compare-value.bad { color: var(--warn); }
+
+  .spec-row { display: grid; grid-template-columns: 180px 1fr; gap: 0; border-bottom: 1px solid #eee; padding: 10px 0; font-size: 14px; }
+  .spec-label { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); padding-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+  .spec-value { color: var(--ink); line-height: 1.6; padding-left: 12px; }
+
+  .page-nav { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 12px; }
+  .page-nav a { color: var(--accent); text-decoration: none; }
+  .page-nav a:hover { text-decoration: underline; }
+  .spec-footer { font-family: 'Courier New', monospace; font-size: 11px; color: var(--light); text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .main { padding: 40px 24px 80px; }
+    .source-grid { grid-template-columns: 1fr; }
+    .model-card-body { grid-template-columns: 1fr 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .flywheel-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand"><a href="index.html">← FORGE Platform</a></div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec E — Knowledge &amp; Models</div>
+
+  <div class="nav-section">Sections</div>
+  <a href="#overview" class="nav-item">Overview</a>
+  <a href="#knowledge-layer" class="nav-item">Knowledge Layer</a>
+  <a href="#ingestion" class="nav-item sub">Ingestion Pipeline</a>
+  <a href="#zero-labeling" class="nav-item sub">Zero-Labeling Sources</a>
+  <a href="#quality-scoring" class="nav-item sub">Quality Scoring</a>
+  <a href="#training-example" class="nav-item sub">Training Example Format</a>
+  <a href="#lora-pipeline" class="nav-item">LoRA Training Pipeline</a>
+  <a href="#lora-vs-full" class="nav-item sub">LoRA vs Full Fine-Tuning</a>
+  <a href="#lora-config" class="nav-item sub">Training Configuration</a>
+  <a href="#training-triggers" class="nav-item sub">Training Triggers</a>
+  <a href="#adapter-lifecycle" class="nav-item sub">Adapter Lifecycle</a>
+  <a href="#flywheel" class="nav-item sub">The Learning Flywheel</a>
+  <a href="#context-impact" class="nav-item sub">Context Window Impact</a>
+  <a href="#llm-selector" class="nav-item">LLM Selector</a>
+  <a href="#task-classification" class="nav-item sub">Task Classification</a>
+  <a href="#routing-logic" class="nav-item sub">Routing Logic</a>
+  <a href="#llm-registry" class="nav-item">LLM Registry</a>
+  <a href="#model-catalog" class="nav-item sub">Model Catalog</a>
+  <a href="#registry-update" class="nav-item sub">Weekly Registry Update</a>
+  <a href="#model-version-controller" class="nav-item">Model Version Controller</a>
+  <a href="#migration-triggers" class="nav-item sub">Migration Triggers</a>
+  <a href="#migration-pipeline" class="nav-item sub">7-Day Migration Pipeline</a>
+  <a href="#data-permanence" class="nav-item sub">Training Data Permanence</a>
+  <a href="#llm-as-judge" class="nav-item">LLM-as-Judge Evaluator</a>
+  <a href="#judge-panel" class="nav-item sub">Evaluation Panel</a>
+  <a href="#judge-criteria" class="nav-item sub">Scoring Criteria</a>
+  <a href="#bias-correction" class="nav-item sub">Bias Correction</a>
+
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-A-scheduler-and-watchdog.html" class="nav-file">A — Scheduler &amp; Watchdog</a>
+    <a href="spec-B-functional-spec-agent.html" class="nav-file">B — Spec Generator &amp; Jira</a>
+    <a href="spec-C-agents.html" class="nav-file">C — The Eight Agents</a>
+    <a href="spec-D-resource-and-cloud.html" class="nav-file">D — Resource &amp; Cloud</a>
+    <a href="spec-E-knowledge-and-models.html" class="nav-file current">E — Knowledge &amp; Models</a>
+    <a href="spec-F-multitenant-and-ops.html" class="nav-file">F — Multi-Tenant &amp; Ops</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="breadcrumb">
+    <a href="index.html">FORGE Platform Spec</a>
+    <span>›</span>
+    Spec E — Knowledge Layer, LoRA Pipeline &amp; Model Version Controller
+  </div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification E of F</div>
+    <div class="doc-title">Knowledge Layer &amp; Models</div>
+    <div class="doc-desc">How FORGE learns from each customer's codebase, automatically fine-tunes models with zero human labeling, selects the right LLM for each task, and migrates to better models as they are released.</div>
+    <div class="doc-meta">
+      <span>Components: 18–23</span>
+      <span>Version: 1.0</span>
+      <span>Status: Draft</span>
+      <span>May 2026</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <a class="section-anchor" id="overview"></a>
+    <h1 class="sh">Overview <a href="#overview" class="anchor-link">#overview</a></h1>
+
+    <p>The intelligence layer is what makes FORGE a platform that gets smarter over time rather than one that stays static. It has four main capabilities: ingesting a customer's entire codebase and git history to extract training examples automatically; fine-tuning the platform's code generation models on those examples using LoRA adapters; selecting the best available LLM for each task type dynamically; and migrating to better models as they are released without losing any accumulated knowledge.</p>
+
+    <p>The central insight driving this layer is that <strong>code is self-labeling</strong>. A merged pull request is an implicit approval signal. A code review comment paired with the resulting fix is a gold-standard training example. A docstring paired with its implementation is a supervised learning pair. The git history of any active software project is a continuous, free, high-quality training data source — no human annotation required.</p>
+
+    <div class="callout purple">
+      <div class="callout-label">The Compounding Effect</div>
+      Every merged PR generates new training examples. Every weekly training run incorporates those examples. The model gets better at the customer's specific codebase every week. By month 6, context windows are 95% smaller, inference is 10× faster, and PR approval rates reach 94%. The platform's value compounds automatically.
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE LAYER -->
+  <div class="section">
+    <a class="section-anchor" id="knowledge-layer"></a>
+    <h1 class="sh">Knowledge Layer / Ingestion Agent <a href="#knowledge-layer" class="anchor-link">#knowledge-layer</a></h1>
+
+    <a class="section-anchor" id="ingestion"></a>
+    <h2 class="sh">Ingestion Pipeline <a href="#ingestion" class="anchor-link">#ingestion</a></h2>
+
+    <p>On customer onboarding, the Ingestion Agent performs a full scan of the customer's code repositories. On an ongoing basis, it runs as a background process triggered by git events — every merged PR, every push to a release branch, and every resolved code review comment triggers an incremental ingestion run.</p>
+
+    <p>The ingestion pipeline processes the following source types in order of quality signal strength:</p>
+
+    <ol>
+      <li><strong>Git commit history</strong> — full commit log with diffs, commit messages, and author metadata going back to project inception</li>
+      <li><strong>Pull requests</strong> — PR description, commits, review comments, requested changes, and final merged state</li>
+      <li><strong>Code review comments</strong> — inline review comments paired with the before/after diff of the code at that line</li>
+      <li><strong>Source code files</strong> — all source files in all branches, parsed for function signatures, docstrings, type annotations, and inline comments</li>
+      <li><strong>Test files</strong> — unit and integration tests paired with the modules they test</li>
+      <li><strong>Design documents</strong> — architecture docs, API specs (OpenAPI/Swagger), database schemas, README files</li>
+      <li><strong>Issue and ticket history</strong> — Jira/Linear issue descriptions paired with the commits that resolved them</li>
+    </ol>
+
+    <a class="section-anchor" id="zero-labeling"></a>
+    <h2 class="sh">Zero-Labeling Training Sources <a href="#zero-labeling" class="anchor-link">#zero-labeling</a></h2>
+
+    <p>Every training example is extracted automatically from existing artifacts. No human ever manually labels a training example. The following sources produce supervised learning pairs with no annotation work:</p>
+
+    <div class="source-grid">
+      <div class="source-card">
+        <div class="source-name">Merged Pull Requests</div>
+        <div class="source-score high">0.85</div>
+        <div class="source-desc">Merge event = implicit approval label. The PR description is the instruction. The diff is the expected output. Merges are human-approved high-quality completions by definition.</div>
+        <div class="source-volume">Est. volume: 10–50 examples/week per active developer</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">Review Comment + Fix Pairs</div>
+        <div class="source-score high">0.95</div>
+        <div class="source-desc">A reviewer says "this should use X pattern instead." The developer fixes it. The comment is the instruction. The before/after diff is the gold-standard input/output pair. Highest quality signal in the entire pipeline.</div>
+        <div class="source-volume">Est. volume: 5–20 examples/week per active reviewer</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">Docstring → Implementation</div>
+        <div class="source-score med">0.78</div>
+        <div class="source-desc">A function with a docstring is a naturally labeled training pair. Docstring = instruction. Function body = expected code output. Works best for well-documented codebases.</div>
+        <div class="source-volume">Est. volume: hundreds to thousands per codebase scan</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">Test → Implementation</div>
+        <div class="source-score med">0.82</div>
+        <div class="source-desc">A test file describes expected behavior precisely. The implementation satisfying those tests is the expected output. Test-driven codebases produce especially high-quality pairs from this source.</div>
+        <div class="source-volume">Est. volume: hundreds per codebase scan</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">Issue → Commit Resolution</div>
+        <div class="source-score med">0.74</div>
+        <div class="source-desc">A Jira issue description paired with the commit(s) that closed it. Requires the commit message to reference the issue key. Quality varies with issue description detail.</div>
+        <div class="source-volume">Est. volume: 5–20 examples/week depending on issue linking discipline</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">Synthetic Augmentation</div>
+        <div class="source-score low">0.65</div>
+        <div class="source-desc">Claude API generates additional training examples by varying existing high-quality examples — different phrasings, edge cases, alternative implementations. Filtered at quality threshold 0.70 before inclusion.</div>
+        <div class="source-volume">Est. volume: generated on demand for underrepresented patterns</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">Reverted Commits</div>
+        <div class="source-score low">0.00</div>
+        <div class="source-desc">Commits that were later reverted are excluded entirely. A reverted commit is an explicit quality signal of 0 — the code was accepted then rejected. Including it would teach the model to generate bad code.</div>
+        <div class="source-volume">Automatically detected and excluded via git revert log</div>
+      </div>
+      <div class="source-card">
+        <div class="source-name">CI/CD Pass/Fail Signal</div>
+        <div class="source-score med">0.80</div>
+        <div class="source-desc">Code that passed all CI checks gets a higher quality weight. Code that required multiple CI retry cycles before passing gets a lower weight. Binary quality signal that costs nothing to extract.</div>
+        <div class="source-volume">Applied as a quality multiplier to all other source types</div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="quality-scoring"></a>
+    <h2 class="sh">Quality Scoring and Filtering <a href="#quality-scoring" class="anchor-link">#quality-scoring</a></h2>
+
+    <p>Every extracted training example is assigned a quality score between 0.0 and 1.0. Examples scoring below the threshold of 0.70 are excluded from training. This threshold prevents low-signal noise from degrading model quality.</p>
+
+    <p>The quality score for an example is computed as:</p>
+
+    <pre>
+quality_score = base_source_score
+              × ci_pass_multiplier       # 1.0 if all CI passed, 0.8 if retries needed
+              × review_approval_factor   # 1.1 if PR had ≥2 approvals, 1.0 otherwise
+              × completeness_factor      # 0.5–1.0 based on description length and clarity
+              × recency_factor           # slight decay for examples > 12 months old
+
+# Example calculation:
+# Review comment + fix:  0.95 × 1.0 × 1.1 × 0.95 × 1.0 = 0.99  ✓ included
+# Docstring pair (old):  0.78 × 0.8 × 1.0 × 0.90 × 0.85 = 0.48  ✗ excluded
+# Merged PR:             0.85 × 1.0 × 1.0 × 0.95 × 1.0  = 0.81  ✓ included
+    </pre>
+
+    <p>The quality threshold of 0.70 is a configurable parameter per tenant. Tenants with very large codebases and abundant high-quality examples may raise it to 0.80 to keep the training set lean and high-signal. Tenants with smaller codebases may lower it to 0.65 to maintain sufficient training volume.</p>
+
+    <a class="section-anchor" id="training-example"></a>
+    <h2 class="sh">Training Example Format <a href="#training-example" class="anchor-link">#training-example</a></h2>
+
+    <p>All training examples are stored in a model-agnostic JSON format. This is the key design decision that makes training data permanent across model migrations — the format does not depend on any specific model's tokenizer or chat template. When a new base model is adopted, the training data is re-tokenized using the new model's tokenizer. The examples themselves never need to be regenerated.</p>
+
+    <pre>
+{
+  "example_id":     "ex_a3f92bc_042",
+  "source_type":    "review_comment_fix",
+  "quality_score":  0.94,
+  "tenant_id":      "acme-corp",
+  "extracted_at":   "2026-04-15T09:22:00Z",
+  "language":       "rust",
+  "instruction": "The retry backoff is not applying jitter. Add jitter to prevent thundering herd when many requests fail simultaneously. Use the full-jitter strategy from the AWS blog post on exponential backoff.",
+  "input_context": "fn calculate_delay(attempt: u32) -> Duration {\n    let base = Duration::from_secs(1);\n    let exp = 2u64.pow(attempt);\n    base * exp as u32\n}",
+  "expected_output": "fn calculate_delay(attempt: u32) -> Duration {\n    let base_ms: u64 = 1000;\n    let cap_ms: u64 = 30_000;\n    let exp_ms = base_ms * 2u64.pow(attempt);\n    let ceiling = exp_ms.min(cap_ms);\n    let jitter_ms = rand::thread_rng().gen_range(0..=ceiling);\n    Duration::from_millis(jitter_ms)\n}",
+  "metadata": {
+    "pr_id":         "PR-184",
+    "reviewer":      "senior-eng-01",
+    "commit_sha":    "b7e3a12",
+    "file":          "src/payments/retry_policy.rs",
+    "ci_passed":     true,
+    "approvals":     2
+  }
+}
+    </pre>
+  </div>
+
+  <!-- LORA TRAINING PIPELINE -->
+  <div class="section">
+    <a class="section-anchor" id="lora-pipeline"></a>
+    <h1 class="sh">LoRA Training Pipeline <a href="#lora-pipeline" class="anchor-link">#lora-pipeline</a></h1>
+
+    <a class="section-anchor" id="lora-vs-full"></a>
+    <h2 class="sh">LoRA vs Full Fine-Tuning <a href="#lora-vs-full" class="anchor-link">#lora-vs-full</a></h2>
+
+    <p>FORGE uses LoRA (Low-Rank Adaptation) adapters rather than full fine-tuning for all company-specific model training. The comparison:</p>
+
+    <div class="compare-grid">
+      <div class="compare-col">
+        <div class="compare-head">LoRA Adapter Training</div>
+        <div class="compare-row"><span class="compare-label">Parameters updated</span><span class="compare-value good">0.1% of total</span></div>
+        <div class="compare-row"><span class="compare-label">Initial training cost</span><span class="compare-value good">$25–40</span></div>
+        <div class="compare-row"><span class="compare-label">Incremental training cost</span><span class="compare-value good">$9–15/week</span></div>
+        <div class="compare-row"><span class="compare-label">Adapter file size</span><span class="compare-value good">50–200 MB</span></div>
+        <div class="compare-row"><span class="compare-label">Training time</span><span class="compare-value good">3–5 hours</span></div>
+        <div class="compare-row"><span class="compare-label">Rollback</span><span class="compare-value good">Instant — swap adapter file</span></div>
+        <div class="compare-row"><span class="compare-label">Quality vs full fine-tune</span><span class="compare-value good">Within 2–5%</span></div>
+        <div class="compare-row"><span class="compare-label">Multiple tenants</span><span class="compare-value good">100 adapters on one base model</span></div>
+      </div>
+      <div class="compare-col">
+        <div class="compare-head">Full Fine-Tuning</div>
+        <div class="compare-row"><span class="compare-label">Parameters updated</span><span class="compare-value bad">100% of total</span></div>
+        <div class="compare-row"><span class="compare-label">Initial training cost</span><span class="compare-value bad">$500–2,000</span></div>
+        <div class="compare-row"><span class="compare-label">Incremental training cost</span><span class="compare-value bad">$200–500/run</span></div>
+        <div class="compare-row"><span class="compare-label">Model file size</span><span class="compare-value bad">65 GB (32B model)</span></div>
+        <div class="compare-row"><span class="compare-label">Training time</span><span class="compare-value bad">2–5 days</span></div>
+        <div class="compare-row"><span class="compare-label">Rollback</span><span class="compare-value bad">Requires full re-training</span></div>
+        <div class="compare-row"><span class="compare-label">Quality</span><span class="compare-value good">Marginally better</span></div>
+        <div class="compare-row"><span class="compare-label">Multiple tenants</span><span class="compare-value bad">Separate 65 GB model per tenant</span></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="lora-config"></a>
+    <h2 class="sh">Training Configuration <a href="#lora-config" class="anchor-link">#lora-config</a></h2>
+
+    <p>The following LoRA hyperparameters are used for the default Qwen2.5-Coder-32B base model. These values were established through ablation studies and are fixed for the platform's initial release. Per-tenant overrides are available for enterprise customers with dedicated ML engineering support.</p>
+
+    <table>
+      <tr><th>Parameter</th><th>Value</th><th>Rationale</th></tr>
+      <tr><td>LoRA rank (r)</td><td>32</td><td>Balances expressiveness and parameter count. Rank 16 underfits complex coding patterns; rank 64 shows diminishing returns.</td></tr>
+      <tr><td>LoRA alpha (α)</td><td>64</td><td>Alpha = 2× rank is the standard starting point. Controls the effective learning rate scaling of the adapter.</td></tr>
+      <tr><td>Dropout</td><td>0.05</td><td>Light regularization. Code generation benefits from low dropout — too much degrades precision on syntax.</td></tr>
+      <tr><td>Target modules</td><td>q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj</td><td>All attention and MLP projection layers. Broader targeting than attention-only gives better code quality at minimal cost.</td></tr>
+      <tr><td>Learning rate</td><td>1e-4</td><td>Standard for LoRA. Higher rates cause catastrophic forgetting; lower rates slow convergence without quality benefit.</td></tr>
+      <tr><td>Epochs</td><td>3</td><td>3 passes over the training set with early stopping on validation loss. More epochs overfit on small company datasets.</td></tr>
+      <tr><td>Batch size</td><td>4 (gradient accumulation ×8 = effective 32)</td><td>Fits H100 80GB VRAM with 32B model in 4-bit quantization.</td></tr>
+      <tr><td>Sequence length</td><td>4,096 tokens</td><td>Covers most training examples. Longer sequences are truncated at natural boundaries (function end).</td></tr>
+      <tr><td>Quantization</td><td>4-bit NF4 (bitsandbytes)</td><td>Reduces base model memory to ~20 GB, leaving 60 GB for adapter training and gradient computation.</td></tr>
+      <tr><td>Optimizer</td><td>AdamW with cosine LR schedule</td><td>Cosine schedule prevents training collapse in the final epochs.</td></tr>
+      <tr><td>Hardware</td><td>1× H100 80GB</td><td>Single H100 is sufficient for 32B model LoRA training at these settings.</td></tr>
+      <tr><td>Training duration</td><td>3–5 hours</td><td>Varies with dataset size. Enforced hard stop at 6 hours regardless.</td></tr>
+    </table>
+
+    <a class="section-anchor" id="training-triggers"></a>
+    <h2 class="sh">Training Triggers <a href="#training-triggers" class="anchor-link">#training-triggers</a></h2>
+
+    <p>Training runs are triggered automatically. No human schedules or initiates them. The LoRA Training Orchestrator monitors the following conditions and triggers a training run when any is met:</p>
+
+    <table>
+      <tr><th>Trigger</th><th>Condition</th><th>Rationale</th></tr>
+      <tr><td>Scheduled weekly run</td><td>Every Sunday at 02:00 UTC</td><td>Off-peak hours. Regular cadence regardless of activity level.</td></tr>
+      <tr><td>New example threshold</td><td>500+ new quality examples since last training run</td><td>Enough new data to meaningfully improve the adapter.</td></tr>
+      <tr><td>Large codebase change</td><td>500+ files changed since last training run (major refactor or new module)</td><td>Structural changes require model adaptation to new patterns.</td></tr>
+      <tr><td>Quality degradation signal</td><td>PR approval rate drops below 75% over trailing 7 days</td><td>Model is producing worse output — immediate retraining needed.</td></tr>
+      <tr><td>New developer joined</td><td>New developer account activated in tenant</td><td>Their first tasks benefit from a freshly trained adapter including all recent patterns.</td></tr>
+      <tr><td>Manual trigger</td><td>Operator or tenant admin requests training via dashboard</td><td>For cases where an unusually large PR merge warrants immediate retraining.</td></tr>
+    </table>
+
+    <a class="section-anchor" id="adapter-lifecycle"></a>
+    <h2 class="sh">Adapter Lifecycle <a href="#adapter-lifecycle" class="anchor-link">#adapter-lifecycle</a></h2>
+
+    <p>Adapter files are versioned and retained. Every training run produces a new versioned adapter. The previous adapter is never deleted until the new one has been validated and promoted to production. This makes rollback trivial — it is a single file pointer change in the Model Registry, taking less than one second.</p>
+
+    <pre>
+Adapter versioning in Model Registry:
+
+  acme-corp/qwen2.5-coder-32b/
+    adapter-v1.0/  (initial training, 2026-05-01)
+    adapter-v1.1/  (weekly run #1, 2026-05-08)
+    adapter-v1.2/  (weekly run #2, 2026-05-15)  ← current production
+    adapter-v1.3/  (weekly run #3, training)     ← in validation
+
+  Production pointer: adapter-v1.2
+  Validation pointer: adapter-v1.3
+
+Promotion sequence:
+  1. adapter-v1.3 completes training
+  2. LLM-as-Judge evaluates v1.3 vs v1.2 on held-out test set
+  3. If v1.3 scores ≥ v1.2 on all criteria: promote to production
+  4. If v1.3 regresses on any criterion: discard v1.3, alert operator
+  5. Production pointer updated — zero downtime
+    </pre>
+
+    <a class="section-anchor" id="flywheel"></a>
+    <h2 class="sh">The Learning Flywheel <a href="#flywheel" class="anchor-link">#flywheel</a></h2>
+
+    <p>The platform's value compounds over time as the model learns more about each customer's codebase. The following shows a typical trajectory for a 10-developer team:</p>
+
+    <div class="flywheel">
+      <div class="flywheel-row" style="font-family:'Courier New',monospace;font-size:10px;color:var(--light);border-bottom:2px solid var(--border);padding-bottom:8px;">
+        <div>Period</div><div>Event</div><div>PR Approval Rate</div><div>Avg Context Tokens</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-month">Week 1</div>
+        <div class="flywheel-event">Initial training on existing codebase. Generic base model only.</div>
+        <div class="flywheel-approval">~68%</div>
+        <div class="flywheel-context">~36,000</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-month">Month 1</div>
+        <div class="flywheel-event">4 weekly training runs. 200+ examples from merged PRs and reviews.</div>
+        <div class="flywheel-approval">~74%</div>
+        <div class="flywheel-context">~18,000</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-month">Month 3</div>
+        <div class="flywheel-event">12 training runs. 800+ examples. Model knows most common patterns.</div>
+        <div class="flywheel-approval">~84%</div>
+        <div class="flywheel-context">~8,000</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-month">Month 6</div>
+        <div class="flywheel-event">26 training runs. 2,000+ examples. Model deeply familiar with codebase.</div>
+        <div class="flywheel-approval">~94%</div>
+        <div class="flywheel-context">~1,700</div>
+      </div>
+      <div class="flywheel-row">
+        <div class="flywheel-month">Month 12</div>
+        <div class="flywheel-event">52 training runs. 5,000+ examples. Model approaches senior developer quality.</div>
+        <div class="flywheel-approval">~97%</div>
+        <div class="flywheel-context">~900</div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="context-impact"></a>
+    <h2 class="sh">Context Window Impact <a href="#context-impact" class="anchor-link">#context-impact</a></h2>
+
+    <p>The reduction in context window size is the most directly measurable economic benefit of fine-tuning. A generic model needs extensive context to understand the codebase's patterns, conventions, and interfaces on every call. A fine-tuned model already knows these patterns — the context window only needs to contain the specific task, not a tutorial on how the codebase works.</p>
+
+    <table>
+      <tr><th>Metric</th><th>Month 1 (generic model)</th><th>Month 6 (fine-tuned)</th><th>Improvement</th></tr>
+      <tr><td>Average input tokens per call</td><td>~32,000</td><td>~1,500</td><td>95% reduction</td></tr>
+      <tr><td>Average output tokens per call</td><td>~4,000</td><td>~3,800</td><td>~5% reduction (output stays similar)</td></tr>
+      <tr><td>Total tokens per call</td><td>~36,000</td><td>~5,300</td><td>85% reduction</td></tr>
+      <tr><td>Cost per Code Agent call (API fallback)</td><td>$0.108</td><td>$0.019</td><td>82% reduction</td></tr>
+      <tr><td>Inference latency (self-hosted)</td><td>8–12 seconds</td><td>0.8–1.2 seconds</td><td>~10× faster</td></tr>
+    </table>
+  </div>
+
+  <!-- LLM SELECTOR -->
+  <div class="section">
+    <a class="section-anchor" id="llm-selector"></a>
+    <h1 class="sh">LLM Selector <a href="#llm-selector" class="anchor-link">#llm-selector</a></h1>
+
+    <p>The LLM Selector determines which model to use for each incoming task before the task enters the QUEUED state. It writes the selected model identifier and required GPU tier into the task descriptor. All other components use these fields — they never select a model themselves.</p>
+
+    <a class="section-anchor" id="task-classification"></a>
+    <h2 class="sh">Task Classification <a href="#task-classification" class="anchor-link">#task-classification</a></h2>
+
+    <p>The Selector classifies tasks into one of the following types based on the task descriptor fields — primarily <code>task_type</code>, <code>language</code>, <code>description</code> length and complexity signals, and <code>output_interfaces</code> breadth:</p>
+
+    <table>
+      <tr><th>Task Class</th><th>Classification Signals</th><th>Examples</th></tr>
+      <tr><td>Standard code generation</td><td>Single module, defined input/output interfaces, language is in supported set</td><td>Implementing a service, writing an API handler, building a data model</td></tr>
+      <tr><td>Complex code generation</td><td>Multiple modules, cross-cutting concerns, novel algorithmic component, 6+ files_to_write</td><td>Distributed consensus implementation, query optimizer, graph traversal engine</td></tr>
+      <tr><td>Architecture design</td><td>task_type=architecture, output_interfaces contains multiple new service definitions</td><td>Designing a new microservice, defining a data pipeline, specifying a caching strategy</td></tr>
+      <tr><td>UI / frontend</td><td>language=typescript/javascript AND framework signals (React, Vue, Svelte)</td><td>Component implementation, page layout, state management</td></tr>
+      <tr><td>Documentation</td><td>task_type=docs OR files_to_write contains only .md/.rst files</td><td>README, API docs, architecture decision records</td></tr>
+      <tr><td>Configuration</td><td>files_to_write contains only .yaml/.toml/.json/.env files</td><td>Docker Compose, CI config, infrastructure as code</td></tr>
+      <tr><td>Bug fix — simple</td><td>task_type=bug AND single file, single function scope</td><td>Off-by-one error, wrong return type, missing null check</td></tr>
+      <tr><td>Bug fix — complex</td><td>task_type=bug AND multiple files OR architectural root cause</td><td>Race condition, memory leak, incorrect state machine transition</td></tr>
+      <tr><td>Design generation</td><td>output format is image/SVG OR design system tokens</td><td>UI mockups, icon generation, color palette</td></tr>
+    </table>
+
+    <a class="section-anchor" id="routing-logic"></a>
+    <h2 class="sh">Routing Logic <a href="#routing-logic" class="anchor-link">#routing-logic</a></h2>
+
+    <table>
+      <tr><th>Task Class</th><th>Primary Model</th><th>Fallback</th><th>Tier</th></tr>
+      <tr><td>Standard code generation</td><td>Qwen2.5-Coder-32B + company adapter</td><td>Claude Sonnet API</td><td>2 (L40S)</td></tr>
+      <tr><td>Complex code generation</td><td>Qwen2.5-Coder-32B + DeepSeek-Coder-V2 ensemble</td><td>Claude Sonnet API</td><td>2 (L40S)</td></tr>
+      <tr><td>Architecture design</td><td>Llama-3.1-70B</td><td>Claude Sonnet API</td><td>1 (H100)</td></tr>
+      <tr><td>UI / frontend</td><td>Qwen2.5-Coder-32B + company adapter</td><td>Claude Sonnet API</td><td>2 (L40S)</td></tr>
+      <tr><td>Documentation</td><td>Llama-3.1-8B</td><td>Claude Haiku API</td><td>4 (CPU/API)</td></tr>
+      <tr><td>Configuration</td><td>Claude Haiku API (always)</td><td>—</td><td>4 (CPU)</td></tr>
+      <tr><td>Bug fix — simple</td><td>Qwen2.5-Coder-7B + company adapter</td><td>Claude Haiku API</td><td>3 (RTX 4000)</td></tr>
+      <tr><td>Bug fix — complex</td><td>Qwen2.5-Coder-32B + company adapter</td><td>Claude Sonnet API</td><td>2 (L40S)</td></tr>
+      <tr><td>Design generation</td><td>Stable Diffusion XL</td><td>—</td><td>3 (RTX 4000)</td></tr>
+    </table>
+
+    <div class="callout green">
+      <div class="callout-label">Fallback Behavior</div>
+      The company adapter is always the primary model when available and the task requires the Code Agent. If the GPU droplet is unavailable, booting, or the task is below the API routing threshold, the Selector falls back to the Claude API. The fallback always uses the same or better quality model — it never routes to a lesser model to save cost at the expense of quality.
+    </div>
+  </div>
+
+  <!-- LLM REGISTRY -->
+  <div class="section">
+    <a class="section-anchor" id="llm-registry"></a>
+    <h1 class="sh">LLM Registry <a href="#llm-registry" class="anchor-link">#llm-registry</a></h1>
+
+    <p>The LLM Registry is a database of all available models maintained by the platform. The LLM Selector reads from it. The Model Version Controller writes to it when new models are discovered or promoted. It is the authoritative record of what models exist, what they can do, and what they cost.</p>
+
+    <a class="section-anchor" id="model-catalog"></a>
+    <h2 class="sh">Current Model Catalog <a href="#model-catalog" class="anchor-link">#model-catalog</a></h2>
+
+    <div class="model-card">
+      <div class="model-card-header">
+        <div class="model-name">qwen2.5-coder-32b-instruct</div>
+        <div class="model-badges"><span class="model-badge">Primary Coder</span><span class="model-badge">LoRA Supported</span><span class="model-badge">Self-Hosted</span></div>
+      </div>
+      <div class="model-card-body">
+        <div class="model-stat"><div class="model-stat-label">Parameters</div><div class="model-stat-value">32B</div></div>
+        <div class="model-stat"><div class="model-stat-label">VRAM Required</div><div class="model-stat-value">48 GB (4-bit)</div></div>
+        <div class="model-stat"><div class="model-stat-label">HumanEval</div><div class="model-stat-value">92.7%</div></div>
+        <div class="model-stat"><div class="model-stat-label">Context</div><div class="model-stat-value">128K tokens</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-card-header">
+        <div class="model-name">deepseek-coder-v2-instruct</div>
+        <div class="model-badges"><span class="model-badge">Complex Tasks</span><span class="model-badge">MoE Architecture</span><span class="model-badge">Self-Hosted</span></div>
+      </div>
+      <div class="model-card-body">
+        <div class="model-stat"><div class="model-stat-label">Parameters</div><div class="model-stat-value">236B MoE (21B active)</div></div>
+        <div class="model-stat"><div class="model-stat-label">VRAM Required</div><div class="model-stat-value">48 GB (4-bit)</div></div>
+        <div class="model-stat"><div class="model-stat-label">HumanEval</div><div class="model-stat-value">90.2%</div></div>
+        <div class="model-stat"><div class="model-stat-label">Context</div><div class="model-stat-value">128K tokens</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-card-header">
+        <div class="model-name">llama-3.1-70b-instruct</div>
+        <div class="model-badges"><span class="model-badge">Architecture</span><span class="model-badge">Reasoning</span><span class="model-badge">Self-Hosted</span></div>
+      </div>
+      <div class="model-card-body">
+        <div class="model-stat"><div class="model-stat-label">Parameters</div><div class="model-stat-value">70B</div></div>
+        <div class="model-stat"><div class="model-stat-label">VRAM Required</div><div class="model-stat-value">80 GB (4-bit)</div></div>
+        <div class="model-stat"><div class="model-stat-label">MMLU</div><div class="model-stat-value">86.0%</div></div>
+        <div class="model-stat"><div class="model-stat-label">Context</div><div class="model-stat-value">128K tokens</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-card-header">
+        <div class="model-name">qwen2.5-coder-7b-instruct</div>
+        <div class="model-badges"><span class="model-badge">Bug Fixes</span><span class="model-badge">LoRA Supported</span><span class="model-badge">Self-Hosted</span></div>
+      </div>
+      <div class="model-card-body">
+        <div class="model-stat"><div class="model-stat-label">Parameters</div><div class="model-stat-value">7B</div></div>
+        <div class="model-stat"><div class="model-stat-label">VRAM Required</div><div class="model-stat-value">8 GB (4-bit)</div></div>
+        <div class="model-stat"><div class="model-stat-label">HumanEval</div><div class="model-stat-value">88.4%</div></div>
+        <div class="model-stat"><div class="model-stat-label">Context</div><div class="model-stat-value">32K tokens</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-card-header">
+        <div class="model-name">claude-sonnet-4-6 / claude-haiku-4-5</div>
+        <div class="model-badges"><span class="model-badge">API Fallback</span><span class="model-badge">Anthropic Hosted</span></div>
+      </div>
+      <div class="model-card-body">
+        <div class="model-stat"><div class="model-stat-label">Sonnet Cost</div><div class="model-stat-value">$3/$15 per 1M</div></div>
+        <div class="model-stat"><div class="model-stat-label">Haiku Cost</div><div class="model-stat-value">$0.80/$4 per 1M</div></div>
+        <div class="model-stat"><div class="model-stat-label">Use Case</div><div class="model-stat-value">Fallback when GPU unavailable</div></div>
+        <div class="model-stat"><div class="model-stat-label">Context</div><div class="model-stat-value">200K tokens</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="registry-update"></a>
+    <h2 class="sh">Weekly Registry Update <a href="#registry-update" class="anchor-link">#registry-update</a></h2>
+
+    <p>Every Monday at 03:00 UTC, the Model Version Controller scans HuggingFace Hub for newly released models in the coding, instruction-following, and reasoning categories. It checks benchmark leaderboards (HumanEval, MBPP, BigCodeBench, LiveCodeBench) for models outperforming current catalog entries. If a new model exceeds the current primary model on 2+ benchmarks, it is flagged as a migration candidate and the migration pipeline begins.</p>
+  </div>
+
+  <!-- MODEL VERSION CONTROLLER -->
+  <div class="section">
+    <a class="section-anchor" id="model-version-controller"></a>
+    <h1 class="sh">Model Version Controller <a href="#model-version-controller" class="anchor-link">#model-version-controller</a></h1>
+
+    <p>The Model Version Controller manages the lifecycle of base model upgrades. When a better model becomes available, it orchestrates the migration over 7 days — evaluating, retraining the adapter, canary testing, and promoting — with full rollback capability at every stage. Human effort required: reading one summary email.</p>
+
+    <a class="section-anchor" id="migration-triggers"></a>
+    <h2 class="sh">Migration Triggers <a href="#migration-triggers" class="anchor-link">#migration-triggers</a></h2>
+
+    <table>
+      <tr><th>Trigger</th><th>Condition</th><th>Action</th></tr>
+      <tr><td>Benchmark outperformance</td><td>New model exceeds current model on 2+ standard benchmarks by ≥3%</td><td>Begin evaluation phase automatically</td></tr>
+      <tr><td>Significant quality gap</td><td>New model exceeds current by ≥10% on any single benchmark</td><td>Expedited evaluation — 3-day pipeline instead of 7-day</td></tr>
+      <tr><td>Security vulnerability</td><td>Current model has a disclosed vulnerability requiring upgrade</td><td>Emergency migration — expedited with operator notification</td></tr>
+      <tr><td>Manual trigger</td><td>Operator or Anthropic engineering requests evaluation of a specific model</td><td>Begin evaluation phase on specified model</td></tr>
+    </table>
+
+    <a class="section-anchor" id="migration-pipeline"></a>
+    <h2 class="sh">7-Day Migration Pipeline <a href="#migration-pipeline" class="anchor-link">#migration-pipeline</a></h2>
+
+    <div class="migration-timeline">
+      <div class="migration-day done">
+        <div class="migration-day-label">Day 0 — Detection</div>
+        <div class="migration-day-title">New model identified and flagged</div>
+        <div class="migration-day-detail">Model Version Controller detects new model exceeds current model on benchmarks. Operator receives automated email with benchmark comparison. Migration pipeline starts. No customer impact.</div>
+      </div>
+      <div class="migration-day done">
+        <div class="migration-day-label">Day 1 — Shadow Evaluation</div>
+        <div class="migration-day-title">New model runs in shadow mode</div>
+        <div class="migration-day-detail">New model receives 5% of production tasks in parallel with the current model. Its outputs are evaluated by LLM-as-Judge against the current model's outputs. Real tasks, no production impact, outputs discarded. Evaluation runs for 24 hours to accumulate 500+ comparison pairs.</div>
+      </div>
+      <div class="migration-day done">
+        <div class="migration-day-label">Day 2 — Adapter Retraining</div>
+        <div class="migration-day-title">LoRA adapter regenerated for new base model</div>
+        <div class="migration-day-detail">The existing training data (model-agnostic JSON) is re-tokenized for the new model's tokenizer. LoRA adapter is trained on the new base model using the same hyperparameters. Takes 3–5 hours on H100. Training data is never regenerated — only the adapter changes. Cost: ~$25–40.</div>
+      </div>
+      <div class="migration-day active">
+        <div class="migration-day-label">Day 3 — Canary Deployment</div>
+        <div class="migration-day-title">New model + adapter serves 5% of traffic</div>
+        <div class="migration-day-detail">New model with retrained adapter promoted to production for 5% of tasks. LLM-as-Judge monitors quality continuously. Automated rollback triggers if quality drops below current model on any criterion. Human can manually rollback via dashboard at any time.</div>
+      </div>
+      <div class="migration-day">
+        <div class="migration-day-label">Day 5 — Canary Expansion</div>
+        <div class="migration-day-title">Traffic expanded to 25% then 50%</div>
+        <div class="migration-day-detail">If Day 3–4 canary shows no regressions, traffic expanded in steps: 25% on Day 5 morning, 50% on Day 5 afternoon. Continuous LLM-as-Judge monitoring throughout. Rollback remains instant at any point.</div>
+      </div>
+      <div class="migration-day">
+        <div class="migration-day-label">Day 7 — Full Migration</div>
+        <div class="migration-day-title">New model serves 100% of traffic</div>
+        <div class="migration-day-detail">Full cutover to new model. Old model retained for 14 days for rollback availability. Operator receives completion notification with quality comparison. LLM Registry updated with new model as primary. Old model's adapter retained permanently.</div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="data-permanence"></a>
+    <h2 class="sh">Training Data Permanence <a href="#data-permanence" class="anchor-link">#data-permanence</a></h2>
+
+    <p>The most important property of the training data design is that it is permanent and model-agnostic. When a new base model is adopted, the following happens:</p>
+
+    <table>
+      <tr><th>Asset</th><th>On Model Migration</th><th>Cost</th></tr>
+      <tr><td>Training examples (JSON)</td><td>Reused as-is. No regeneration. Zero work.</td><td>$0</td></tr>
+      <tr><td>Tokenized dataset</td><td>Regenerated using new model's tokenizer. ~1 hour compute.</td><td>~$2</td></tr>
+      <tr><td>LoRA adapter</td><td>Retrained on new base model. 3–5 hours on H100.</td><td>$25–40</td></tr>
+      <tr><td>Chat template</td><td>Updated to new model's format. Configuration change only.</td><td>$0</td></tr>
+      <tr><td>Model Registry entry</td><td>Updated with new model path and adapter pointer.</td><td>$0</td></tr>
+      <tr><td><strong>Total migration cost</strong></td><td></td><td><strong>~$27–42</strong></td></tr>
+    </table>
+
+    <p>Five years of accumulated training examples representing a company's complete development knowledge base survive every model upgrade. The knowledge asset compounds indefinitely. No model release can destroy what has been learned.</p>
+  </div>
+
+  <!-- LLM-AS-JUDGE -->
+  <div class="section">
+    <a class="section-anchor" id="llm-as-judge"></a>
+    <h1 class="sh">LLM-as-Judge Evaluator <a href="#llm-as-judge" class="anchor-link">#llm-as-judge</a></h1>
+
+    <p>The LLM-as-Judge Evaluator is used in two contexts: validating new adapter versions before promotion to production, and evaluating candidate models during migration shadow testing. It uses a panel of three independent LLMs to score generated code, reducing single-model bias.</p>
+
+    <a class="section-anchor" id="judge-panel"></a>
+    <h2 class="sh">Evaluation Panel <a href="#judge-panel" class="anchor-link">#judge-panel</a></h2>
+
+    <table>
+      <tr><th>Judge Model</th><th>Weight</th><th>Rationale</th></tr>
+      <tr><td>Claude Sonnet 4.6</td><td>40%</td><td>Strong reasoning and code quality assessment. Primary judge with highest weight.</td></tr>
+      <tr><td>GPT-4o</td><td>35%</td><td>Independent perspective. Different training distribution reduces shared blind spots with Claude.</td></tr>
+      <tr><td>Gemini 1.5 Pro</td><td>25%</td><td>Third independent perspective. Trained with Google's different code corpus.</td></tr>
+    </table>
+
+    <p>Using three independent judges with different training backgrounds reduces the risk of all judges sharing the same biases. A model that is subtly bad in a way Claude is blind to will likely be caught by GPT-4o or Gemini, and vice versa.</p>
+
+    <a class="section-anchor" id="judge-criteria"></a>
+    <h2 class="sh">Scoring Criteria <a href="#judge-criteria" class="anchor-link">#judge-criteria</a></h2>
+
+    <table>
+      <tr><th>Criterion</th><th>Weight</th><th>What Is Evaluated</th></tr>
+      <tr><td>Correctness</td><td>30%</td><td>Does the code implement what the task descriptor specifies? Does it satisfy the acceptance criteria? Does it handle the edge cases listed?</td></tr>
+      <tr><td>Convention compliance</td><td>25%</td><td>Does the code follow the customer's established patterns as demonstrated in the training data? Correct naming, structure, error handling style.</td></tr>
+      <tr><td>Code quality</td><td>20%</td><td>Is the code readable, maintainable, and idiomatic for the language? No unnecessary complexity, no code smells, appropriate abstraction level.</td></tr>
+      <tr><td>Performance</td><td>15%</td><td>Does the implementation avoid obvious performance pitfalls? Appropriate data structures, no N+1 queries, no unnecessary allocations.</td></tr>
+      <tr><td>Security</td><td>10%</td><td>Does the code avoid common security mistakes? Input validation present, no injection vulnerabilities, no hardcoded secrets.</td></tr>
+    </table>
+
+    <a class="section-anchor" id="bias-correction"></a>
+    <h2 class="sh">Position Bias Correction <a href="#bias-correction" class="anchor-link">#bias-correction</a></h2>
+
+    <p>LLMs exhibit position bias — they tend to prefer whichever code sample they see first, regardless of quality. The Evaluator corrects for this by evaluating each pair twice with the order reversed, then averaging the scores.</p>
+
+    <pre>
+Evaluation run 1:  Judge sees [Model A output, Model B output]
+                   Scores: A=0.82, B=0.76
+
+Evaluation run 2:  Judge sees [Model B output, Model A output]
+                   Scores: B=0.79, A=0.83
+
+Position-corrected score:
+  Model A: (0.82 + 0.83) / 2 = 0.825
+  Model B: (0.76 + 0.79) / 2 = 0.775
+
+Decision: Model A is better. Margin is sufficient (>0.02) to be
+          meaningful rather than noise.
+
+// Cost per comparison pair (with bias correction):
+// 2 runs × 3 judges × ~1,500 tokens = ~9,000 tokens
+// At blended judge pricing: ~$0.045 per comparison pair
+    </pre>
+
+    <p>A margin threshold of 0.02 is applied — if the position-corrected score difference between two models is less than 0.02, the models are considered equivalent and the current production model is retained (conservative default: do not change if not meaningfully better).</p>
+  </div>
+
+  <!-- PAGE NAV -->
+  <div class="page-nav">
+    <a href="spec-D-resource-and-cloud.html">← Spec D — Resource &amp; Cloud</a>
+    <a href="spec-F-multitenant-and-ops.html">Spec F — Multi-Tenant &amp; Ops →</a>
+  </div>
+
+  <div class="spec-footer">
+    FORGE Platform Specification · Spec E · Version 1.0 · May 2026 · Confidential
+  </div>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('.section-anchor');
+  const navItems = document.querySelectorAll('.nav-item');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + id) item.classList.add('active');
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
