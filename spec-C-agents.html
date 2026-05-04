@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spec C — The Eight Pipeline Agents | FORGE Platform</title>
+<title>Spec C — The Seven Pipeline Agents | FORGE Platform</title>
 <style>
   :root {
     --ink: #1a1a1a; --muted: #555; --light: #888; --border: #ddd;
@@ -158,12 +159,11 @@
   <a href="#performance-agent" class="nav-item">05 — Performance Agent</a>
   <a href="#perf-metrics" class="nav-item sub">Metrics &amp; Thresholds</a>
   <a href="#perf-bugs" class="nav-item sub">Bug Creation</a>
-  <a href="#deploy-agent" class="nav-item">06 — Deploy Agent</a>
+  <a href="#log-monitor-agent" class="nav-item">06 — Log Monitor Agent</a>
   <a href="#deploy-environments" class="nav-item sub">Environments</a>
   <a href="#deploy-rollback" class="nav-item sub">Rollback</a>
-  <a href="#integration-agent" class="nav-item">07 — Integration Test Agent</a>
-  <a href="#audit-agent" class="nav-item">08 — Audit Agent</a>
-  <a href="#audit-rule-engine" class="nav-item sub">Rule Engine</a>
+  <a href="#audit-agent" class="nav-item">07 — Audit Agent</a>
+    <a href="#audit-rule-engine" class="nav-item sub">Rule Engine</a>
   <a href="#audit-output" class="nav-item sub">Fix Spec Output</a>
   <a href="#token-budgets" class="nav-item">Token Budget Summary</a>
 
@@ -185,12 +185,12 @@
   <div class="breadcrumb">
     <a href="index.html">FORGE Platform Spec</a>
     <span>›</span>
-    Spec C — The Eight Pipeline Agents
+    Spec C — The Seven Pipeline Agents
   </div>
 
   <div class="doc-header">
     <div class="doc-label">Specification C of F</div>
-    <div class="doc-title">The Eight Pipeline Agents</div>
+    <div class="doc-title">The Seven Pipeline Agents</div>
     <div class="doc-desc">Full specification of every agent in the FORGE pipeline — inputs, outputs, behavior, failure modes, token budgets, JSON contracts, and language support.</div>
     <div class="doc-meta">
       <span>Components: 07–14</span>
@@ -644,7 +644,7 @@ QUEUED task available
       </div>
       <div class="agent-card-body">
         <div class="spec-row"><div class="spec-label">Purpose</div><div class="spec-value">Run load tests against the deployed container. Measure performance metrics against per-task thresholds. Create bug tickets for any metric that breaches its threshold.</div></div>
-        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Integration Test Agent reports all acceptance criteria verified. Runs as final validation before task is marked COMPLETED.</div></div>
+        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Test Agent reports all tests passing and coverage met. Security Agent has no blocking findings. Performance Agent runs as the final quality gate before PR is opened.</div></div>
         <div class="spec-row"><div class="spec-label">Load testing tool</div><div class="spec-value">k6 for HTTP/gRPC services. Custom harness for databases and libraries. Locust for Python services.</div></div>
         <div class="spec-row"><div class="spec-label">LLM Model</div><div class="spec-value">Claude Haiku for profiling data interpretation — identifying likely root cause of performance regression from metrics and stack traces.</div></div>
         <div class="spec-row"><div class="spec-label">Token budget</div><div class="spec-value">1,024 output tokens. Performance interpretation only — the agent does not generate fixes.</div></div>
@@ -677,104 +677,100 @@ QUEUED task available
 
     <table>
       <tr><th>Breach Severity</th><th>Condition</th><th>Priority</th></tr>
-      <tr><td>P1</td><td>Metric exceeds 2× threshold, or error rate exceeds 1%, or service crashes under load</td><td>Blocker — blocks deployment</td></tr>
-      <tr><td>P2</td><td>Metric between 1.2× and 2× threshold</td><td>High — blocks deployment</td></tr>
+      <tr><td>P1</td><td>Metric exceeds 2× threshold, or error rate exceeds 1%, or service crashes under load</td><td>Blocker — blocks PR from opening</td></tr>
+      <tr><td>P2</td><td>Metric between 1.2× and 2× threshold</td><td>High — blocks PR from opening</td></tr>
       <tr><td>P3</td><td>Metric between threshold and 1.2× threshold (marginal breach)</td><td>Medium — does not block deployment, queued for next sprint</td></tr>
     </table>
   </div>
 
   <!-- ════════════════════════════════════ -->
-  <!-- AGENT 06 — DEPLOY AGENT             -->
+  <!-- AGENT 06 — LOG MONITOR AGENT        -->
   <!-- ════════════════════════════════════ -->
   <div class="section">
-    <a class="section-anchor" id="deploy-agent"></a>
-    <h1 class="sh">06 — Deploy Agent <a href="#deploy-agent" class="anchor-link">#deploy-agent</a></h1>
+    <a class="section-anchor" id="log-monitor-agent"></a>
+    <h1 class="sh">06 — Log Monitor Agent <a href="#log-monitor-agent" class="anchor-link">#log-monitor-agent</a></h1>
 
     <div class="agent-card">
       <div class="agent-card-header">
         <div class="agent-num">06</div>
         <div>
-          <div class="agent-name">Deploy Agent</div>
+          <div class="agent-name">Log Monitor Agent</div>
           <div class="agent-component">Component 12</div>
         </div>
         <div class="agent-badges">
-          <span class="agent-badge">No LLM</span>
-          <span class="agent-badge">Scripted Only</span>
-          <span class="agent-badge">Instant Rollback</span>
-          <span class="agent-badge">Human Gate for Prod</span>
+          <span class="agent-badge">Continuous · CPU Droplet</span>
+          <span class="agent-badge">Claude Haiku Streaming</span>
+          <span class="agent-badge">On-Demand GPU Trigger</span>
+          <span class="agent-badge">Creates Bug Tickets</span>
         </div>
       </div>
       <div class="agent-card-body">
-        <div class="spec-row"><div class="spec-label">Purpose</div><div class="spec-value">Build a Docker image from the committed code, run it in the target environment, perform health checks, and report the container ID for rollback.</div></div>
-        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Test Agent reports all tests passing and coverage met. Security Agent has no blocking findings.</div></div>
-        <div class="spec-row"><div class="spec-label">LLM Model</div><div class="spec-value">None. The Deploy Agent is fully scripted. Deployment is deterministic — no LLM judgment is needed or appropriate.</div></div>
-        <div class="spec-row"><div class="spec-label">Hardware</div><div class="spec-value">CPU only. Docker daemon on the developer's droplet or a shared CI node.</div></div>
-        <div class="spec-row"><div class="spec-label">Production gate</div><div class="spec-value">Staging deployment is automatic. Production deployment requires explicit human approval — the Deploy Agent pauses and posts an approval request to Jira and the developer dashboard.</div></div>
+        <div class="spec-row"><div class="spec-label">Purpose</div><div class="spec-value">Ingest structured application logs continuously after each build. Detect anomalies, errors, and performance regressions in real time. Create Jira bug tickets automatically. Trigger on-demand GPU spin-up for the Code Agent when a fix is needed.</div></div>
+        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Starts after Build Agent success. Runs continuously on a CPU droplet. Does not require a running deployment — reads log streams from the build, test runner, and any staging environment if available.</div></div>
+        <div class="spec-row"><div class="spec-label">LLM Model</div><div class="spec-value">Claude Haiku via API — streaming mode. Processes log lines in real time. Low cost per token, sub-second latency for anomaly detection on each log batch.</div></div>
+        <div class="spec-row"><div class="spec-label">Hardware</div><div class="spec-value">CPU droplet only during monitoring. L40S GPU spun up on-demand only when Code Agent is dispatched to fix a detected issue. GPU tears down immediately after fix is committed.</div></div>
+        <div class="spec-row"><div class="spec-label">Token budget</div><div class="spec-value">256 output tokens per log batch (detection only — brief anomaly description + severity). Full fix context sent to Code Agent separately.</div></div>
+        <div class="spec-row"><div class="spec-label">Log ingestion</div><div class="spec-value">Fluentd → Redis stream → Log Monitor Agent. Batch size: 50 log lines. Batch interval: 10 seconds. Maximum log retention in Redis: 2 hours.</div></div>
       </div>
     </div>
 
-    <a class="section-anchor" id="deploy-environments"></a>
-    <h2 class="sh">Environments <a href="#deploy-environments" class="anchor-link">#deploy-environments</a></h2>
+    <a class="section-anchor" id="log-detection"></a>
+    <h2 class="sh">Anomaly Detection <a href="#log-detection" class="anchor-link">#log-detection</a></h2>
+
+    <p>Claude Haiku processes each batch of 50 log lines and returns a structured classification. The rule engine handles known patterns at zero LLM cost — Haiku is only invoked for novel or multi-signal anomalies.</p>
 
     <table>
-      <tr><th>Environment</th><th>Trigger</th><th>Human Approval?</th><th>Auto-Rollback?</th></tr>
-      <tr><td>Development</td><td>After Build Agent success — deploy for Integration Test Agent to run against</td><td>No</td><td>Yes — on health check failure</td></tr>
-      <tr><td>Staging</td><td>After Test Agent and Security Agent pass</td><td>No</td><td>Yes — on health check failure</td></tr>
-      <tr><td>Production</td><td>After Performance Agent passes AND human clicks approve in dashboard</td><td>Yes — required, non-negotiable</td><td>Yes — automatic on health check failure</td></tr>
+      <tr><th>Anomaly Type</th><th>Detection Method</th><th>Example</th><th>Auto-Fix?</th></tr>
+      <tr><td>Repeated exception</td><td>Rule engine — same exception class 3+ times in 60s</td><td>NullPointerException at OrderService:142 — 3 occurrences/min</td><td>Yes — Code Agent dispatched</td></tr>
+      <tr><td>Latency spike</td><td>Rule engine — p95 exceeds 2× baseline in rolling 60s window</td><td>GET /api/accounts p95 jumped from 80ms to 640ms</td><td>Yes — Performance Agent re-runs, Code Agent dispatched if needed</td></tr>
+      <tr><td>OOM / memory leak</td><td>Rule engine — RSS growth >10% over 5-minute window</td><td>Memory growing from 280MB to 620MB under constant load</td><td>Yes — Code Agent dispatched with memory profile</td></tr>
+      <tr><td>Database error pattern</td><td>Haiku — correlates DB errors with specific query patterns</td><td>"too many connections" correlating with /api/search endpoint</td><td>Yes — connection pool fix dispatched</td></tr>
+      <tr><td>Novel multi-signal anomaly</td><td>Haiku — no single rule matches; multiple signals together indicate a problem</td><td>Elevated 5xx + rising latency + DB warning in same 30s window</td><td>Yes — Haiku produces fix spec for Code Agent</td></tr>
+      <tr><td>Normal noise</td><td>Rule engine — known innocuous patterns filtered out</td><td>Single timeout, expected warning on cold start, info-level noise</td><td>No — suppressed</td></tr>
     </table>
 
-    <a class="section-anchor" id="deploy-rollback"></a>
-    <h2 class="sh">Rollback <a href="#deploy-rollback" class="anchor-link">#deploy-rollback</a></h2>
+    <a class="section-anchor" id="log-bug-creation"></a>
+    <h2 class="sh">Bug Ticket Creation <a href="#log-bug-creation" class="anchor-link">#log-bug-creation</a></h2>
 
-    <p>On every successful deployment, the Deploy Agent stores the previous container ID in Redis under <code>deploy:{task_id}:previous_container</code>. If the health check fails after deployment, the rollback procedure is:</p>
-    <ol>
-      <li>Stop the new container immediately.</li>
-      <li>Read the previous container ID from Redis.</li>
-      <li>Start the previous container.</li>
-      <li>Verify health check passes on the previous container.</li>
-      <li>Report rollback completion to Scheduler.</li>
-      <li>Scheduler moves task back to QUEUED and increments code failure retry counter.</li>
-      <li>FORGE Bot adds Jira comment: "Deployment failed health check. Rolled back to previous version [container ID]. Task requeued. Attempt [N] of 3."</li>
-    </ol>
+    <p>When an anomaly is confirmed, the Log Monitor Agent creates a Jira bug ticket with the full context needed for the Code Agent to fix it without any additional investigation:</p>
 
-    <p>Rollback takes less than 30 seconds in all tested scenarios. The previous container is always kept running in a paused state until the new container passes its health check — cold start time is eliminated from the rollback path.</p>
-  </div>
+    <table>
+      <tr><th>Bug Ticket Field</th><th>Content</th></tr>
+      <tr><td>Title</td><td>Anomaly type + affected component + brief description</td></tr>
+      <tr><td>Severity</td><td>P1 for crash/data loss, P2 for functional regression, P3 for performance degradation</td></tr>
+      <tr><td>Log excerpt</td><td>The 20 most relevant log lines, timestamped, with the anomaly highlighted</td></tr>
+      <tr><td>Stack trace</td><td>Full stack trace if an exception was involved</td></tr>
+      <tr><td>Frequency</td><td>How many times per minute the anomaly is occurring</td></tr>
+      <tr><td>First seen</td><td>Timestamp of first occurrence in this monitoring window</td></tr>
+      <tr><td>Claude Haiku analysis</td><td>1-2 sentence description of the likely root cause and suggested fix direction</td></tr>
+      <tr><td>Affected files</td><td>Source files implicated by the stack trace — pre-populated so Code Agent knows where to look</td></tr>
+    </table>
 
-  <!-- ════════════════════════════════════ -->
-  <!-- AGENT 07 — INTEGRATION TEST AGENT   -->
-  <!-- ════════════════════════════════════ -->
-  <div class="section">
-    <a class="section-anchor" id="integration-agent"></a>
-    <h1 class="sh">07 — Integration Test Agent <a href="#integration-agent" class="anchor-link">#integration-agent</a></h1>
+    <a class="section-anchor" id="log-gpu-trigger"></a>
+    <h2 class="sh">On-Demand GPU Trigger <a href="#log-gpu-trigger" class="anchor-link">#log-gpu-trigger</a></h2>
 
-    <div class="agent-card">
-      <div class="agent-card-header">
-        <div class="agent-num">07</div>
-        <div>
-          <div class="agent-name">Integration Test Agent</div>
-          <div class="agent-component">Component 13</div>
-        </div>
-        <div class="agent-badges">
-          <span class="agent-badge">Acceptance Criteria Verifier</span>
-          <span class="agent-badge">Real Deployment</span>
-          <span class="agent-badge">LLM Powered</span>
-          <span class="agent-badge">1,024 Token Budget</span>
-        </div>
-      </div>
-      <div class="agent-card-body">
-        <div class="spec-row"><div class="spec-label">Purpose</div><div class="spec-value">Send real requests to the running deployment and verify that every acceptance criterion in the task descriptor is satisfied. Not just that tests pass — that the feature does what the product owner asked for.</div></div>
-        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Deploy Agent reports healthy container running in staging or development environment.</div></div>
-        <div class="spec-row"><div class="spec-label">LLM Model</div><div class="spec-value">Claude Haiku to translate acceptance criteria into test scenarios and evaluate whether API responses satisfy each criterion.</div></div>
-        <div class="spec-row"><div class="spec-label">Hardware</div><div class="spec-value">CPU only. Sends HTTP/gRPC requests to the deployed container.</div></div>
-        <div class="spec-row"><div class="spec-label">Token budget</div><div class="spec-value">1,024 output tokens. Haiku evaluates responses against criteria — brief judgments, not code generation.</div></div>
-      </div>
-    </div>
+    <p>The Log Monitor Agent does not spin up the GPU itself. It creates a bug ticket in Jira with status QUEUED and priority set according to severity. The Master Scheduler detects the new QUEUED ticket and triggers GPU provisioning — the same path as any other Code Agent task.</p>
 
-    <p>The Integration Test Agent reads the <code>acceptance_criteria</code> list from the task descriptor and generates a real test scenario for each criterion. For the cryptocurrency payment feature, it would: call the charge creation endpoint with a test BTC amount, verify the response contains a wallet address and amount in BTC, wait 15 minutes and verify the order expires, simulate a Coinbase webhook and verify order status changes, and verify that an expired order reverts to UNPAID rather than CANCELLED.</p>
+    <p>This means a log-detected bug follows exactly the same pipeline as a manually-reported bug: GPU spin-up → Code Agent reads architecture + log context → writes fix → Build Agent verifies → Security Agent scans → Test Agent re-runs → Log Monitor watches for recurrence. If the fix resolves the anomaly, the bug is closed. If the anomaly recurs within 24 hours, the ticket is re-opened with the additional log data appended.</p>
 
-    <p>The agent uses the Coinbase Commerce testnet (or equivalent sandbox environment for other third-party services) — it never makes real financial calls. Sandbox credentials are injected from the customer's environment configuration.</p>
-
-    <p>On any criterion failure, a bug ticket is created with: the criterion text, the actual API response, what the expected response should be, and the specific discrepancy. These integration test bugs are Priority P1 — they mean the feature does not work as the product owner specified.</p>
+    <pre>
+// Log Monitor Agent output — triggers Code Agent via standard Jira ticket
+{
+  "agent_type":     "log_monitor_agent",
+  "anomaly_class":  "repeated_exception",
+  "classified_by":  "rule_engine",
+  "severity":       "P2",
+  "component":      "OrderService",
+  "file_hint":      "src/orders/order_service.rs",
+  "line_hint":      142,
+  "frequency":      "3 occurrences/min",
+  "log_excerpt":    ["2026-05-04 09:14:22 ERROR NullPointerException at OrderService:142", "..."],
+  "haiku_analysis": "Null check missing on order.customer field before accessing customer.email in notify().",
+  "jira_ticket_id": "FORGE-BUG-051",
+  "gpu_trigger":    "scheduled via Master Scheduler — QUEUED ticket detected",
+  "cost_usd":       0.003
+}
+    </pre>
   </div>
 
   <!-- ════════════════════════════════════ -->
@@ -782,11 +778,11 @@ QUEUED task available
   <!-- ════════════════════════════════════ -->
   <div class="section">
     <a class="section-anchor" id="audit-agent"></a>
-    <h1 class="sh">08 — Audit Agent <a href="#audit-agent" class="anchor-link">#audit-agent</a></h1>
+    <h1 class="sh">07 — Audit Agent <a href="#audit-agent" class="anchor-link">#audit-agent</a></h1>
 
     <div class="agent-card">
       <div class="agent-card-header">
-        <div class="agent-num">08</div>
+        <div class="agent-num">07</div>
         <div>
           <div class="agent-name">Audit Agent</div>
           <div class="agent-component">Component 14</div>
