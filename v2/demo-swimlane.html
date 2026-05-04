@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -370,8 +371,8 @@ const COLUMNS = [
       {l:'Dequeues task',       t:'Picks highest-priority QUEUED task from Jira — either implementation task or bug ticket.',                type:'run',     dur:400},
       {l:'Reads architecture',  t:'Loads interface contracts from MASTER_CONTEXT.md. No design decisions made by Code Agent.',               type:'run',     dur:500},
       {l:'Writes source code',  t:'Source files written against architecture contracts. 4,096 token budget per call.',                       type:'run',     dur:1000, cost:'$0.031'},
-      {l:'Commits to branch',   t:'Code committed to customer's feature branch. Customer's CI/CD pipeline picks it up automatically.',    type:'run',     dur:400},
-      {l:'GPU torn down',       t:'L40S powered OFF. Customer's CI/CD runs independently.',                                                  type:'gpu-down',dur:500},
+      {l:'Commits to branch',   t:'Code committed to customer feature branch. Customer CI/CD pipeline picks it up automatically.',    type:'run',     dur:400},
+      {l:'GPU torn down',       t:'L40S powered OFF. Customer CI/CD runs independently.',                                                  type:'gpu-down',dur:500},
     ]
   },
   {
@@ -389,20 +390,20 @@ const COLUMNS = [
   {
     id:'buildmon', icon:'🔨', title:'Build & Test Monitor', sub:'Watches customer CI/CD · Haiku',
     steps:[
-      {l:'GPU spin-up',        t:'CPU droplet only. Claude Haiku API for log analysis. Customer's CI/CD runs in their own infra.',          type:'gpu-up',  dur:400, model:'Claude Haiku API (log analysis)'},
-      {l:'Webhook received',   t:'Customer's GitHub Actions / Jenkins / CircleCI sends webhook on build completion.',                       type:'run',     dur:500},
+      {l:'GPU spin-up',        t:'CPU droplet only. Claude Haiku API for log analysis. Customer CI/CD runs in their own infra.',          type:'gpu-up',  dur:400, model:'Claude Haiku API (log analysis)'},
+      {l:'Webhook received',   t:'Customer GitHub Actions / Jenkins / CircleCI sends webhook on build completion.',                       type:'run',     dur:500},
       {l:'Build log parsed',   t:'Rule engine classifies ~80% of failures instantly at zero LLM cost.',                                      type:'run',     dur:600},
-      {l:'Test failure found', t:'Test failure in customer's test suite detected in log payload.',                                          type:'bug',     dur:600},
+      {l:'Test failure found', t:'Test failure in customer test suite detected in log payload.',                                          type:'bug',     dur:600},
       {l:'Bug queued',         t:'FORGE-BUG-044 queued in Jira with log excerpt and stack trace. Code Agent picks it up.',                  type:'bug',     dur:500},
       {l:'Code Agent fixes',   t:'Code Agent spins up L40S, dequeues bug, writes fix, commits. Customer CI re-runs.',                      type:'run',     dur:800},
-      {l:'Build passes',       t:'Customer's CI/CD webhook reports green. Bug closed automatically.',                                       type:'run',     dur:500},
+      {l:'Build passes',       t:'Customer CI/CD webhook reports green. Bug closed automatically.',                                       type:'run',     dur:500},
       {l:'GPU torn down',      t:'CPU droplet released. Monitoring continues passively.',                                                     type:'gpu-down',dur:400},
     ]
   },
   {
     id:'logmon', icon:'📡', title:'Log Monitor', sub:'Customer logs · Claude Haiku streaming',
     steps:[
-      {l:'Connected',         t:'FORGE connects to customer's log platform (CloudWatch, Datadog, Loki) via read-only API.',                 type:'gpu-up',  dur:400, model:'Claude Haiku API (streaming)'},
+      {l:'Connected',         t:'FORGE connects to customer log platform (CloudWatch, Datadog, Loki) via read-only API.',                 type:'gpu-up',  dur:400, model:'Claude Haiku API (streaming)'},
       {l:'Streaming logs',    t:'Log batches of 50 lines processed every 10 seconds. Rule engine filters known noise.',                      type:'run',     dur:600},
       {l:'Anomaly detected',  t:'Claude Haiku detects NullPointerException in OrderService:142 — 3 occurrences/min.',                       type:'bug',     dur:700, cost:'$0.003'},
       {l:'GPU spin-up',       t:'L40S provisioned on-demand for Code Agent. Triggered by anomaly — not by schedule.',                       type:'gpu-up',  dur:800, bar:true, model:'Qwen2.5-Coder-32B on L40S (on-demand)'},
@@ -415,7 +416,7 @@ const COLUMNS = [
   {
     id:'perfmon', icon:'⚡', title:'Perf Monitor', sub:'Customer APM · Haiku · L40S on alert',
     steps:[
-      {l:'Connected',         t:'FORGE connects to customer's APM (Datadog, New Relic, CloudWatch, Prometheus) via read-only API.',        type:'gpu-up',  dur:400, model:'Claude Haiku API (metric analysis)'},
+      {l:'Connected',         t:'FORGE connects to customer APM (Datadog, New Relic, CloudWatch, Prometheus) via read-only API.',        type:'gpu-up',  dur:400, model:'Claude Haiku API (metric analysis)'},
       {l:'Monitoring metrics',t:'p50/p95/p99 latency, RPS, error rate, memory — checked against thresholds every 60 seconds.',             type:'run',     dur:700},
       {l:'Regression detected',t:'p95 latency jumped from 80ms to 640ms on /api/accounts. Sustained for 2+ minutes.',                     type:'bug',     dur:700, cost:'$0.004'},
       {l:'GPU spin-up',       t:'L40S provisioned on-demand. Haiku pulls correlated log data to identify root cause.',                     type:'gpu-up',  dur:800, bar:true, model:'Qwen2.5-Coder-32B on L40S (on-demand)'},
