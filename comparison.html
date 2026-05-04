@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -520,7 +521,79 @@
     </div>
 
     <!-- FORGE -->
-    <div class="comp-card forge-card">
+    <div class="comp-card" style="--card-color:#f26207;">
+      <div class="comp-name" style="color:#f26207;">Replit Agent</div>
+      <div class="comp-tagline">Replit's AI agent — builds and hosts full apps from a prompt</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$25 – $40 /mo</div>
+        <div class="comp-price-note">Core $25 · Teams $40/dev · Includes hosting</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Full-stack from scratch.</strong> Generates frontend, backend, and database from a single prompt. Best-in-class for new greenfield projects.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Hosting included.</strong> Deploys to Replit's infrastructure instantly. Zero DevOps setup for simple projects.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Prototype quality, not production.</strong> Generated code lacks enterprise patterns, security hardening, and proper test coverage. Not appropriate for customer-facing production systems.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Locked to Replit infrastructure.</strong> No support for your existing cloud, your existing codebase, or your existing Jira workflow.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No security or performance pipeline.</strong> No CVE scanning, no SAST, no load testing, no SOC2 controls. Security is entirely the developer's responsibility.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Solo developers building MVPs or demos fast. Worst for: Production software at any company with compliance, security, or quality requirements.</div>
+    </div>
+
+    <div class="comp-card" style="--card-color:#7c3aed;">
+      <div class="comp-name" style="color:#7c3aed;">Lovable</div>
+      <div class="comp-tagline">AI-powered full-stack app builder for non-developers</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">$20 – $50 /mo</div>
+        <div class="comp-price-note">Starter $20 · Pro $50 · Credit-based generation</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>No-code to full-stack.</strong> Non-developers can prompt their way to a working React + Supabase app without writing a single line.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Visual editing.</strong> Select elements on screen and ask Lovable to change them. Bridges no-code and code.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Designed for non-developers.</strong> Not a tool for engineering teams. No concept of code review, CI/CD, Jira integration, or existing codebases.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Credit-based pricing limits scale.</strong> Complex apps burn credits quickly. Not designed for teams generating high volumes of code continuously.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No enterprise pipeline.</strong> No security scanning, no performance testing, no audit trail, no multi-tenant isolation for developer teams.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Founders and product managers who need to ship a prototype without engineers. Worst for: Engineering teams with existing codebases and quality requirements.</div>
+    </div>
+
+    <div class="comp-card" style="--card-color:#0ea5e9;">
+      <div class="comp-name" style="color:#0ea5e9;">Base44</div>
+      <div class="comp-tagline">Prompt-to-app builder with built-in backend</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">Free – $49 /mo</div>
+        <div class="comp-price-note">Free tier · Pro $49 · Business pricing available</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Integrated backend.</strong> Database, auth, and API all generated together from a single prompt. Lower setup friction than Replit or Lovable.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Rapid iteration.</strong> Edit-in-chat makes quick changes fast. Good for building internal tools and admin dashboards.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Consumer-grade output.</strong> No automated testing, no security pipeline, no coverage requirements. Code quality is not enforced.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No enterprise integration.</strong> No Jira, no existing Git workflows, no PR process. Everything lives inside Base44's platform.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Platform lock-in.</strong> Apps are hosted on Base44's infrastructure. Exporting to your own cloud requires significant rework.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Internal tools, admin panels, and prototypes that don't need to meet enterprise quality standards. Worst for: Production software at scale.</div>
+    </div>
+
+    <div class="comp-card" style="--card-color:#e11d48;">
+      <div class="comp-name" style="color:#e11d48;">Bolt.new</div>
+      <div class="comp-tagline">StackBlitz's in-browser AI full-stack builder</div>
+      <div class="comp-price">
+        <div class="comp-price-label">Pricing</div>
+        <div class="comp-price-value">Free – $30 /mo</div>
+        <div class="comp-price-note">Free (limited tokens) · Pro $20 · Teams $30/dev</div>
+      </div>
+      <div class="comp-facts">
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Instant in-browser dev environment.</strong> No installation. Full-stack app running in the browser within seconds of prompting.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✓</div><div class="fact-text"><strong>Strong framework support.</strong> React, Vue, Astro, SvelteKit — best-in-class for modern frontend frameworks specifically.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Token limits frustrate complex projects.</strong> Free tier runs out quickly. Paid tiers still hit limits on larger codebases and multi-file refactors.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>Frontend-first, not enterprise-ready.</strong> Backend support is limited. No security pipeline, no automated tests, no audit trail.</div></div>
+        <div class="comp-fact"><div class="fact-icon">✗</div><div class="fact-text"><strong>No connection to your existing workflow.</strong> No Jira, no existing Git repo integration, no code review process, no multi-tenant team isolation.</div></div>
+      </div>
+      <div class="verdict yellow">Best for: Frontend prototypes and demos with modern JS frameworks. Worst for: Backend-heavy systems, enterprise codebases, or anything requiring a security and quality pipeline.</div>
+    </div>
+
+        <div class="comp-card forge-card">
       <div class="comp-name" style="color:var(--forge);">FORGE</div>
       <div class="comp-tagline">The autonomous software factory</div>
       <div class="comp-price">
@@ -553,8 +626,9 @@
         <th class="forge-col">FORGE</th>
         <th class="other-col">Copilot</th>
         <th class="other-col">Devin</th>
-        <th class="other-col">Cursor</th>
-        <th class="other-col">Amazon Q</th>
+        <th class="other-col">Replit</th>
+        <th class="other-col">Lovable</th>
+        <th class="other-col">Bolt</th>
       </tr>
     </thead>
     <tbody>
