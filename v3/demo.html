@@ -191,13 +191,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
 </nav>
 
 <div class="hero">
-  <div class="hero-label"><span class="pulse-dot"></span>AI-Powered Demo — Powered by Claude</div>
+  <div class="hero-label"><span class="pulse-dot"></span>V3 Pipeline Demo — Powered by Claude</div>
   <h1 class="hero-title">
-    <span class="t1">Describe Anything You Want Built.</span>
-    <span class="t2">FORGE Shows You How.</span>
+    <span class="t1">Reviewed at Every Step.</span>
+    <span class="t2">Fixed at Every Failure.</span>
   </h1>
   <p class="hero-sub">
-    Type <strong>any product idea</strong> in plain English. Claude generates the conversation, spec, architecture, code agent pipeline, and Jira feed — including how FORGE monitors your CI/CD, logs, and APM to auto-fix issues.
+    Type <strong>any product idea</strong> in plain English. Claude generates the full V3 pipeline — conversation, spec review, architecture review, task generation, test case generation, code review, and Jira feed. Every artifact critiqued before the next phase begins.
   </p>
 </div>
 
@@ -243,82 +243,136 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:fl
   <div class="phase-block" id="phase2">
     <div class="phase-header">
       <div class="phase-num">02</div>
-      <div><div class="phase-title">Specification &amp; Task Decomposition</div><div class="phase-subtitle">Functional spec → tasks with dependencies, coverage thresholds, GPU tiers</div></div>
+      <div><div class="phase-title">Functional Specification</div><div class="phase-subtitle">Scope, out-of-scope, performance expectations — no tasks yet</div></div>
       <div class="phase-status pending" id="p2s">Pending</div>
     </div>
     <div id="sc"></div>
     <div id="tc"></div>
   </div>
 
+  <div class="phase-block" id="phase2r">
+    <div class="phase-header">
+      <div class="phase-num" style="color:#c2410c;">R1</div>
+      <div><div class="phase-title" style="color:#c2410c;">Spec Review Agent</div><div class="phase-subtitle">Checks completeness, ambiguity, contradictions, testability — up to 3 revision cycles</div></div>
+      <div class="phase-status pending" id="p2rs">Pending</div>
+    </div>
+    <div id="specReviewC"></div>
+  </div>
+
   <div class="phase-block" id="phase3">
     <div class="phase-header">
       <div class="phase-num">03</div>
-      <div><div class="phase-title">Dependency DAG &amp; Execution Plan</div><div class="phase-subtitle">Parallel waves computed — maximum throughput from independent tasks</div></div>
+      <div><div class="phase-title">Spec Approval Gate</div><div class="phase-subtitle">Product owner reviews approved spec before architecture begins</div></div>
       <div class="phase-status pending" id="p3s">Pending</div>
     </div>
-    <div id="dc"></div>
+    <div id="ac"></div>
   </div>
 
   <div class="phase-block" id="phase4">
     <div class="phase-header">
       <div class="phase-num">04</div>
-      <div><div class="phase-title">Spec Approval Gate</div><div class="phase-subtitle">Product owner reviews functional spec — hard gate before architecture begins</div></div>
+      <div><div class="phase-title">Architecture Agent</div><div class="phase-subtitle">System design, data model, interface contracts, ADRs on H100 · Llama-3.1-70B</div></div>
       <div class="phase-status pending" id="p4s">Pending</div>
     </div>
-    <div id="ac"></div>
+    <div id="archc"></div>
+  </div>
+
+  <div class="phase-block" id="phase4r">
+    <div class="phase-header">
+      <div class="phase-num" style="color:#c2410c;">R2</div>
+      <div><div class="phase-title" style="color:#c2410c;">Architecture Review Agent</div><div class="phase-subtitle">Checks spec coverage, tech fit, security posture, ADR quality — up to 3 revision cycles</div></div>
+      <div class="phase-status pending" id="p4rs">Pending</div>
+    </div>
+    <div id="archReviewC"></div>
+  </div>
+
+  <div class="phase-block" id="phase4b">
+    <div class="phase-header">
+      <div class="phase-num">04b</div>
+      <div><div class="phase-title">Architecture Approval Gate</div><div class="phase-subtitle">Tech lead reviews approved architecture before task generation begins</div></div>
+      <div class="phase-status pending" id="p4bs">Pending</div>
+    </div>
+    <div id="arch-approval"></div>
   </div>
 
   <div class="phase-block" id="phase5">
     <div class="phase-header">
       <div class="phase-num">05</div>
-      <div><div class="phase-title">Architecture Agent</div><div class="phase-subtitle">System design, data model, interface contracts, ADRs — creates all Jira tasks</div></div>
+      <div><div class="phase-title">Code Task Generator</div><div class="phase-subtitle">Decomposes approved architecture into atomic implementation tasks</div></div>
       <div class="phase-status pending" id="p5s">Pending</div>
     </div>
-    <div id="archc"></div>
+    <div id="taskGenC"></div>
   </div>
 
-  <div class="phase-block" id="phase5b">
+  <div class="phase-block" id="phase5r">
     <div class="phase-header">
-      <div class="phase-num">05b</div>
-      <div><div class="phase-title">Architecture Approval Gate</div><div class="phase-subtitle">Tech lead reviews architecture, ADRs, and implementation task list before code begins</div></div>
-      <div class="phase-status pending" id="p5bs">Pending</div>
+      <div class="phase-num" style="color:#c2410c;">R3</div>
+      <div><div class="phase-title" style="color:#c2410c;">Task Review Agent</div><div class="phase-subtitle">Checks coverage, atomicity, dependency correctness, acceptance criteria — up to 3 cycles</div></div>
+      <div class="phase-status pending" id="p5rs">Pending</div>
     </div>
-    <div id="arch-approval"></div>
+    <div id="taskReviewC"></div>
   </div>
 
   <div class="phase-block" id="phase6">
     <div class="phase-header">
       <div class="phase-num">06</div>
-      <div><div class="phase-title">Autonomous Pipeline Execution</div><div class="phase-subtitle">5 agents — code, security scan, build &amp; test monitor (customer CI), log monitor, performance monitor</div></div>
+      <div><div class="phase-title">Test Case Generator</div><div class="phase-subtitle">Writes test cases BEFORE Code Agent writes source — TDD enforced at pipeline level</div></div>
       <div class="phase-status pending" id="p6s">Pending</div>
     </div>
-    <div id="pc"></div>
+    <div id="testGenC"></div>
+  </div>
+
+  <div class="phase-block" id="phase6r">
+    <div class="phase-header">
+      <div class="phase-num" style="color:#c2410c;">R4</div>
+      <div><div class="phase-title" style="color:#c2410c;">Test Case Review Agent</div><div class="phase-subtitle">Checks coverage, correctness, edge cases, determinism — approval unlocks Code Agent</div></div>
+      <div class="phase-status pending" id="p6rs">Pending</div>
+    </div>
+    <div id="testReviewC"></div>
   </div>
 
   <div class="phase-block" id="phase7">
     <div class="phase-header">
       <div class="phase-num">07</div>
-      <div><div class="phase-title">Jira — Live Activity Feed</div><div class="phase-subtitle">Every status change, bug ticket, model used, and cost — exactly as your team sees it in Jira</div></div>
+      <div><div class="phase-title">Code Agent</div><div class="phase-subtitle">Writes source code against approved test cases and architecture contracts · Qwen2.5-Coder-32B</div></div>
       <div class="phase-status pending" id="p7s">Pending</div>
     </div>
-    <div id="jc"></div>
+    <div id="pc"></div>
+  </div>
+
+  <div class="phase-block" id="phase7r">
+    <div class="phase-header">
+      <div class="phase-num" style="color:#c2410c;">R5</div>
+      <div><div class="phase-title" style="color:#c2410c;">Code Review Agent</div><div class="phase-subtitle">Checks syntax, interface compliance, test satisfiability, security patterns — up to 3 cycles</div></div>
+      <div class="phase-status pending" id="p7rs">Pending</div>
+    </div>
+    <div id="codeReviewC"></div>
   </div>
 
   <div class="phase-block" id="phase8">
     <div class="phase-header">
       <div class="phase-num">08</div>
-      <div><div class="phase-title">Result</div><div class="phase-subtitle">Deployed, tested, security-scanned, performance-validated — awaiting production approval</div></div>
+      <div><div class="phase-title">Jira — Live Activity Feed</div><div class="phase-subtitle">Every status, review cycle, revision task, and cost — exactly as your team sees it</div></div>
       <div class="phase-status pending" id="p8s">Pending</div>
+    </div>
+    <div id="jc"></div>
+  </div>
+
+  <div class="phase-block" id="phase9">
+    <div class="phase-header">
+      <div class="phase-num">09</div>
+      <div><div class="phase-title">Result</div><div class="phase-subtitle">Code reviewed and approved · Committed to customer branch · Customer CI/CD triggered</div></div>
+      <div class="phase-status pending" id="p9s">Pending</div>
     </div>
     <div id="rc"></div>
   </div>
 
   <div class="bottom-cta">
-    <div class="bc-title">This Is What FORGE Does — Every Time</div>
-    <div class="bc-sub">No developers in the implementation loop. Full audit trail in Jira. Production-ready output.</div>
+    <div class="bc-title">Reviewed at Every Step. Fixed at Every Failure.</div>
+    <div class="bc-sub">Test cases written before code. Every artifact reviewed up to 3 times. Full audit trail in Jira.</div>
     <div class="cta-row">
       <a href="index.html" class="cta-a">Read the Full Spec</a>
-      <a href="comparison.html" class="cta-b">See How We Compare</a>
+      <a href="demo-swimlane.html" class="cta-b">See Swim Lane View</a>
     </div>
   </div>
 
@@ -396,17 +450,58 @@ Given tasks and their dependencies, output parallel execution waves showing whic
 Keep it clean: show wave headers as // Wave N — description, task IDs and short names, ← parallel annotations, and end with a calendar time savings estimate.
 Return ONLY valid JSON: {"dag":"multi-line string with the DAG visualization"}`;
 
+const P_SPEC_REVIEW = `You are FORGE's Spec Review Agent. Review a functional specification and find 1-2 realistic issues.
+Issues should be about ambiguity, missing edge cases, untestable requirements, or contradictions.
+Simulate ONE revision cycle: find issues, show them being fixed, then approve.
+Return ONLY valid JSON (short strings):
+{"issues":[{"dimension":"AMBIGUITY","finding":"one sentence describing the issue","fix":"one sentence describing the fix"}],"cycle":1,"verdict":"APPROVED after revision","model":"Claude Sonnet 4.5 API","cost":"$0.006"}`;
+
+const P_ARCH_REVIEW = `You are FORGE's Architecture Review Agent. Review system architecture and find 1-2 realistic issues.
+Issues should be about missing ADRs, security gaps, or interface coverage gaps.
+Simulate ONE revision cycle: find issues, show them being fixed, then approve.
+Return ONLY valid JSON (short strings):
+{"issues":[{"dimension":"ADR_QUALITY","finding":"one sentence describing the issue","fix":"one sentence describing the fix"}],"cycle":1,"verdict":"APPROVED after revision","model":"Llama-3.1-70B on H100","cost":"$0.041"}`;
+
+const P_TASK_GEN = `You are FORGE's Code Task Generator. Given architecture, produce 4-6 atomic implementation tasks.
+Each task must be independently completable in one Code Agent session.
+Return ONLY valid JSON (short strings):
+{"tasks":[{"id":"T-01","name":"short name","desc":"one sentence","files":["src/file.rs"],"deps":"Blocks: T-02","accepts":"one testable criterion"}],"taskCount":5,"status":"TASK_DRAFT","cost":"$0.009"}`;
+
+const P_TASK_REVIEW = `You are FORGE's Task Review Agent. Review an implementation task list and find 1 realistic gap.
+The gap should be a missing task, incorrect dependency, or untestable acceptance criterion.
+Simulate ONE revision cycle: find gap, show it being fixed, approve.
+Return ONLY valid JSON (short strings):
+{"gap":{"dimension":"ARCHITECTURE_COVERAGE","finding":"one sentence","fix":"one sentence added task or fix"},"cycle":1,"verdict":"APPROVED — tasks promoted to TASK_DRAFT","cost":"$0.008"}`;
+
+const P_TEST_GEN = `You are FORGE's Test Case Generator. Given approved tasks, write test cases BEFORE code is written.
+Generate 2-3 representative test cases showing happy path, error path, and one edge case.
+Test cases must use the exact interface signatures from the architecture.
+Return ONLY valid JSON (short strings):
+{"testCases":[{"id":"TC-001","name":"short_test_name","category":"happy_path or error_path or edge_case","assertion":"one sentence what is asserted","code":"// short pseudocode"}],"framework":"rust-test or pytest or jest","coverage_target":"88%","cost":"$0.031"}`;
+
+const P_TEST_REVIEW = `You are FORGE's Test Case Review Agent. Review test cases written before code exists.
+Find 1 realistic issue: missing edge case, non-deterministic test, or incorrect assertion.
+Simulate ONE revision cycle: find issue, show fix, approve and unlock Code Agent.
+Return ONLY valid JSON (short strings):
+{"issue":{"dimension":"EDGE_CASES","finding":"one sentence","fix":"one sentence fix applied"},"cycle":1,"verdict":"APPROVED — tasks promoted TASK_DRAFT → QUEUED","cost":"$0.008"}`;
+
+const P_CODE_REVIEW = `You are FORGE's Code Review Agent. Review source code written by the Code Agent.
+Find 1 realistic issue: missing input validation, interface deviation, or security pattern.
+Simulate ONE revision cycle: find issue, Code Agent fixes it, approve and commit.
+Return ONLY valid JSON (short strings):
+{"issue":{"dimension":"SECURITY_PATTERNS","finding":"one sentence issue found","fix":"one sentence fix applied by Code Agent"},"cycle":1,"verdict":"APPROVED — committed to customer branch","model":"Qwen2.5-Coder-32B on L40S","cost":"$0.029"}`;
+
 const P_PIPE = `Simulate FORGE's pipeline for one task. All strings SHORT — under 12 words. Be very concise.
-Agents in order: ⚙️ Code Agent (writes code, commits to customer branch), 🔍 Security Agent (scans commit), 🔨 Build & Test Monitor (watches customer CI/CD webhook), 📡 Log Monitor (watches customer app logs), ⚡ Perf Monitor (watches customer APM).
-Code Agent implements against architecture contracts. Build Monitor receives customer CI webhook — it does NOT run builds itself.
-ONE agent must detect a failure that gets auto-fixed by Code Agent.
+Agents in order: ⚙️ Code Agent (writes code against approved test cases), 🔍 Security Agent (scans commit), 🔨 Build & Test Monitor (watches customer CI/CD webhook), 📡 Log Monitor (watches customer app logs), ⚡ Perf Monitor (watches customer APM).
+Code Agent implements against architecture contracts AND approved test cases. Code Review already approved before commit.
+ONE agent must detect a failure that gets auto-fixed by Code Agent (then goes through Code Review again).
 Return ONLY valid JSON — keep every string SHORT:
 {"pipeline":[{"agent":"⚙️ Code Agent","detail":"short action","note":"short metric","status":"pass or fail"}],"bugTicket":{"id":"FORGE-BUG-041","severity":"P2","title":"short","detail":"short","resolution":"short"}}`;
 
-const P_JIRA = `Simulate a Jira activity feed. Generate exactly 10 short events. One sentence per msg. No HTML.
-Include: arch epic created, 2 task creations, status changes, 1 bug created+resolved, 1 PR opened.
+const P_JIRA = `Simulate a V3 Jira activity feed with review cycles visible. Generate exactly 12 short events. One sentence per msg. No HTML.
+Include: spec revision task from Spec Review, spec approved, arch revision task from Arch Review, arch approved, test case gap from Test Review, test cases approved (tasks go QUEUED), code revision from Code Review, code approved, security bug, final PR.
 Return ONLY valid JSON:
-{"events":[{"time":"09:00","ticket":"FORGE-T01","msg":"plain short message","status":"queued or progress or code or testing or done or bug or pr"}],"summary":{"tasks":"5","bugs":"1","autoFixed":"1","time":"6.0 hrs","humanTime":"~20 min","cost":"$2.10"}}`;
+{"events":[{"time":"09:00","ticket":"FORGE-REV-01","msg":"plain short message","status":"queued or progress or code or testing or done or bug or pr"}],"summary":{"tasks":"5","bugs":"1","autoFixed":"1","revisions":"4","time":"8.0 hrs","humanTime":"~25 min","cost":"$2.80"}}`;
 
 // ── RENDER ────────────────────────────────────────────────────
 async function renderConvo(turns){
@@ -525,6 +620,88 @@ async function renderArch(arch){
   }
 }
 
+async function renderReview(containerId, agentName, data, color='#c2410c'){
+  const issues = data.issues || (data.gap ? [data.gap] : (data.issue ? [data.issue] : []));
+  const verdict = data.verdict || 'APPROVED';
+  const cost = data.cost || '$0.008';
+  const model = data.model || 'Claude Sonnet 4.5 API';
+  const cycle = data.cycle || 1;
+
+  const c = $(containerId);
+  c.innerHTML = '';
+
+  // Show issues found
+  const issueDiv = document.createElement('div');
+  issueDiv.style.cssText = 'background:rgba(194,65,12,.06);border:1px solid rgba(194,65,12,.3);border-left:3px solid #c2410c;padding:14px 18px;margin-bottom:10px;animation:fadeUp .4s ease both;';
+  issueDiv.innerHTML = `
+    <div style="font-family:monospace;font-size:10px;color:#c2410c;margin-bottom:8px;">⚠ ${agentName} — Cycle ${cycle} — Issues Found</div>
+    ${issues.map(iss=>`
+      <div style="margin-bottom:10px;">
+        <div style="font-family:monospace;font-size:9px;color:#c2410c;margin-bottom:3px;">${iss.dimension||'FINDING'}</div>
+        <div style="font-size:12px;color:var(--text);margin-bottom:4px;"><strong>Found:</strong> ${iss.finding}</div>
+        <div style="font-size:12px;color:var(--forge);"><strong>→ Fixed:</strong> ${iss.fix}</div>
+      </div>`).join('')}
+    <div style="font-family:monospace;font-size:9px;color:var(--muted);margin-top:8px;">Model: ${model} · Cost: ${cost}</div>`;
+  c.appendChild(issueDiv);
+
+  await delay(800);
+
+  // Show approval
+  const approveDiv = document.createElement('div');
+  approveDiv.style.cssText = 'background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.3);border-left:3px solid var(--forge);padding:12px 18px;animation:fadeUp .4s ease both;';
+  approveDiv.innerHTML = `<div style="font-family:monospace;font-size:10px;color:var(--forge);">✓ ${verdict}</div>`;
+  c.appendChild(approveDiv);
+}
+
+async function renderTaskGen(containerId, data){
+  const c = $(containerId);
+  c.innerHTML = `<div class="sec-label">Code Task Generator — ${data.taskCount||data.tasks?.length||5} tasks in TASK_DRAFT</div>`;
+  const list = document.createElement('div');
+  list.className = 'task-list';
+  for(const t of (data.tasks||[])){
+    await delay(150);
+    const d = document.createElement('div');
+    d.className = 'task-item show';
+    d.style.borderLeftColor = '#0e7490';
+    d.innerHTML = `
+      <div class="task-id" style="color:#0e7490;">${t.id}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+        <div style="font-family:monospace;font-size:9px;color:#0e7490;margin-top:3px;">${t.accepts||t.deps||''}</div>
+      </div>
+      <div class="task-meta"><span class="task-tier" style="color:#0e7490;">DRAFT</span></div>`;
+    list.appendChild(d);
+  }
+  c.appendChild(list);
+  const note = document.createElement('div');
+  note.className = 'spec-card';
+  note.style.borderLeftColor = '#f5c542';
+  note.innerHTML = `<div class="spec-card-body" style="font-size:12px;"><strong style="color:var(--yellow);">⏳ Status: TASK_DRAFT</strong> — Code Agent cannot start until test cases are approved. Cost: ${data.cost||'$0.009'}</div>`;
+  c.appendChild(note);
+}
+
+async function renderTestGen(containerId, data){
+  const c = $(containerId);
+  c.innerHTML = `<div class="sec-label">Test Case Generator — ${data.testCases?.length||3} test cases · ${data.framework||'rust-test'} · Coverage target: ${data.coverage_target||'88%'}</div>`;
+  for(const tc of (data.testCases||[])){
+    await delay(200);
+    const d = document.createElement('div');
+    d.style.cssText = 'background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--purple);padding:12px 16px;margin-bottom:8px;animation:fadeUp .4s ease both;';
+    d.innerHTML = `
+      <div style="font-family:monospace;font-size:9px;color:var(--purple);margin-bottom:4px;">${tc.id} · ${tc.category}</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;">${tc.name}</div>
+      <div style="font-size:12px;color:var(--muted);">${tc.assertion}</div>
+      <div style="background:var(--deep);border:1px solid var(--border);padding:8px 10px;margin-top:8px;font-family:monospace;font-size:10px;color:var(--muted);">${tc.code||'// test code'}</div>`;
+    c.appendChild(d);
+  }
+  const note = document.createElement('div');
+  note.className = 'spec-card';
+  note.style.cssText = 'border-left-color:var(--yellow);margin-top:8px;';
+  note.innerHTML = `<div class="spec-card-body" style="font-size:12px;"><strong style="color:var(--yellow);">⏳ Awaiting Test Case Review</strong> — Tasks remain TASK_DRAFT until review approves. Cost: ${data.cost||'$0.031'}</div>`;
+  c.appendChild(note);
+}
+
 async function renderApproval(containerId, title, waitMsg, doneMsg){
   const id = containerId;
   $(id).innerHTML=`<div class="approval-card" style="border-color:rgba(245,197,66,.3);border-left-color:var(--yellow);">
@@ -590,8 +767,8 @@ async function renderSummary(s){
     </div>
     <div class="summary-strip">
       <div class="sum-cell"><span class="sum-val">${s.tasks}</span><span class="sum-lbl">Tasks Completed</span></div>
+      <div class="sum-cell"><span class="sum-val">${s.revisions||'4'}</span><span class="sum-lbl">Review Revisions</span></div>
       <div class="sum-cell"><span class="sum-val">${s.bugs}</span><span class="sum-lbl">Bugs Found</span></div>
-      <div class="sum-cell"><span class="sum-val">${s.autoFixed}</span><span class="sum-lbl">Auto-Fixed</span></div>
       <div class="sum-cell"><span class="sum-val">${s.time}</span><span class="sum-lbl">Wall-Clock Time</span></div>
       <div class="sum-cell"><span class="sum-val">${s.humanTime}</span><span class="sum-lbl">Human Time</span></div>
     </div>
@@ -608,34 +785,32 @@ async function runDemo(){
   const btn=$('runBtn');
   btn.disabled=true; btn.textContent='Generating…';
 
-  ['cc','sc','tc','dc','ac','archc','arch-approval','pc','jc','rc'].forEach(id=>{const e=$(id);if(e)e.innerHTML='';});
-  ['p1s','p2s','p3s','p4s','p5s','p5bs','p6s','p7s','p8s'].forEach(id=>{const e=$(id);if(e)setSt(id,'pending');});
+  ['cc','sc','tc','ac','archc','archReviewC','arch-approval','taskGenC','taskReviewC','testGenC','testReviewC','pc','codeReviewC','jc','rc'].forEach(id=>{const e=$(id);if(e)e.innerHTML='';});
+  ['p1s','p2s','p2rs','p3s','p4s','p4rs','p4bs','p5s','p5rs','p6s','p6rs','p7s','p7rs','p8s','p9s'].forEach(id=>{const e=$(id);if(e)setSt(id,'pending');});
 
   $('flowOutput').classList.add('visible');
   $('loadingBar').classList.add('active');
   $('flowOutput').scrollIntoView({behavior:'smooth',block:'start'});
 
   try {
+    const ctx_prompt = prompt;
+
     // Phase 1 — Conversation
     setSt('p1s','running'); setProgress(4);
-    showSpin('cc','generating clarifying conversation for your requirement…');
+    showSpin('cc','generating clarifying conversation…');
     goTo('phase1');
-    const convoData = await claude(P_CONVO, prompt);
-    setProgress(12);
-    $('cc').innerHTML='';
+    const convoData = await claude(P_CONVO, ctx_prompt);
+    setProgress(10); $('cc').innerHTML='';
     await renderConvo(convoData.turns);
-    setSt('p1s','done');
-    await delay(400);
+    setSt('p1s','done'); await delay(400);
 
-    // Phase 2 — Functional Spec (no tasks — arch agent does that)
-    setSt('p2s','running'); setProgress(18);
+    // Phase 2 — Spec
+    setSt('p2s','running'); setProgress(14);
     const ctx = convoData.turns.map(t=>`${t.role.toUpperCase()}: ${t.msg}`).join('\n');
     showSpin('sc','generating functional specification…');
-    $('tc').innerHTML='';
     goTo('phase2');
-    const specData = await claude(P_SPEC, `Requirement: ${prompt}\n\nConversation:\n${ctx}`);
-    setProgress(28);
-    $('sc').innerHTML='';
+    const specData = await claude(P_SPEC, `Requirement: ${ctx_prompt}\n\nConversation:\n${ctx}`);
+    setProgress(20); $('sc').innerHTML='';
     $('sc').innerHTML=`
       <div class="sec-label">Functional Specification</div>
       <div class="spec-card">
@@ -643,100 +818,133 @@ async function runDemo(){
         <div class="spec-card-body">
           <strong>Scope:</strong> ${specData.spec.scope}<br><br>
           <strong>Out of Scope:</strong> ${specData.spec.outOfScope}<br><br>
-          <strong>Performance:</strong> ${specData.spec.perf}<br><br>
-          <strong>Users:</strong> ${specData.spec.users||'—'}<br><br>
-          <strong>Integrations:</strong> ${specData.spec.integrations||'—'}
-        </div>
-      </div>
-      <div class="spec-card" style="border-left-color:var(--yellow);">
-        <div class="spec-card-body" style="font-size:13px;">
-          <strong style="color:var(--yellow);">⚠ Task decomposition deferred to Architecture Agent</strong><br>
-          The Spec Generator captures business requirements only. Architecture Agent will design the technical architecture and create implementation tasks.
+          <strong>Performance:</strong> ${specData.spec.perf}
         </div>
       </div>`;
-    setSt('p2s','done');
-    await delay(400);
+    setSt('p2s','done'); await delay(300);
 
-    // Phase 3 — DAG placeholder (will be filled after arch)
-    setSt('p3s','running'); setProgress(32);
-    $('dc').innerHTML=`<div class="spec-card" style="border-left-color:var(--yellow);">
-      <div class="spec-card-body" style="font-size:13px;color:var(--muted);">
-        ⏳ DAG will be computed after Architecture Agent creates implementation tasks.
-      </div>
-    </div>`;
-    setSt('p3s','done');
-    await delay(400);
+    // Phase R1 — Spec Review
+    setSt('p2rs','running'); setProgress(24);
+    showSpin('specReviewC','Spec Review Agent (R1) critiquing specification…');
+    goTo('phase2r');
+    const specRev = await claude(P_SPEC_REVIEW, `Spec: ${specData.spec.scope}\nOut of scope: ${specData.spec.outOfScope}\nPerf: ${specData.spec.perf}`);
+    setProgress(28); $('specReviewC').innerHTML='';
+    await renderReview('specReviewC', 'R1 — Spec Review Agent', specRev, '#c2410c');
+    setSt('p2rs','done'); await delay(300);
 
-    // Phase 4 — Spec Approval
-    setSt('p4s','running'); setProgress(36);
-    goTo('phase4');
+    // Phase 3 — Spec Approval
+    setSt('p3s','running'); setProgress(30);
+    goTo('phase3');
     await renderApproval('ac',
-      'Waiting for Product Owner Approval — Functional Spec',
-      'Reviewing the functional specification, scope, and out-of-scope items. PM approves before Architecture Agent begins.',
-      'Functional Spec Approved — Architecture Agent starting now');
-    setSt('p4s','done');
-    await delay(400);
+      'Waiting for Product Owner Approval — Spec Review Passed',
+      'Spec Review Agent approved after 1 revision cycle. Product owner confirms before architecture begins.',
+      'Spec Approved — Architecture Agent starting');
+    setSt('p3s','done'); await delay(300);
 
-    // Phase 5 — Architecture Agent
-    setSt('p5s','running'); setProgress(42);
-    showSpin('archc','Architecture Agent running — designing system architecture on H100 · Llama-3.1-70B…');
-    goTo('phase5');
+    // Phase 4 — Architecture
+    setSt('p4s','running'); setProgress(34);
+    showSpin('archc','Architecture Agent — H100 · Llama-3.1-70B · designing system…');
+    goTo('phase4');
     const archData = await claude(P_ARCH,
-      `Requirement: ${prompt}\n\nScope: ${specData.spec.scope}\nOut of Scope: ${specData.spec.outOfScope}\nPerformance: ${specData.spec.perf}`, 3500);
-    setProgress(58);
-    $('archc').innerHTML='';
+      `Requirement: ${ctx_prompt}\n\nScope: ${specData.spec.scope}\nOut of Scope: ${specData.spec.outOfScope}\nPerformance: ${specData.spec.perf}`, 3500);
+    setProgress(44); $('archc').innerHTML='';
     await renderArch(archData);
-    setSt('p5s','done');
-    await delay(400);
+    setSt('p4s','done'); await delay(300);
 
-    // Phase 5b — Architecture Approval
-    setSt('p5bs','running'); setProgress(62);
-    goTo('phase5b');
+    // Phase R2 — Architecture Review
+    setSt('p4rs','running'); setProgress(48);
+    showSpin('archReviewC','Architecture Review Agent (R2) critiquing system design…');
+    goTo('phase4r');
+    const archRev = await claude(P_ARCH_REVIEW,
+      `Architecture: ${archData.architecture}\nData model: ${archData.dataModel}\nADRs: ${archData.adrs.map(a=>a.title).join(', ')}`);
+    setProgress(52); $('archReviewC').innerHTML='';
+    await renderReview('archReviewC', 'R2 — Architecture Review Agent', archRev, '#c2410c');
+    setSt('p4rs','done'); await delay(300);
+
+    // Phase 4b — Arch Approval
+    setSt('p4bs','running'); setProgress(54);
+    goTo('phase4b');
     await renderApproval('arch-approval',
       'Waiting for Architecture Approval — Tech Lead Review',
-      'Tech lead reviews: system architecture, data model, interface contracts, ADRs, and implementation task list. Can request revisions before code begins.',
-      'Architecture Approved — Implementation tasks QUEUED · Code Agents starting');
-    setSt('p5bs','done');
+      'Architecture Review Agent approved after 1 revision cycle. Tech lead confirms before task generation.',
+      'Architecture Approved — Code Task Generator starting');
+    setSt('p4bs','done'); await delay(300);
 
-    // Now render the real DAG from arch tasks
-    if(archData.tasks && archData.tasks.length){
-      const tsum = archData.tasks.map(t=>`${t.id}: ${t.name} | ${t.deps||'no deps'}`).join('\n');
-      showSpin('dc','computing parallel execution waves from architecture tasks…');
-      const dagData = await claude(P_DAG, `Tasks:\n${tsum}`);
-      $('dc').innerHTML='';
-      await renderDAG(dagData.dag);
-    }
-    await delay(400);
+    // Phase 5 — Task Generator
+    setSt('p5s','running'); setProgress(57);
+    showSpin('taskGenC','Code Task Generator decomposing architecture into atomic tasks…');
+    goTo('phase5');
+    const taskGenData = await claude(P_TASK_GEN,
+      `Architecture: ${archData.architecture}\nInterfaces: ${archData.interfaces}\nData model: ${archData.dataModel}`);
+    setProgress(62); $('taskGenC').innerHTML='';
+    await renderTaskGen('taskGenC', taskGenData);
+    setSt('p5s','done'); await delay(300);
 
-    // Phase 6 — Pipeline
-    setSt('p6s','running'); setProgress(68);
-    showSpin('pc','simulating 8-agent pipeline — Code Agent implements against architecture contracts…');
+    // Phase R3 — Task Review
+    setSt('p5rs','running'); setProgress(65);
+    showSpin('taskReviewC','Task Review Agent (R3) checking task coverage and dependencies…');
+    goTo('phase5r');
+    const taskRev = await claude(P_TASK_REVIEW,
+      `Tasks: ${taskGenData.tasks.map(t=>t.name+': '+t.desc).join(' | ')}`);
+    setProgress(68); $('taskReviewC').innerHTML='';
+    await renderReview('taskReviewC', 'R3 — Task Review Agent', taskRev, '#c2410c');
+    setSt('p5rs','done'); await delay(300);
+
+    // Phase 6 — Test Case Generator
+    setSt('p6s','running'); setProgress(71);
+    showSpin('testGenC','Test Case Generator writing tests BEFORE code — TDD enforced…');
     goTo('phase6');
-    const taskNames = archData.tasks ? archData.tasks.map(t=>t.name).join(', ') : 'implementation tasks';
-    const pipeData = await claude(P_PIPE, `Requirement: ${prompt}\nTasks: ${taskNames}`, 2000);
-    setProgress(80);
-    $('pc').innerHTML='';
-    await renderPipeline(pipeData.pipeline, pipeData.bugTicket);
-    setSt('p6s','done');
-    await delay(400);
+    const testGenData = await claude(P_TEST_GEN,
+      `Tasks: ${taskGenData.tasks.slice(0,3).map(t=>t.name+': '+t.accepts).join(' | ')}\nInterfaces: ${archData.interfaces}`);
+    setProgress(76); $('testGenC').innerHTML='';
+    await renderTestGen('testGenC', testGenData);
+    setSt('p6s','done'); await delay(300);
 
-    // Phase 7 — Jira
-    setSt('p7s','running'); setProgress(86);
-    showSpin('jc','generating Jira activity feed including Architecture Agent events…');
+    // Phase R4 — Test Case Review
+    setSt('p6rs','running'); setProgress(79);
+    showSpin('testReviewC','Test Case Review Agent (R4) checking coverage, correctness, determinism…');
+    goTo('phase6r');
+    const testRev = await claude(P_TEST_REVIEW,
+      `Test cases: ${testGenData.testCases.map(t=>t.name+': '+t.assertion).join(' | ')}`);
+    setProgress(82); $('testReviewC').innerHTML='';
+    await renderReview('testReviewC', 'R4 — Test Case Review Agent', testRev, '#c2410c');
+    setSt('p6rs','done'); await delay(300);
+
+    // Phase 7 — Code Agent + Pipeline
+    setSt('p7s','running'); setProgress(84);
+    showSpin('pc','Code Agent writing source code against approved test cases…');
     goTo('phase7');
-    const jiraData = await claude(P_JIRA,
-      `Requirement: ${prompt}\nTasks: ${(archData.tasks||[]).map(t=>t.name).join(', ')}`, 2000);
-    setProgress(96);
-    $('jc').innerHTML='';
-    await renderJira(jiraData.events);
-    setSt('p7s','done');
-    await delay(400);
+    const taskNames = taskGenData.tasks ? taskGenData.tasks.map(t=>t.name).join(', ') : 'implementation tasks';
+    const pipeData = await claude(P_PIPE, `Requirement: ${ctx_prompt}\nTasks: ${taskNames}`, 2000);
+    setProgress(88); $('pc').innerHTML='';
+    await renderPipeline(pipeData.pipeline, pipeData.bugTicket);
+    setSt('p7s','done'); await delay(300);
 
-    // Phase 8 — Summary
-    setSt('p8s','running'); setProgress(99);
+    // Phase R5 — Code Review
+    setSt('p7rs','running'); setProgress(90);
+    showSpin('codeReviewC','Code Review Agent (R5) checking syntax, interface compliance, security…');
+    goTo('phase7r');
+    const codeRev = await claude(P_CODE_REVIEW,
+      `Requirement: ${ctx_prompt}\nArchitecture interfaces: ${archData.interfaces}`);
+    setProgress(93); $('codeReviewC').innerHTML='';
+    await renderReview('codeReviewC', 'R5 — Code Review Agent', codeRev, '#c2410c');
+    setSt('p7rs','done'); await delay(300);
+
+    // Phase 8 — Jira
+    setSt('p8s','running'); setProgress(95);
+    showSpin('jc','generating V3 Jira feed with review cycles visible…');
     goTo('phase8');
+    const jiraData = await claude(P_JIRA,
+      `Requirement: ${ctx_prompt}\nTasks: ${taskGenData.tasks.map(t=>t.name).join(', ')}`, 2000);
+    setProgress(98); $('jc').innerHTML='';
+    await renderJira(jiraData.events);
+    setSt('p8s','done'); await delay(300);
+
+    // Phase 9 — Summary
+    setSt('p9s','running'); setProgress(99);
+    goTo('phase9');
     await renderSummary(jiraData.summary);
-    setSt('p8s','done');
+    setSt('p9s','done');
     setProgress(100);
     await delay(300);
     $('loadingBar').classList.remove('active');
@@ -751,7 +959,7 @@ async function runDemo(){
       <strong>API Error</strong><br><br>
       <em>${err.message}</em>
     </div>`;
-    ['p1s','p2s','p3s','p4s','p5s','p5bs','p6s','p7s','p8s'].forEach(id=>{const e=$(id);if(e&&e.textContent==='● Running')setSt(id,'pending');});
+    ['p1s','p2s','p2rs','p3s','p4s','p4rs','p4bs','p5s','p5rs','p6s','p6rs','p7s','p7rs','p8s','p9s'].forEach(id=>{const e=$(id);if(e&&e.textContent==='● Running')setSt(id,'pending');});
   }
 
   btn.disabled=false; btn.textContent='Run Again →';
