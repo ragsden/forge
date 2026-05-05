@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec H — Review Agents | FORGE Platform V3</title>
+<style>
+  :root {
+    --ink:#1a1a1a;--muted:#555;--light:#888;--border:#ddd;
+    --bg-alt:#fafafa;--bg-code:#f4f4f4;
+    --accent:#1d4ed8;--accent-light:#eff6ff;
+    --warn:#b91c1c;--warn-light:#fef2f2;
+    --ok:#15803d;--ok-light:#f0fdf4;
+    --gold:#92400e;--gold-light:#fffbeb;
+    --review:#c2410c;--review-light:#fff7ed;
+    --v3:#7c3aed;--v3-light:#f5f3ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,serif;font-size:16px;line-height:1.75;color:var(--ink);background:#fff;}
+  .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+  .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:#f9f9f9;border-right:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .sidebar-brand{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:bold;}
+  .sidebar-brand a{text-decoration:none;color:var(--ink);}
+  .sidebar-brand a:hover{color:var(--accent);}
+  .v3-badge{display:inline-block;padding:1px 6px;background:var(--v3);color:#fff;font-size:9px;letter-spacing:1px;margin-left:6px;}
+  .sidebar-doc-title{padding:12px 20px 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--light);}
+  .sidebar-doc-name{padding:4px 20px 14px;font-size:12px;font-weight:bold;color:var(--review);border-bottom:1px solid var(--border);}
+  .nav-section{padding:12px 0 4px 20px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--light);}
+  .nav-item{display:block;padding:5px 20px 5px 24px;color:var(--muted);text-decoration:none;line-height:1.4;border-left:2px solid transparent;}
+  .nav-item:hover{color:var(--review);background:var(--review-light);border-left-color:var(--review);}
+  .nav-item.sub{padding-left:36px;font-size:11px;}
+  .sidebar-files{border-top:1px solid var(--border);margin-top:16px;padding-top:4px;}
+  .nav-file{display:block;padding:5px 20px;color:var(--light);text-decoration:none;font-size:11px;}
+  .nav-file:hover{color:var(--accent);}
+  .nav-file.current{color:var(--ink);font-weight:bold;}
+
+  .main{padding:60px 80px 100px;max-width:900px;}
+  .breadcrumb{font-family:'Courier New',monospace;font-size:11px;color:var(--light);margin-bottom:36px;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb span{margin:0 6px;}
+  .doc-header{border-bottom:2px solid var(--ink);padding-bottom:24px;margin-bottom:40px;}
+  .doc-label{font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--light);margin-bottom:10px;}
+  .doc-title{font-size:36px;font-weight:bold;line-height:1.15;letter-spacing:-0.5px;margin-bottom:12px;}
+  .doc-desc{font-size:16px;color:var(--muted);font-style:italic;margin-bottom:16px;}
+  .doc-meta{font-family:'Courier New',monospace;font-size:11px;color:var(--light);display:flex;gap:24px;flex-wrap:wrap;}
+
+  .section{margin-bottom:64px;}
+  .section-anchor{display:block;position:relative;top:-80px;visibility:hidden;}
+  h1.sh{font-size:26px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:20px;display:flex;align-items:baseline;gap:12px;}
+  h2.sh{font-size:19px;margin-top:36px;margin-bottom:12px;}
+  h3.sh{font-size:15px;margin-top:24px;margin-bottom:8px;font-style:italic;}
+  .anchor-link{font-family:'Courier New',monospace;font-size:11px;color:var(--border);text-decoration:none;font-style:normal;font-weight:normal;}
+  .anchor-link:hover{color:var(--accent);}
+
+  p{margin-bottom:14px;}
+  ul,ol{margin:0 0 14px 0;padding-left:24px;}
+  li{margin-bottom:6px;line-height:1.7;}
+
+  .callout{padding:16px 20px;margin:20px 0;border-left:4px solid;font-size:15px;}
+  .callout.review{border-color:var(--review);background:var(--review-light);}
+  .callout.v3{border-color:var(--v3);background:var(--v3-light);}
+  .callout.green{border-color:var(--ok);background:var(--ok-light);}
+  .callout.gold{border-color:var(--gold);background:var(--gold-light);}
+  .callout-label{font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:6px;}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px;}
+  th{background:var(--ink);color:#fff;padding:9px 13px;text-align:left;font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:normal;}
+  td{padding:8px 13px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;}
+  tr:nth-child(even) td{background:var(--bg-alt);}
+
+  pre{background:var(--bg-code);border:1px solid var(--border);padding:16px 20px;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin:16px 0 24px;white-space:pre;}
+  code{font-family:'Courier New',monospace;font-size:12.5px;background:#eee;padding:2px 5px;}
+
+  /* agent card */
+  .agent-card{border:1px solid var(--border);border-top:4px solid var(--review);margin-bottom:32px;}
+  .agent-card-header{display:flex;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg-alt);}
+  .agent-num{font-family:'Courier New',monospace;font-size:36px;color:var(--border);font-weight:bold;line-height:1;}
+  .agent-name{font-size:20px;font-weight:bold;}
+  .agent-badges{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;}
+  .agent-badge{font-family:'Courier New',monospace;font-size:9px;padding:2px 8px;background:var(--bg-code);border:1px solid var(--border);}
+  .agent-card-body{padding:0;}
+  .spec-row{display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid var(--border);}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{padding:10px 16px;font-family:'Courier New',monospace;font-size:11px;color:var(--light);background:var(--bg-alt);border-right:1px solid var(--border);}
+  .spec-value{padding:10px 16px;font-size:14px;}
+
+  /* loop diagram */
+  .loop-diagram{background:var(--bg-code);border:1px solid var(--border);padding:20px 24px;margin:16px 0 24px;font-family:'Courier New',monospace;font-size:12px;line-height:2;}
+  .ld-producer{color:#1d4ed8;font-weight:bold;}
+  .ld-reviewer{color:var(--review);font-weight:bold;}
+  .ld-approved{color:var(--ok);font-weight:bold;}
+  .ld-human{color:var(--v3);font-weight:bold;}
+  .ld-arrow{color:#ccc;}
+  .ld-comment{color:#999;}
+
+  /* rubric table */
+  .rubric-item{padding:10px 14px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:200px 1fr;gap:12px;font-size:13px;}
+  .rubric-item:last-child{border-bottom:none;}
+  .rubric-dim{font-family:'Courier New',monospace;font-size:11px;color:var(--review);font-weight:bold;}
+  .rubric-desc{color:var(--muted);}
+
+  .page-nav{display:flex;justify-content:space-between;margin-top:60px;padding-top:24px;border-top:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .page-nav a{color:var(--accent);text-decoration:none;}
+  .page-nav a:hover{text-decoration:underline;}
+  .spec-footer{font-family:'Courier New',monospace;font-size:11px;color:var(--light);text-align:center;margin-top:40px;padding-top:16px;border-top:1px solid var(--border);}
+
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .sidebar{position:static;height:auto;}
+    .main{padding:40px 32px 80px;}
+    .spec-row{grid-template-columns:1fr;}
+    .rubric-item{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <a href="index.html">← FORGE Platform</a>
+    <span class="v3-badge">V3</span>
+  </div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec H — Review Agents</div>
+
+  <div class="nav-section">Sections</div>
+  <a href="#overview" class="nav-item">Overview — The Universal Pattern</a>
+  <a href="#loop" class="nav-item">The Review Loop</a>
+  <a href="#spec-review" class="nav-item">01 — Spec Review Agent</a>
+  <a href="#spec-rubric" class="nav-item sub">↳ Review rubric</a>
+  <a href="#arch-review" class="nav-item">02 — Architecture Review Agent</a>
+  <a href="#arch-rubric" class="nav-item sub">↳ Review rubric</a>
+  <a href="#task-review" class="nav-item">03 — Task Review Agent</a>
+  <a href="#task-rubric" class="nav-item sub">↳ Review rubric</a>
+  <a href="#testcase-review" class="nav-item">04 — Test Case Review Agent</a>
+  <a href="#testcase-rubric" class="nav-item sub">↳ Review rubric</a>
+  <a href="#code-review" class="nav-item">05 — Code Review Agent</a>
+  <a href="#code-rubric" class="nav-item sub">↳ Review rubric</a>
+  <a href="#task-schema" class="nav-item">Review Task Schema</a>
+  <a href="#escalation" class="nav-item">Human Escalation</a>
+  <a href="#models" class="nav-item">Model &amp; Hardware</a>
+
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-A-scheduler-and-watchdog.html" class="nav-file">A — Scheduler &amp; Watchdog</a>
+    <a href="spec-B-functional-spec-agent.html" class="nav-file">B — Spec Generator</a>
+    <a href="spec-C-agents.html" class="nav-file">C — Pipeline Agents</a>
+    <a href="spec-D-resource-and-cloud.html" class="nav-file">D — Resource &amp; Cloud</a>
+    <a href="spec-E-knowledge-and-models.html" class="nav-file">E — Knowledge &amp; Models</a>
+    <a href="spec-F-multitenant-and-ops.html" class="nav-file">F — Multi-Tenant &amp; Ops</a>
+    <a href="spec-G-architecture-agent.html" class="nav-file">G — Architecture Agent</a>
+    <a href="spec-H-review-agents.html" class="nav-file current">H — Review Agents</a>
+    <a href="spec-I-generator-agents.html" class="nav-file">I — Generator Agents</a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb">
+    <a href="index.html">FORGE Platform V3</a>
+    <span>›</span> Spec H — Review Agents
+  </div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification H — V3 · New</div>
+    <div class="doc-title">Review Agents</div>
+    <div class="doc-desc">A critique layer between every agent handoff. Every artifact is reviewed before the next phase begins. The loop runs up to 3 times before human escalation — preventing both infinite loops and low-quality output reaching downstream agents.</div>
+    <div class="doc-meta">
+      <span>5 Review Agents</span>
+      <span>Version: 3.0</span>
+      <span>Status: Draft</span>
+      <span>May 2026</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <a class="section-anchor" id="overview"></a>
+    <h1 class="sh">The Universal Pattern <a href="#overview" class="anchor-link">#overview</a></h1>
+
+    <p>Every phase in the FORGE V3 pipeline follows the same structure. A Producer Agent creates an artifact. A Review Agent critiques it. If the review finds issues, revision tasks are created and the Producer picks them up. This loop runs up to three times. If the artifact is still not approved after three cycles, human escalation is triggered.</p>
+
+    <div class="callout review">
+      <div class="callout-label">Core Principle</div>
+      Review Agents are not gatekeepers — they are critics. Their job is to produce structured, actionable feedback that makes the artifact better. They never block work permanently. They either approve or generate revision tasks that the Producer resolves.
+    </div>
+
+    <p>The pattern is identical across all five review agents. Only the rubric changes — what the agent looks for in a spec is different from what it looks for in code, but the loop, the escalation logic, and the task schema are the same.</p>
+
+    <table>
+      <tr><th>Producer Agent</th><th>Artifact</th><th>Review Agent</th></tr>
+      <tr><td>Spec Generator</td><td>Functional specification</td><td>Spec Review Agent</td></tr>
+      <tr><td>Architecture Agent</td><td>System architecture + ADRs</td><td>Architecture Review Agent</td></tr>
+      <tr><td>Code Task Generator</td><td>Implementation task list</td><td>Task Review Agent</td></tr>
+      <tr><td>Test Case Generator</td><td>Test case specifications</td><td>Test Case Review Agent</td></tr>
+      <tr><td>Code Agent</td><td>Source code</td><td>Code Review Agent</td></tr>
+    </table>
+  </div>
+
+  <!-- THE LOOP -->
+  <div class="section">
+    <a class="section-anchor" id="loop"></a>
+    <h1 class="sh">The Review Loop <a href="#loop" class="anchor-link">#loop</a></h1>
+
+    <div class="loop-diagram">
+<span class="ld-comment">// The universal review loop — identical for all 5 review agents</span>
+
+<span class="ld-producer">Producer Agent</span> creates artifact
+        <span class="ld-arrow">↓</span>
+<span class="ld-reviewer">Review Agent</span> evaluates artifact against rubric
+        <span class="ld-arrow">↓</span>
+   ┌────<span class="ld-approved">APPROVED</span>────────────────────────────────────┐
+   │                                                    │
+   │    <span class="ld-arrow">ISSUES FOUND</span>                                   │
+   │         <span class="ld-arrow">↓</span>                                          │
+   │    Revision tasks created (one per issue)          │
+   │    Each task: issue_type, description, severity    │
+   │         <span class="ld-arrow">↓</span>                                          │
+   │    <span class="ld-producer">Producer Agent</span> picks up revision tasks            │
+   │    Revises artifact to address each issue          │
+   │    Resubmits full artifact for re-review           │
+   │         <span class="ld-arrow">↓</span>                                          │
+   │    review_cycle_count += 1                         │
+   │         <span class="ld-arrow">↓</span>                                          │
+   │    if review_cycle_count &lt; 3 → loop back          │
+   │    if review_cycle_count == 3 → <span class="ld-human">HUMAN ESCALATION</span>  │
+   │                                                    │
+   └────────────────────────────────────────────────────┘
+        <span class="ld-arrow">↓</span>
+   Next phase begins (next Producer Agent dequeues)
+    </div>
+
+    <p>The <code>review_cycle_count</code> is stored as a field on the parent task in Jira. Every time the Review Agent finds issues and creates revision tasks, the count increments. At count 3, the Scheduler flags the task as HUMAN_REVIEW_REQUIRED and notifies the relevant stakeholder — product owner for spec, tech lead for architecture and code, QA lead for test cases.</p>
+
+    <div class="callout gold">
+      <div class="callout-label">Why 3 cycles?</div>
+      One cycle is too few — a first draft almost always needs refinement. Unlimited cycles risks infinite loops if the Producer and Reviewer disagree on a subjective point. Three cycles is enough to converge on quality while protecting against deadlock. If three expert AI review cycles cannot resolve an issue, a human should be involved.
+    </div>
+
+    <h2 class="sh">What the Review Agent Has Access To</h2>
+    <p>Every Review Agent receives the same context package:</p>
+    <ul>
+      <li><strong>The original requirement</strong> — the PM's one-liner from the Spec Generator conversation. This is the ground truth every artifact is measured against.</li>
+      <li><strong>The artifact being reviewed</strong> — the full output of the Producer Agent in this cycle.</li>
+      <li><strong>All previous review cycles</strong> — what was flagged before and how the Producer addressed it. This prevents the Reviewer from raising the same issues repeatedly.</li>
+      <li><strong>Upstream approved artifacts</strong> — a Code Review Agent also has the approved architecture and approved test cases, so it can check the code against all three.</li>
+    </ul>
+  </div>
+
+  <!-- SPEC REVIEW AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="spec-review"></a>
+    <h1 class="sh">01 — Spec Review Agent <a href="#spec-review" class="anchor-link">#spec-review</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">R1</div>
+        <div>
+          <div class="agent-name">Spec Review Agent</div>
+          <div style="font-size:12px;color:var(--light);">Reviews: Functional Specification</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Sonnet API</span>
+          <span class="agent-badge">CPU droplet</span>
+          <span class="agent-badge">1,024 token budget</span>
+          <span class="agent-badge">Max 3 cycles</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Reviews</div><div class="spec-value">The functional specification produced by the Spec Generator Agent — scope, out-of-scope, user flows, performance expectations, integration requirements.</div></div>
+        <div class="spec-row"><div class="spec-label">Context</div><div class="spec-value">Original PM requirement · Current spec · Previous review cycles and how they were addressed</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Claude Sonnet API — same model as Spec Generator, so the reviewer understands the spec's language and intent</div></div>
+        <div class="spec-row"><div class="spec-label">Output</div><div class="spec-value">APPROVED — pipeline advances to Architecture Agent. OR: structured list of issues, each becoming a revision task for the Spec Generator.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="spec-rubric"></a>
+    <h2 class="sh">Spec Review Rubric <a href="#spec-rubric" class="anchor-link">#spec-rubric</a></h2>
+    <div style="border:1px solid var(--border);">
+      <div class="rubric-item"><div class="rubric-dim">COMPLETENESS</div><div class="rubric-desc">Does the spec cover all user-facing scenarios mentioned or implied by the original requirement? Are edge cases documented? Are error states described?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">AMBIGUITY</div><div class="rubric-desc">Are there any requirements that could be interpreted in two different ways? Any undefined terms? Any "should" vs "must" inconsistencies?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">CONTRADICTIONS</div><div class="rubric-desc">Does any requirement contradict another? For example: "must be real-time" and "no WebSocket dependency" in the same spec.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">SCOPE CREEP</div><div class="rubric-desc">Does the spec include features not in the original requirement? Scope creep inflates the task list and delays delivery.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">OUT-OF-SCOPE GAPS</div><div class="rubric-desc">Are the out-of-scope items explicit enough? Vague out-of-scope definitions lead to Architecture Agent guessing what to exclude.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">TESTABILITY</div><div class="rubric-desc">Can each requirement be tested? "The system should be fast" is not testable. "p95 latency under 200ms at 100 concurrent users" is.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">PM INTENT</div><div class="rubric-desc">Does the spec actually answer what the PM asked for? Compare the spec against the original one-liner and the conversation.</div></div>
+    </div>
+  </div>
+
+  <!-- ARCH REVIEW AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="arch-review"></a>
+    <h1 class="sh">02 — Architecture Review Agent <a href="#arch-review" class="anchor-link">#arch-review</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">R2</div>
+        <div>
+          <div class="agent-name">Architecture Review Agent</div>
+          <div style="font-size:12px;color:var(--light);">Reviews: System Architecture + ADRs + Data Model + Interface Contracts</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Llama-3.1-70B · H100</span>
+          <span class="agent-badge">2,048 token budget</span>
+          <span class="agent-badge">Max 3 cycles</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Reviews</div><div class="spec-value">System architecture document, data model, interface contracts, ADRs — all five Architecture Agent artifacts together.</div></div>
+        <div class="spec-row"><div class="spec-label">Context</div><div class="spec-value">Original PM requirement · Approved functional spec · Current architecture artifacts · Previous review cycles</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Llama-3.1-70B on H100 — same model as Architecture Agent, giving the reviewer deep understanding of the design decisions made.</div></div>
+        <div class="spec-row"><div class="spec-label">Output</div><div class="spec-value">APPROVED — pipeline advances to Code Task Generator. OR: structured issues, each becoming a revision task for the Architecture Agent.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="arch-rubric"></a>
+    <h2 class="sh">Architecture Review Rubric <a href="#arch-rubric" class="anchor-link">#arch-rubric</a></h2>
+    <div style="border:1px solid var(--border);">
+      <div class="rubric-item"><div class="rubric-dim">SPEC COVERAGE</div><div class="rubric-desc">Does the architecture address every requirement in the approved spec? Any requirement without an architectural component is a gap.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">TECHNOLOGY FIT</div><div class="rubric-desc">Are the technology choices appropriate for the scale, team, and requirements? Over-engineering (Kafka for 100 users) and under-engineering (SQLite for 10,000 concurrent writes) are both flagged.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">SECURITY POSTURE</div><div class="rubric-desc">Are authentication, authorization, encryption at rest, encryption in transit, and input validation all addressed? Any obvious attack surface left unaddressed?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">DATA MODEL INTEGRITY</div><div class="rubric-desc">Are all relationships correctly modelled? Are indexes defined for query patterns? Are constraints enforced at the database level, not just in application code?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">INTERFACE COMPLETENESS</div><div class="rubric-desc">Does every task-to-task handoff have an explicit interface contract? Any implicit coupling between tasks is flagged.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">ADR QUALITY</div><div class="rubric-desc">Does each ADR document the context, decision, consequences, and alternatives considered? ADRs without alternatives considered are incomplete.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">SCALABILITY PATH</div><div class="rubric-desc">If the system needs to scale 10x, what breaks first? The architecture should acknowledge known bottlenecks even if not solving them in v1.</div></div>
+    </div>
+  </div>
+
+  <!-- TASK REVIEW AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="task-review"></a>
+    <h1 class="sh">03 — Task Review Agent <a href="#task-review" class="anchor-link">#task-review</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">R3</div>
+        <div>
+          <div class="agent-name">Task Review Agent</div>
+          <div style="font-size:12px;color:var(--light);">Reviews: Implementation Task List from Code Task Generator</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Sonnet API</span>
+          <span class="agent-badge">CPU droplet</span>
+          <span class="agent-badge">1,024 token budget</span>
+          <span class="agent-badge">Max 3 cycles</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Reviews</div><div class="spec-value">The full implementation task list produced by the Code Task Generator — task descriptions, file paths, interface references, dependencies, acceptance criteria.</div></div>
+        <div class="spec-row"><div class="spec-label">Context</div><div class="spec-value">Original requirement · Approved spec · Approved architecture · Current task list · Previous review cycles</div></div>
+        <div class="spec-row"><div class="spec-label">Output</div><div class="spec-value">APPROVED — tasks enter Jira as QUEUED, Test Case Generator begins. OR: issues flagged, revision tasks sent to Code Task Generator.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="task-rubric"></a>
+    <h2 class="sh">Task Review Rubric <a href="#task-rubric" class="anchor-link">#task-rubric</a></h2>
+    <div style="border:1px solid var(--border);">
+      <div class="rubric-item"><div class="rubric-dim">ARCHITECTURE COVERAGE</div><div class="rubric-desc">Is there a task for every component, service, and interface defined in the architecture? Any architectural element without a corresponding task is a gap.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">TASK ATOMICITY</div><div class="rubric-desc">Is each task small enough to be completed in one Code Agent session? Tasks that span multiple systems or require more than ~4,096 tokens to implement should be split.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">DEPENDENCY CORRECTNESS</div><div class="rubric-desc">Are all dependencies between tasks correct? If Task B consumes an interface produced by Task A, is "Task B depends on Task A" explicitly set?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">INTERFACE REFERENCES</div><div class="rubric-desc">Does each task reference the exact interface contracts from the architecture that it must implement or consume?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">ACCEPTANCE CRITERIA</div><div class="rubric-desc">Does each task have testable acceptance criteria? "Implement the account service" is not testable. "GET /accounts returns paginated results with 200 OK" is.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">FILE PATH VALIDITY</div><div class="rubric-desc">Do the file paths in each task match the directory structure implied by the architecture? No two tasks should write to the same file.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">SEQUENCING</div><div class="rubric-desc">Can the tasks be executed in the order specified? Are there circular dependencies? Is the parallelism maximised given the dependency graph?</div></div>
+    </div>
+  </div>
+
+  <!-- TEST CASE REVIEW AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="testcase-review"></a>
+    <h1 class="sh">04 — Test Case Review Agent <a href="#testcase-review" class="anchor-link">#testcase-review</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">R4</div>
+        <div>
+          <div class="agent-name">Test Case Review Agent</div>
+          <div style="font-size:12px;color:var(--light);">Reviews: Test case specifications from Test Case Generator</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Sonnet API</span>
+          <span class="agent-badge">CPU droplet</span>
+          <span class="agent-badge">1,024 token budget</span>
+          <span class="agent-badge">Max 3 cycles</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Reviews</div><div class="spec-value">Test case specifications for each implementation task — what to test, how to test it, what the expected outcome is, and what edge cases must be covered.</div></div>
+        <div class="spec-row"><div class="spec-label">Context</div><div class="spec-value">Original requirement · Approved spec · Approved architecture · Approved task list · Current test cases · Previous review cycles</div></div>
+        <div class="spec-row"><div class="spec-label">Critical role</div><div class="spec-value">Test cases are approved BEFORE the Code Agent writes a single line. The Code Agent receives approved test cases as a contract — it writes code that satisfies them. This enforces test-driven development across the entire pipeline.</div></div>
+        <div class="spec-row"><div class="spec-label">Output</div><div class="spec-value">APPROVED — test cases locked, Code Agent begins. OR: issues flagged, revision tasks sent to Test Case Generator.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="testcase-rubric"></a>
+    <h2 class="sh">Test Case Review Rubric <a href="#testcase-rubric" class="anchor-link">#testcase-rubric</a></h2>
+    <div style="border:1px solid var(--border);">
+      <div class="rubric-item"><div class="rubric-dim">COVERAGE</div><div class="rubric-desc">Is there at least one test case per acceptance criterion in the task? Does coverage include happy path, error path, and boundary conditions?</div></div>
+      <div class="rubric-item"><div class="rubric-dim">CORRECTNESS</div><div class="rubric-desc">Are the expected outputs in each test case actually correct given the architecture and spec? A test case with a wrong expected value is worse than no test case.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">INDEPENDENCE</div><div class="rubric-desc">Can each test run independently without relying on the state left by another test? Tests that depend on execution order are fragile and should be split.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">EDGE CASES</div><div class="rubric-desc">Are boundary values tested? Null inputs, empty collections, maximum values, concurrent access, timeout scenarios — these are where bugs hide.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">INTERFACE ALIGNMENT</div><div class="rubric-desc">Do the test cases test the exact interface signatures defined in the architecture? A test that calls a method with the wrong signature will never pass.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">DETERMINISM</div><div class="rubric-desc">Will each test produce the same result every time it runs? Tests that depend on external services, random values, or system time without mocking are not deterministic.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">IMPLEMENTABILITY</div><div class="rubric-desc">Can a Code Agent actually write code that satisfies these tests? Tests that require impossible behaviour or contradict the architecture are flagged.</div></div>
+    </div>
+  </div>
+
+  <!-- CODE REVIEW AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="code-review"></a>
+    <h1 class="sh">05 — Code Review Agent <a href="#code-review" class="anchor-link">#code-review</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">R5</div>
+        <div>
+          <div class="agent-name">Code Review Agent</div>
+          <div style="font-size:12px;color:var(--light);">Reviews: Source code produced by Code Agent</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Qwen2.5-Coder-32B · L40S</span>
+          <span class="agent-badge">2,048 token budget</span>
+          <span class="agent-badge">Max 3 cycles</span>
+          <span class="agent-badge">Applies to bug fixes too</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Reviews</div><div class="spec-value">Source code written by the Code Agent for any task — implementation tasks, bug fix tasks from Build Monitor, Log Monitor, or Performance Monitor.</div></div>
+        <div class="spec-row"><div class="spec-label">Context</div><div class="spec-value">Original requirement · Approved architecture · Approved test cases · The code being reviewed · Previous review cycles</div></div>
+        <div class="spec-row"><div class="spec-label">Scope</div><div class="spec-value">Applies to ALL code produced by the Code Agent — not just new feature code. Bug fixes from the Build &amp; Test Monitor, Log Monitor, and Performance Monitor all go through Code Review before being committed.</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Qwen2.5-Coder-32B on L40S — same model as Code Agent, giving the reviewer the deepest possible understanding of the code's intent and patterns.</div></div>
+        <div class="spec-row"><div class="spec-label">Output</div><div class="spec-value">APPROVED — code committed to customer branch. OR: issues flagged, revision tasks sent to Code Agent.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="code-rubric"></a>
+    <h2 class="sh">Code Review Rubric <a href="#code-rubric" class="anchor-link">#code-rubric</a></h2>
+    <div style="border:1px solid var(--border);">
+      <div class="rubric-item"><div class="rubric-dim">SYNTAX &amp; COMPILATION</div><div class="rubric-desc">Does the code compile and parse without errors? No undefined variables, no type mismatches, no missing imports.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">INTERFACE COMPLIANCE</div><div class="rubric-desc">Does the code implement exactly the interfaces defined in the architecture? Any deviation — different method signature, different return type — is a blocking issue.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">TEST CASE SATISFIABILITY</div><div class="rubric-desc">Would the approved test cases pass against this code? The reviewer traces through each test case mentally and flags any that would fail.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">STYLE &amp; CONVENTIONS</div><div class="rubric-desc">Does the code follow the patterns established in the existing codebase (from LoRA training)? Naming, error handling, logging, comment style.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">SECURITY PATTERNS</div><div class="rubric-desc">Input validation, parameterised queries, no hardcoded credentials, proper error messages (no stack traces to the client), principle of least privilege.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">CORRECTNESS</div><div class="rubric-desc">Does the code actually do what the task requires? Logic errors, off-by-one errors, incorrect business logic — these are caught here before the customer CI/CD runs.</div></div>
+      <div class="rubric-item"><div class="rubric-dim">UNNECESSARY CHANGES</div><div class="rubric-desc">Did the Code Agent modify files it was not supposed to touch? Any change outside the task scope is flagged and must be removed.</div></div>
+    </div>
+  </div>
+
+  <!-- REVIEW TASK SCHEMA -->
+  <div class="section">
+    <a class="section-anchor" id="task-schema"></a>
+    <h1 class="sh">Review Task Schema <a href="#task-schema" class="anchor-link">#task-schema</a></h1>
+
+    <p>When a Review Agent finds issues it creates one revision task per issue. Each task is a structured JSON object stored in Jira — the same task store used by all other agents. Review tasks are a distinct ticket type: <code>REVIEW_REVISION</code>.</p>
+
+    <pre>
+// Review Agent output — one object per issue found
+{
+  "review_id":        "REV-0042",
+  "parent_task_id":   "SPEC-001",          // the artifact being revised
+  "reviewer":         "spec_review_agent",
+  "cycle":            1,                   // which review cycle this is
+  "status":           "ISSUES_FOUND",      // or APPROVED
+
+  "issues": [
+    {
+      "issue_id":     "REV-0042-001",
+      "dimension":    "AMBIGUITY",
+      "severity":     "blocking",          // blocking | non-blocking
+      "location":     "Scope section, paragraph 2",
+      "description":  "\"real-time updates\" is ambiguous. Does this mean WebSocket push, server-sent events, or polling under 1 second? The Architecture Agent cannot make this decision.",
+      "suggested_fix": "Specify the exact delivery mechanism and acceptable latency for updates."
+    },
+    {
+      "issue_id":     "REV-0042-002",
+      "dimension":    "TESTABILITY",
+      "severity":     "non-blocking",
+      "location":     "Performance section",
+      "description":  "\"The system should be responsive\" has no measurable threshold.",
+      "suggested_fix": "Replace with a specific latency target, e.g. p95 under 300ms."
+    }
+  ],
+
+  "revision_tasks_created": ["TASK-0891", "TASK-0892"],
+  "next_action":      "spec_generator_agent",
+  "cycle_count":      1,
+  "max_cycles":       3,
+  "model":            "claude-sonnet-4-5-api",
+  "tokens_used":      847,
+  "cost_usd":         0.006
+}
+    </pre>
+  </div>
+
+  <!-- HUMAN ESCALATION -->
+  <div class="section">
+    <a class="section-anchor" id="escalation"></a>
+    <h1 class="sh">Human Escalation <a href="#escalation" class="anchor-link">#escalation</a></h1>
+
+    <p>When <code>cycle_count</code> reaches 3 and the artifact is still not approved, the task status moves to <code>HUMAN_REVIEW_REQUIRED</code>. The relevant stakeholder is notified with a summary package containing:</p>
+
+    <ul>
+      <li>The current artifact (spec, architecture, tasks, test cases, or code)</li>
+      <li>All three review cycles — what was flagged each time and how the Producer responded</li>
+      <li>The specific issues still unresolved after 3 cycles</li>
+      <li>A recommended resolution from the Review Agent</li>
+    </ul>
+
+    <table>
+      <tr><th>Review Agent</th><th>Escalates To</th><th>Typical Cause</th></tr>
+      <tr><td>Spec Review Agent</td><td>Product Owner</td><td>Requirement is genuinely ambiguous — PM must decide</td></tr>
+      <tr><td>Architecture Review Agent</td><td>Tech Lead / Architect</td><td>Competing valid architecture approaches — human judgement needed</td></tr>
+      <tr><td>Task Review Agent</td><td>Tech Lead</td><td>Task scope cannot be resolved — architectural clarification needed</td></tr>
+      <tr><td>Test Case Review Agent</td><td>QA Lead</td><td>Untestable requirement — spec or architecture must change</td></tr>
+      <tr><td>Code Review Agent</td><td>Tech Lead</td><td>Code pattern conflict — style guide or architecture decision needed</td></tr>
+    </table>
+
+    <p>After human resolution, the human updates the relevant artifact or revision task directly in Jira. The pipeline resumes from the point of escalation — the Producer picks up the human-modified task and resubmits. The <code>cycle_count</code> resets to 0.</p>
+  </div>
+
+  <!-- MODELS -->
+  <div class="section">
+    <a class="section-anchor" id="models"></a>
+    <h1 class="sh">Model &amp; Hardware <a href="#models" class="anchor-link">#models</a></h1>
+
+    <table>
+      <tr><th>Review Agent</th><th>Model</th><th>Hardware</th><th>Est. Cost/Review</th><th>Rationale</th></tr>
+      <tr><td>Spec Review</td><td>Claude Sonnet 4.5 API</td><td>CPU droplet</td><td>$0.006</td><td>Same model as Spec Generator — understands the spec's language</td></tr>
+      <tr><td>Architecture Review</td><td>Llama-3.1-70B</td><td>H100 80GB</td><td>$0.041</td><td>Same model as Architecture Agent — understands design decisions made</td></tr>
+      <tr><td>Task Review</td><td>Claude Sonnet 4.5 API</td><td>CPU droplet</td><td>$0.008</td><td>Task review is reasoning-heavy, not code-heavy — Sonnet is optimal</td></tr>
+      <tr><td>Test Case Review</td><td>Claude Sonnet 4.5 API</td><td>CPU droplet</td><td>$0.008</td><td>Test logic review benefits from Sonnet reasoning over code models</td></tr>
+      <tr><td>Code Review</td><td>Qwen2.5-Coder-32B</td><td>L40S 48GB</td><td>$0.029</td><td>Same model as Code Agent — gives reviewer exact understanding of code patterns used</td></tr>
+    </table>
+  </div>
+
+  <div class="page-nav">
+    <a href="spec-G-architecture-agent.html">← Spec G — Architecture Agent</a>
+    <a href="spec-I-generator-agents.html">Spec I — Generator Agents →</a>
+  </div>
+
+  <div class="spec-footer">
+    FORGE Platform Specification · Spec H · Version 3.0 · May 2026 · Confidential
+  </div>
+</main>
+</div>
+</body>
+</html>

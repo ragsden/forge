@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE — Pipeline Swim Lanes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:   #07070c;
+  --deep:    #0c0c14;
+  --panel:   #111118;
+  --card:    #16161f;
+  --border:  #1e1e2e;
+  --border2: #2a2a3e;
+  --forge:   #00e5a0;
+  --forge2:  #00c48a;
+  --forge3:  #004d35;
+  --blue:    #4488ff;
+  --yellow:  #f5c542;
+  --red:     #ff5555;
+  --purple:  #9b7fff;
+  --orange:  #ff9340;
+  --gray:    #6e6e8a;
+  --text:    #e0e0f0;
+  --muted:   #6868a0;
+  --dim:     #22223a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
+
+/* grid bg */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.018) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:flex;justify-content:space-between;align-items:center;background:rgba(7,7,12,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--forge);letter-spacing:2px;text-decoration:none;}
+.nav-links{display:flex;gap:28px;}
+.nav-links a{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:2px;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--forge);}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:110px 60px 48px;text-align:center;}
+.hero::after{content:'';position:absolute;top:0;left:0;right:0;height:400px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(0,229,160,.06),transparent 70%);pointer-events:none;}
+.hero-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--forge);margin-bottom:16px;display:inline-flex;align-items:center;gap:10px;}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--forge);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.5);}50%{box-shadow:0 0 0 6px rgba(0,229,160,0);}}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,8vw,96px);line-height:.9;letter-spacing:2px;margin-bottom:18px;}
+.hero-title .t1{color:var(--text);display:block;}
+.hero-title .t2{color:var(--forge);display:block;}
+.hero-sub{font-size:15px;color:var(--muted);max-width:560px;margin:0 auto 36px;line-height:1.75;}
+.hero-sub strong{color:var(--text);font-weight:500;}
+
+/* PROMPT */
+.prompt-zone{position:relative;z-index:10;max-width:720px;margin:0 auto;padding:0 48px 48px;}
+.prompt-box{background:var(--panel);border:1px solid var(--border2);transition:border-color .3s;}
+.prompt-box:focus-within{border-color:var(--forge);}
+.prompt-top{display:flex;align-items:center;border-bottom:1px solid var(--border);padding:0 18px;}
+.prompt-tag{font-family:'DM Mono',monospace;font-size:11px;color:var(--forge);letter-spacing:1px;padding:12px 14px 12px 0;border-right:1px solid var(--border);margin-right:14px;white-space:nowrap;}
+#promptInput{flex:1;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);padding:13px 0;caret-color:var(--forge);}
+#promptInput::placeholder{color:var(--muted);}
+.prompt-chips{padding:10px 18px;display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+.chip{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px;padding:3px 9px;border:1px solid var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--forge);color:var(--forge);}
+.prompt-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;}
+.prompt-hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+.run-btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:9px 24px;background:var(--forge);color:var(--black);border:none;cursor:pointer;font-weight:500;transition:background .2s,transform .15s;}
+.run-btn:hover{background:var(--forge2);transform:translateY(-1px);}
+.run-btn:disabled{background:var(--dim);color:var(--muted);cursor:not-allowed;transform:none;}
+
+/* BOARD */
+.board-zone{position:relative;z-index:1;padding:0 48px 60px;}
+.board-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:2px;}
+.board{display:grid;min-width:1000px;}
+
+/* COLUMNS */
+.col{display:flex;flex-direction:column;border-right:1px solid var(--border);}
+.col:last-child{border-right:none;}
+.col-head{padding:14px 14px 12px;border-bottom:1px solid var(--border);background:var(--deep);transition:background .4s;}
+.col-icon{font-size:16px;margin-bottom:5px;display:block;line-height:1;}
+.col-title{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text);margin-bottom:2px;transition:color .3s;}
+.col-sub{font-size:10px;color:var(--muted);line-height:1.4;}
+.col.col-active .col-head{background:rgba(0,229,160,.04);}
+.col.col-active .col-title{color:var(--forge);}
+.col.col-done .col-title{color:var(--muted);}
+.col-body{background:var(--panel);flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:6px;min-height:320px;}
+
+/* STEP CARDS */
+.step{background:var(--card);border:1px solid var(--border);padding:9px 11px;font-size:11px;color:var(--muted);line-height:1.55;opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .35s ease,border-color .3s,background .3s;position:relative;overflow:hidden;border-radius:1px;}
+.step.show{opacity:1;transform:translateY(0);}
+.step.s-run{border-color:rgba(0,229,160,.3);background:rgba(0,229,160,.04);color:var(--text);}
+.step.s-approval{border-color:rgba(155,127,255,.35);background:rgba(155,127,255,.06);color:#c4b3ff;}
+.step.s-bug{border-color:rgba(255,85,85,.3);background:rgba(255,85,85,.05);color:#ff9999;}
+.step.s-gpu-up{border-color:rgba(245,197,66,.35);background:rgba(245,197,66,.05);color:#f5c542;}
+.step.s-gpu-down{border-color:rgba(110,110,138,.3);background:rgba(110,110,138,.04);color:var(--gray);}
+.step.s-cost{border-color:rgba(0,229,160,.4);background:rgba(0,229,160,.06);color:var(--forge);}
+.step.done{opacity:.65;}
+
+.step-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;color:inherit;}
+.sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.d-run{background:var(--forge);animation:db 1s infinite;}
+.d-done{background:var(--forge3);}
+.d-approval{background:var(--purple);}
+.d-bug{background:var(--red);}
+.d-gpu-up{background:var(--yellow);animation:db 1s infinite;}
+.d-gpu-down{background:var(--gray);}
+.d-cost{background:var(--forge);}
+.d-idle{background:var(--dim);}
+@keyframes db{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+.step-text{font-size:10px;color:inherit;line-height:1.55;opacity:.85;}
+.shim{position:absolute;bottom:0;left:0;height:1px;background:var(--forge);width:0%;transition:width .5s ease;}
+.shim.orange{background:var(--orange);}
+
+/* GPU bar */
+.gpu-bar-wrap{margin-top:5px;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.gpu-bar{height:100%;background:var(--yellow);border-radius:2px;width:0%;transition:width .9s ease;}
+
+/* cost line inside step */
+
+.model-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3px;padding:2px 6px;background:rgba(155,127,255,.12);border:1px solid rgba(155,127,255,.25);color:#c4b3ff;border-radius:2px;margin-top:4px;}
+
+.cost-line-inner{display:flex;justify-content:space-between;margin-top:5px;font-size:10px;}
+.cost-line-inner .cv{font-family:'DM Mono',monospace;color:var(--forge);}
+
+/* STATUS */
+.status-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border:1px solid var(--border);margin-bottom:2px;}
+.status-msg{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);flex:1;}
+.status-msg span{color:var(--forge);}
+.pbar-wrap{width:120px;height:2px;background:var(--border);flex-shrink:0;}
+.pbar-fill{height:100%;background:var(--forge);transition:width .4s ease;width:0%;}
+
+/* COST PANEL */
+.cost-panel{border:1px solid var(--border);opacity:0;transition:opacity .6s ease;margin-top:2px;}
+.cost-panel.visible{opacity:1;}
+
+.cost-head{padding:14px 20px;background:var(--deep);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.cost-head-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--forge);letter-spacing:1px;}
+.cost-head-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;}
+
+.cost-body{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+.cost-half{padding:20px 20px;}
+.cost-half:first-child{border-right:1px solid var(--border);}
+.cost-half-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+
+.cost-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.cost-row:last-child{border-bottom:none;font-weight:500;}
+.cost-row .rl{color:var(--muted);}
+.cost-row .rv{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);}
+.cost-row .rv.green{color:var(--forge);}
+.cost-row .rv.red{color:var(--red);}
+
+/* savings bar */
+.savings-section{padding:20px 20px 0;}
+.savings-label-row{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;}
+.savings-bar-bg{height:8px;background:var(--border);position:relative;overflow:hidden;}
+.savings-bar-ao{height:100%;background:var(--red);opacity:.4;width:100%;}
+.savings-bar-forge{position:absolute;top:0;left:0;height:100%;background:var(--forge);width:0%;transition:width 1.2s ease;}
+.savings-legend{display:flex;gap:20px;margin-top:8px;margin-bottom:16px;}
+.savings-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.sleg-dot{width:8px;height:8px;border-radius:1px;}
+
+/* summary grid */
+.cost-footer{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+.cost-metric{padding:16px 20px;background:var(--panel);}
+.cm-val{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;margin-bottom:4px;}
+.cm-val.green{color:var(--forge);}
+.cm-val.red{color:var(--red);}
+.cm-val.purple{color:var(--purple);}
+.cm-val.yellow{color:var(--yellow);}
+.cm-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+
+/* CTA */
+.bottom-cta{margin-top:40px;padding:36px;background:var(--panel);border:1px solid var(--border);text-align:center;}
+.cta-title{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--forge);letter-spacing:1px;margin-bottom:10px;}
+.cta-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.cta-a{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 28px;background:var(--forge);color:var(--black);text-decoration:none;font-weight:500;transition:background .2s;}
+.cta-a:hover{background:var(--forge2);}
+.cta-b{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 28px;border:1px solid var(--border2);color:var(--muted);text-decoration:none;transition:all .2s;}
+.cta-b:hover{border-color:var(--forge);color:var(--forge);}
+
+@media(max-width:768px){
+  nav{padding:12px 24px;}.nav-links{display:none;}
+  .hero,.prompt-zone,.board-zone{padding-left:20px;padding-right:20px;}
+  .hero{padding-top:80px;}
+  .cost-body{grid-template-columns:1fr;}
+  .cost-half:first-child{border-right:none;border-bottom:1px solid var(--border);}
+  .cost-footer{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">FORGE</a>
+  <div class="nav-links">
+    <a href="index.html">Spec Index</a>
+    <a href="demo.html">Full Demo</a>
+    <a href="comparison.html">vs Competitors</a>
+    <a href="spec-G-architecture-agent.html">Architecture Agent</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label"><span class="pdot"></span>Pipeline Visualizer</div>
+  <h1 class="hero-title">
+    <span class="t1">Every Phase. Every Agent.</span>
+    <span class="t2">Every Dollar.</span>
+  </h1>
+  <p class="hero-sub">
+    Watch the full FORGE V3 pipeline — <strong>TDD enforced at pipeline level</strong>. Every artifact reviewed before the next phase begins. Test cases written before code. Code reviewed before it is committed. GPU spins up per agent, tears down when done.
+  </p>
+</div>
+
+<div class="prompt-zone">
+  <div class="prompt-box">
+    <div class="prompt-top">
+      <span class="prompt-tag">Feature →</span>
+      <input type="text" id="promptInput" placeholder="Build a customer 360 platform…" maxlength="120"/>
+    </div>
+    <div class="prompt-chips">
+      <span class="chip" onclick="setP(this)">Build a customer 360 platform</span>
+      <span class="chip" onclick="setP(this)">Add Stripe payment retry with backoff</span>
+      <span class="chip" onclick="setP(this)">Build a real-time notification system</span>
+      <span class="chip" onclick="setP(this)">Add OAuth2 single sign-on</span>
+      <span class="chip" onclick="setP(this)">Build an inventory management system</span>
+    </div>
+    <div class="prompt-foot">
+      <span class="prompt-hint">Click a chip or type any feature</span>
+      <button class="run-btn" id="runBtn" onclick="runPipeline()">Run Pipeline →</button>
+    </div>
+  </div>
+</div>
+
+<div class="board-zone">
+
+  <div class="status-bar">
+    <div class="status-msg" id="statusMsg">Enter a feature and click Run Pipeline</div>
+    <div class="pbar-wrap"><div class="pbar-fill" id="pbarFill"></div></div>
+  </div>
+
+  <div class="board-scroll">
+    <div class="board" id="board" style="grid-template-columns:repeat(7,1fr);"></div>
+  </div>
+
+  <!-- COST PANEL -->
+  <div class="cost-panel" id="costPanel">
+    <div class="cost-head">
+      <span style="font-size:18px;">💰</span>
+      <div class="cost-head-title">Pipeline Cost Breakdown</div>
+      <div class="cost-head-sub" id="costHeadSub">Per-phase model selection · On-demand GPU · Cost-tracked</div>
+    </div>
+
+    <div class="cost-body">
+      <div class="cost-half">
+        <div class="cost-half-title">FORGE — Resource-Controlled</div>
+        <div class="cost-row"><span class="rl">GPU active time</span><span class="rv" id="c-gpu-time">—</span></div>
+        <div class="cost-row"><span class="rl">L40S rate (DigitalOcean)</span><span class="rv">$1.57 / hr</span></div>
+        <div class="cost-row"><span class="rl">GPU compute cost</span><span class="rv" id="c-gpu-cost">—</span></div>
+        <div class="cost-row"><span class="rl">LLM API calls (fallback)</span><span class="rv" id="c-api-cost">—</span></div>
+        <div class="cost-row"><span class="rl">Security tooling</span><span class="rv">$0.00 — built in</span></div>
+        <div class="cost-row"><span class="rl">QA / test tooling</span><span class="rv">$0.00 — built in</span></div>
+        <div class="cost-row">
+          <span class="rl" style="color:var(--text);font-weight:500;">Total this run</span>
+          <span class="rv green" style="font-size:16px;" id="c-total">—</span>
+        </div>
+      </div>
+
+      <div class="cost-half">
+        <div class="cost-half-title">Without FORGE — Always-On + Manual</div>
+        <div class="cost-row"><span class="rl">GPU time (always-on, 8 hrs)</span><span class="rv" id="c-ao-time">—</span></div>
+        <div class="cost-row"><span class="rl">L40S rate</span><span class="rv">$1.57 / hr</span></div>
+        <div class="cost-row"><span class="rl">GPU compute cost</span><span class="rv" id="c-ao-compute">—</span></div>
+        <div class="cost-row"><span class="rl">Manual security tooling</span><span class="rv">$0.08</span></div>
+        <div class="cost-row"><span class="rl">Developer time (3.2 hrs @ $125)</span><span class="rv red" id="c-dev">—</span></div>
+        <div class="cost-row"><span class="rl">QA / test tooling</span><span class="rv">$0.50</span></div>
+        <div class="cost-row">
+          <span class="rl" style="color:var(--text);font-weight:500;">Would have cost</span>
+          <span class="rv red" style="font-size:16px;" id="c-ao-total">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="savings-section">
+      <div class="savings-label-row">
+        <span>FORGE cost (resource-controlled)</span>
+        <span>Always-on GPU + manual pipeline</span>
+      </div>
+      <div class="savings-bar-bg">
+        <div class="savings-bar-ao"></div>
+        <div class="savings-bar-forge" id="savingsBarForge"></div>
+      </div>
+      <div class="savings-legend">
+        <div class="savings-legend-item"><div class="sleg-dot" style="background:var(--forge);"></div>FORGE cost</div>
+        <div class="savings-legend-item"><div class="sleg-dot" style="background:var(--red);opacity:.5;"></div>Always-on cost</div>
+      </div>
+    </div>
+
+    <div class="cost-footer">
+      <div class="cost-metric">
+        <div class="cm-val green" id="m-saved">—</div>
+        <div class="cm-label">You saved</div>
+      </div>
+      <div class="cost-metric">
+        <div class="cm-val purple" id="m-pct">—</div>
+        <div class="cm-label">Savings %</div>
+      </div>
+      <div class="cost-metric">
+        <div class="cm-val yellow" id="m-gpu">—</div>
+        <div class="cm-label">GPU active minutes</div>
+      </div>
+      <div class="cost-metric">
+        <div class="cm-val" id="m-time">—</div>
+        <div class="cm-label">Pipeline wall-clock</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM CTA -->
+  <div class="bottom-cta">
+    <div class="cta-title">Reviewed at Every Step. Fixed at Every Failure.</div>
+    <div class="cta-sub">Test cases written before code. Every artifact reviewed up to 3 times before advancing. FORGE watches your pipeline and fixes what breaks — automatically.</div>
+    <div class="cta-row">
+      <a href="demo.html" class="cta-a">AI-Powered Demo</a>
+      <a href="index.html" class="cta-b">Read the Full Spec</a>
+      <a href="comparison.html" class="cta-b">vs Competitors</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const delay = ms => new Promise(r => setTimeout(r, ms));
+let running = false;
+
+function setP(el){ $('promptInput').value = el.textContent.trim(); }
+
+const COLUMNS = [
+  {
+    id:'spec', icon:'💬', title:'Product Spec', sub:'Spec Generator + Spec Review',
+    steps:[
+      {l:'GPU spin-up',       t:'CPU droplet. Claude Sonnet API. No local model needed.',                               type:'gpu-up',  dur:400, model:'Claude Sonnet 4.5 API'},
+      {l:'Conversation',      t:'Spec Generator asks targeted questions until requirement is unambiguous.',              type:'run',     dur:700},
+      {l:'Spec produced',     t:'Functional spec: scope, out-of-scope, performance, user flows documented.',            type:'run',     dur:600},
+      {l:'Spec Review — R1',  t:'Spec Review Agent checks completeness, ambiguity, contradictions, testability.',       type:'run',     dur:700},
+      {l:'Revision cycle',    t:'Issues found: "real-time" is ambiguous. Revision task created for Spec Generator.',    type:'bug',     dur:600},
+      {l:'Spec revised',      t:'Spec Generator addresses all review issues. Resubmits for review. Cycle 2.',           type:'run',     dur:600},
+      {l:'Spec approved',     t:'Spec Review Agent approves. All requirements testable and unambiguous.',                type:'run',     dur:400},
+      {l:'GPU torn down',     t:'CPU droplet released. Spec cost: $0.012.',                                              type:'gpu-down',dur:400},
+      {l:'Human approval',    t:'Product owner reviews approved spec before architecture begins.',                        type:'approval',dur:700},
+    ]
+  },
+  {
+    id:'arch', icon:'🏗', title:'Architecture', sub:'Arch Agent + Arch Review',
+    steps:[
+      {l:'GPU spin-up',       t:'H100 80GB. Llama-3.1-70B loaded. Boot: 68s.',                                          type:'gpu-up',  dur:1000, bar:true, model:'Llama-3.1-70B on H100'},
+      {l:'Architecture',      t:'Service boundaries, tech stack, data flow designed. 8,192 token budget.',               type:'run',     dur:900},
+      {l:'Data model',        t:'Full schema defined. Tables, indexes, constraints — before any code.',                  type:'run',     dur:600},
+      {l:'Interface contracts',t:'Every API endpoint, trait, type signature explicitly defined.',                        type:'run',     dur:600},
+      {l:'ADRs written',      t:'Architecture Decision Records capture every significant technology choice.',             type:'run',     dur:500},
+      {l:'Arch Review — R2',  t:'Architecture Review Agent checks spec coverage, tech fit, security, ADR quality.',      type:'run',     dur:800},
+      {l:'Revision cycle',    t:'Issue: Redis sessions not addressed in ADR. Revision task created.',                    type:'bug',     dur:600},
+      {l:'Arch revised',      t:'ADR-003 added for Redis session storage. Architecture resubmitted. Cycle 2.',           type:'run',     dur:700},
+      {l:'Arch approved',     t:'Architecture Review Agent approves all 5 artifacts.',                                   type:'run',     dur:400},
+      {l:'GPU torn down',     t:'H100 powered OFF. Architecture cost: $0.71.',                                           type:'gpu-down',dur:600},
+      {l:'Human approval',    t:'Tech lead reviews architecture before task generation begins.',                          type:'approval',dur:700},
+    ]
+  },
+  {
+    id:'taskgen', icon:'📋', title:'Task Generator', sub:'Task Gen + Task Review',
+    steps:[
+      {l:'GPU spin-up',       t:'CPU droplet. Claude Sonnet API for structured decomposition.',                          type:'gpu-up',  dur:400, model:'Claude Sonnet 4.5 API'},
+      {l:'Task generation',   t:'Code Task Generator reads architecture. Produces 8 atomic implementation tasks.',       type:'run',     dur:800, cost:'$0.008'},
+      {l:'File paths set',    t:'Exact file paths, interface references, dependency links, acceptance criteria per task.',type:'run',     dur:500},
+      {l:'Task Review — R3',  t:'Task Review Agent checks coverage, atomicity, dependencies, interface references.',     type:'run',     dur:700},
+      {l:'Revision cycle',    t:'Gap found: no task for error handling middleware. Task added.',                          type:'bug',     dur:600},
+      {l:'Tasks approved',    t:'9 tasks approved. Created in Jira as TASK_DRAFT.',                                      type:'run',     dur:400},
+      {l:'GPU torn down',     t:'CPU droplet released. Task generation cost: $0.009.',                                   type:'gpu-down',dur:400},
+    ]
+  },
+  {
+    id:'testgen', icon:'🧪', title:'Test Case Gen', sub:'Test Gen + Test Review · TDD',
+    steps:[
+      {l:'GPU spin-up',       t:'L40S provisioned. Qwen2.5-Coder-32B loaded. Tests are code — use code model.',         type:'gpu-up',  dur:800, bar:true, model:'Qwen2.5-Coder-32B on L40S'},
+      {l:'Test cases written',t:'Test Case Generator writes tests for all 9 tasks. Happy path, error path, edge cases.', type:'run',     dur:1000, cost:'$0.031'},
+      {l:'Interface-aligned', t:'Every test uses exact interface signatures from approved architecture contracts.',       type:'run',     dur:500},
+      {l:'Test Review — R4',  t:'Test Case Review Agent checks coverage, correctness, independence, determinism.',       type:'run',     dur:700},
+      {l:'Revision cycle',    t:'Missing null input test case on find_by_id. Revision task created.',                   type:'bug',     dur:600},
+      {l:'Tests approved',    t:'Test cases approved. Tasks promoted TASK_DRAFT → QUEUED. Code Agent unblocked.',        type:'run',     dur:400},
+      {l:'GPU torn down',     t:'L40S powered OFF. Test generation cost: $0.038.',                                       type:'gpu-down',dur:500},
+    ]
+  },
+  {
+    id:'code', icon:'⚙️', title:'Code Agent', sub:'Code Agent + Code Review',
+    steps:[
+      {l:'GPU spin-up',       t:'L40S provisioned. Qwen2.5-Coder-32B loaded. Boot: 42s.',                               type:'gpu-up',  dur:900, bar:true, model:'Qwen2.5-Coder-32B on L40S'},
+      {l:'Dequeues task',     t:'Picks highest-priority QUEUED task. Reads task + approved test cases + architecture.',  type:'run',     dur:400},
+      {l:'Writes source code',t:'Code written to satisfy approved test cases. Interface contracts strictly implemented.', type:'run',     dur:1000, cost:'$0.031'},
+      {l:'Code Review — R5',  t:'Code Review Agent checks syntax, interface compliance, test satisfiability, security.', type:'run',     dur:800},
+      {l:'Revision cycle',    t:'Input not validated on upsert_from_source. Revision task created.',                     type:'bug',     dur:600},
+      {l:'Code revised',      t:'Validation added. Code resubmitted. Code Review re-evaluates. Cycle 2.',                type:'run',     dur:700},
+      {l:'Code approved',     t:'Code Review Agent approves. Committed to customer branch.',                             type:'run',     dur:400},
+      {l:'GPU torn down',     t:'L40S powered OFF after all tasks committed.',                                           type:'gpu-down',dur:500},
+    ]
+  },
+  {
+    id:'security', icon:'🔍', title:'Security Agent', sub:'Every commit · No GPU',
+    steps:[
+      {l:'GPU spin-up',       t:'CPU droplet. Claude Haiku API + static tools. No local GPU.',                          type:'gpu-up',  dur:400, model:'Claude Haiku API + Semgrep + Gitleaks'},
+      {l:'CVE scan',          t:'Dependencies checked against OSV, NVD, Snyk. Runs on every commit.',                   type:'run',     dur:700},
+      {l:'SAST + secrets',    t:'Semgrep OWASP ruleset. Gitleaks secret detection. SOC2 control check.',                type:'run',     dur:700},
+      {l:'Bug queued',        t:'Finding → bug task queued in Jira. Code Agent picks up, fixes, Code Review runs.',     type:'bug',     dur:600},
+      {l:'Re-scan passes',    t:'Fix committed. Security re-scan clean. Customer CI triggered.',                         type:'run',     dur:500},
+      {l:'GPU torn down',     t:'CPU droplet released. Security cost: $0.008.',                                          type:'gpu-down',dur:400},
+    ]
+  },
+  {
+    id:'monitors', icon:'📡', title:'Monitor Agents', sub:'Build · Log · Perf · Customer infra',
+    steps:[
+      {l:'Connected',         t:'FORGE connects to customer CI/CD, logs (Datadog/Loki), APM (New Relic/Prometheus).',   type:'gpu-up',  dur:400, model:'Claude Haiku API (all monitors)'},
+      {l:'Build webhook',     t:'Customer CI/CD reports test failure. Build & Test Monitor classifies log payload.',     type:'bug',     dur:600},
+      {l:'Log anomaly',       t:'Log Monitor: NullPointerException OrderService:142 — 3 occurrences/min detected.',      type:'bug',     dur:700},
+      {l:'Perf regression',   t:'Perf Monitor: p95 640ms on /api/accounts. N+1 query detected via APM.',                type:'bug',     dur:700},
+      {l:'GPU spin-up',       t:'L40S on-demand for Code Agent. Each bug fix goes through Code Review (R5).',           type:'gpu-up',  dur:800, bar:true, model:'Qwen2.5-Coder-32B on L40S (on-demand)'},
+      {l:'Bugs fixed',        t:'Code Agent fixes all 3 bugs. Code Review approves each. Committed to branch.',         type:'run',     dur:900, cost:'$0.093'},
+      {l:'GPU torn down',     t:'L40S powered OFF. Monitors resume on CPU. All issues resolved.',                        type:'gpu-down',dur:500},
+    ]
+  },
+  {
+    id:'jira', icon:'📊', title:'Jira — Live', sub:'Every agent · Every review · Every cost',
+    steps:[
+      {l:'Spec revision task',   t:'Spec Review (R1): ambiguity found. Revision task created. Spec Generator picks up.',  type:'bug',      dur:400},
+      {l:'Spec approved',        t:'Cycle 2: Spec Review approves. Architecture Agent triggered.',                         type:'run',      dur:400},
+      {l:'Arch revision task',   t:'Arch Review (R2): missing ADR. Revision task created. Architecture Agent picks up.',  type:'bug',      dur:400},
+      {l:'Arch approved',        t:'Cycle 2: Arch Review approves. Code Task Generator triggered.',                        type:'run',      dur:400},
+      {l:'9 tasks in DRAFT',     t:'Code Task Generator created 9 tasks. Status: TASK_DRAFT. Awaiting test cases.',       type:'run',      dur:400},
+      {l:'Test gap revision',    t:'Test Review (R4): missing null test. Revision task. Test Case Generator picks up.',   type:'bug',      dur:500},
+      {l:'Tests approved',       t:'Test Case Review approves. 9 tasks promoted TASK_DRAFT → QUEUED.',                   type:'run',      dur:400},
+      {l:'Code revision task',   t:'Code Review (R5): missing input validation. Revision task. Code Agent picks up.',    type:'bug',      dur:500},
+      {l:'Code approved',        t:'Cycle 2: Code Review approves. Committed. Customer CI/CD triggered.',                type:'run',      dur:400},
+      {l:'All resolved',         t:'3 review cycles total. 4 revision tasks auto-resolved. PR ready for human review.',  type:'approval', dur:400},
+    ]
+  },
+];
+
+function buildBoard(){
+  const board = $('board');
+  board.style.gridTemplateColumns = `repeat(${COLUMNS.length},minmax(115px,1fr))`;
+  board.innerHTML = COLUMNS.map(col=>`
+    <div class="col" id="col-${col.id}">
+      <div class="col-head">
+        <span class="col-icon">${col.icon}</span>
+        <div class="col-title">${col.title}</div>
+        <div class="col-sub">${col.sub}</div>
+      </div>
+      <div class="col-body">
+        ${col.steps.map((s,i)=>`
+          <div class="step" id="step-${col.id}-${i}">
+            <div class="step-label">
+              <span class="sdot d-idle" id="dot-${col.id}-${i}"></span>
+              ${s.l}
+            </div>
+            <div class="step-text">${s.t}</div>
+            ${s.model?`<div class="model-badge">${s.model}</div>`:''}
+            ${s.bar?`<div class="gpu-bar-wrap"><div class="gpu-bar" id="gbar-${col.id}-${i}"></div></div>`:''}
+            ${s.cost?`<div class="cost-line-inner"><span style="color:var(--muted);font-size:9px;">cost this step</span><span class="cv">${s.cost}</span></div>`:''}
+            <div class="shim${s.type==='gpu-up'||s.type==='gpu-down'?' orange':''}" id="shim-${col.id}-${i}"></div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function setStatus(msg, pct){
+  $('statusMsg').innerHTML = msg;
+  if(pct !== undefined) $('pbarFill').style.width = pct+'%';
+}
+
+async function animStep(col, i){
+  const s = col.steps[i];
+  const step = $(`step-${col.id}-${i}`);
+  const dot  = $(`dot-${col.id}-${i}`);
+  const shim = $(`shim-${col.id}-${i}`);
+  if(!step) return;
+
+  const dotMap = {run:'d-run',approval:'d-approval',bug:'d-bug','gpu-up':'d-gpu-up','gpu-down':'d-gpu-down',cost:'d-cost'};
+  const clsMap = {run:'s-run',approval:'s-approval',bug:'s-bug','gpu-up':'s-gpu-up','gpu-down':'s-gpu-down',cost:'s-cost'};
+
+  step.classList.add('show', clsMap[s.type]||'s-run');
+  dot.className = `sdot ${dotMap[s.type]||'d-run'}`;
+  if(shim) shim.style.width = '20%';
+
+  const gbar = $(`gbar-${col.id}-${i}`);
+  if(gbar){ await delay(80); gbar.style.width='100%'; }
+
+  await delay(s.dur * 0.45);
+  if(shim) shim.style.width = '65%';
+  await delay(s.dur * 0.55);
+  if(shim) shim.style.width = '100%';
+
+  const doneMap = {run:'d-done',approval:'d-approval',bug:'d-bug','gpu-up':'d-gpu-down','gpu-down':'d-gpu-down',cost:'d-cost'};
+  dot.className = `sdot ${doneMap[s.type]||'d-done'}`;
+  step.classList.add('done');
+}
+
+function showCostPanel(gpuMins, wallSecs){
+  const gpuHrs    = gpuMins / 60;
+  const gpuCost   = +(gpuHrs * 1.57).toFixed(2);
+  const apiCost   = 0.18;
+  const total     = +(gpuCost + apiCost).toFixed(2);
+
+  const aoHrs     = 8;
+  const aoCompute = +(aoHrs * 1.57).toFixed(2);
+  const devCost   = 3.2 * 125;
+  const aoTotal   = +(aoCompute + 0.08 + devCost + 0.50).toFixed(2);
+
+  const saved     = +(aoTotal - total).toFixed(2);
+  const savePct   = Math.round((saved / aoTotal) * 100);
+  const forgePct  = Math.round((total / aoTotal) * 100);
+
+  const fmt = v => '$'+v.toFixed(2);
+  const mins = Math.floor(wallSecs/60);
+  const secs = wallSecs % 60;
+  const wallStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+  $('c-gpu-time').textContent  = gpuMins+' min';
+  $('c-gpu-cost').textContent  = fmt(gpuCost);
+  $('c-api-cost').textContent  = fmt(apiCost);
+  $('c-total').textContent     = fmt(total);
+  $('c-ao-time').textContent   = (aoHrs*60)+' min (always-on)';
+  $('c-ao-compute').textContent= fmt(aoCompute);
+  $('c-dev').textContent       = fmt(devCost)+' (3.2 hrs)';
+  $('c-ao-total').textContent  = fmt(aoTotal);
+
+  $('m-saved').textContent = fmt(saved);
+  $('m-pct').textContent   = savePct+'%';
+  $('m-gpu').textContent   = gpuMins;
+  $('m-time').textContent  = wallStr;
+
+  $('costPanel').classList.add('visible');
+  setTimeout(()=>{ $('savingsBarForge').style.width = forgePct+'%'; }, 300);
+}
+
+async function runPipeline(){
+  if(running) return;
+  running = true;
+  const t0 = Date.now();
+  $('runBtn').disabled = true;
+  $('costPanel').classList.remove('visible');
+  buildBoard();
+
+  const total = COLUMNS.reduce((a,c)=>a+c.steps.length, 0);
+  let done = 0;
+
+  setStatus('Pipeline starting…', 2);
+
+  for(const col of COLUMNS){
+    $(`col-${col.id}`).classList.add('col-active');
+
+    for(let i=0; i<col.steps.length; i++){
+      const s = col.steps[i];
+      setStatus(`<span>${col.title}</span> — ${s.l}…`, Math.round((done/total)*92));
+      await animStep(col, i);
+      done++;
+      await delay(70);
+    }
+
+    $(`col-${col.id}`).classList.remove('col-active');
+    $(`col-${col.id}`).classList.add('col-done');
+    await delay(160);
+  }
+
+  const elapsed = Math.round((Date.now()-t0)/1000);
+  setStatus('V3 pipeline complete — TDD enforced · all review cycles passed · monitors clear · GPU torn down · costs logged', 100);
+  await delay(400);
+  showCostPanel(34, elapsed);
+
+  running = false;
+  $('runBtn').disabled = false;
+}
+
+buildBoard();
+</script>
+</body>
+</html>
