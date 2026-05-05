@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,7 +58,7 @@ body::after {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 680px;
+  max-width: 880px;
   text-align: center;
 }
 
@@ -93,6 +94,8 @@ body::after {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 40px;
+  max-width: 860px;
+  width: 100%;
 }
 
 .card {
@@ -206,7 +209,7 @@ body::after {
   letter-spacing: 1px;
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .cards { grid-template-columns: 1fr; }
   .logo { font-size: 56px; }
 }
@@ -216,7 +219,7 @@ body::after {
 <div class="wrap">
 
   <div class="logo">FORGE</div>
-  <div class="tagline">Autonomous Software Platform</div>
+  <div class="tagline">Autonomous Agent Platform</div>
 
   <div class="label">Select a version</div>
 
@@ -241,25 +244,6 @@ body::after {
       <div class="card-arrow">→</div>
     </a>
 
-    <a href="v3/index.html" class="card" style="--card-color:#7c3aed;">
-      <div class="card-version">
-        <span class="version-badge" style="background:#7c3aed;">V3</span>
-        Latest
-      </div>
-      <div class="card-title">TDD Pipeline</div>
-      <div class="card-desc">
-        Test cases written before code. Every artifact reviewed up to 3 times. Universal critique loop at every handoff.
-      </div>
-      <div class="card-features">
-        <div class="feature" style="--card-color:#7c3aed;">Spec, Arch, Task, Test Case, Code Review Agents</div>
-        <div class="feature" style="--card-color:#7c3aed;">Code Task Generator Agent</div>
-        <div class="feature" style="--card-color:#7c3aed;">Test Case Generator Agent (TDD)</div>
-        <div class="feature" style="--card-color:#7c3aed;">3-cycle review loop → human escalation</div>
-        <div class="feature" style="--card-color:#7c3aed;">19 total agents · 32 components</div>
-      </div>
-      <div class="card-arrow" style="color:#7c3aed;">→</div>
-    </a>
-
     <a href="v2/index.html" class="card card-v2">
       <div class="card-version">
         <span class="version-badge">V2</span>
@@ -271,7 +255,7 @@ body::after {
       </div>
       <div class="card-features">
         <div class="feature">Architecture Agent + ADRs</div>
-        <div class="feature">Build & Test Monitor (webhook)</div>
+        <div class="feature">Build &amp; Test Monitor (webhook)</div>
         <div class="feature">Log Monitor Agent (streaming)</div>
         <div class="feature">Performance Monitor Agent (APM)</div>
         <div class="feature">Pipeline swim lane visualizer</div>
@@ -279,9 +263,47 @@ body::after {
       <div class="card-arrow">→</div>
     </a>
 
+    <a href="v3/index.html" class="card" style="--card-color:#7c3aed;">
+      <div class="card-version">
+        <span class="version-badge" style="background:#7c3aed;">V3</span>
+        TDD Pipeline
+      </div>
+      <div class="card-title">Review at Every Step</div>
+      <div class="card-desc">
+        Test cases written before code. Every artifact reviewed up to 3 times. Universal critique loop at every handoff.
+      </div>
+      <div class="card-features">
+        <div class="feature" style="--card-color:#7c3aed;">5 Review Agents (R1–R5)</div>
+        <div class="feature" style="--card-color:#7c3aed;">Code Task Generator + Test Case Generator</div>
+        <div class="feature" style="--card-color:#7c3aed;">TDD enforced at pipeline level</div>
+        <div class="feature" style="--card-color:#7c3aed;">3-cycle loop → human escalation</div>
+        <div class="feature" style="--card-color:#7c3aed;">19 agents · 32 components</div>
+      </div>
+      <div class="card-arrow" style="color:#7c3aed;">→</div>
+    </a>
+
+    <a href="v4/index.html" class="card" style="--card-color:#0f766e;">
+      <div class="card-version">
+        <span class="version-badge" style="background:#0f766e;">V4</span>
+        Universal
+      </div>
+      <div class="card-title">Any Goal</div>
+      <div class="card-desc">
+        Vacation, business, SAT prep, software, career. Intake → Profile → Options → Execute. Automates everything possible.
+      </div>
+      <div class="card-features">
+        <div class="feature" style="--card-color:#0f766e;">Intake Agent + User Profile Store</div>
+        <div class="feature" style="--card-color:#0f766e;">Master Plan Creator (Claude Opus)</div>
+        <div class="feature" style="--card-color:#0f766e;">L3 Autonomous · L2 One-Click · L1 Deliver</div>
+        <div class="feature" style="--card-color:#0f766e;">Dynamic agent assembly per goal</div>
+        <div class="feature" style="--card-color:#0f766e;">35 components · 8 domains</div>
+      </div>
+      <div class="card-arrow" style="color:#0f766e;">→</div>
+    </a>
+
   </div>
 
-  <div class="footer">FORGE Platform · Confidential · May 2026</div>
+<div class="footer">FORGE Platform · Confidential · May 2026</div>
 
 </div>
 </body>
