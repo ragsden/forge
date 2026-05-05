@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec I — Generator Agents | FORGE Platform V3</title>
+<style>
+  :root {
+    --ink:#1a1a1a;--muted:#555;--light:#888;--border:#ddd;
+    --bg-alt:#fafafa;--bg-code:#f4f4f4;
+    --accent:#1d4ed8;--accent-light:#eff6ff;
+    --ok:#15803d;--ok-light:#f0fdf4;
+    --gen:#0e7490;--gen-light:#ecfeff;
+    --v3:#7c3aed;--v3-light:#f5f3ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,serif;font-size:16px;line-height:1.75;color:var(--ink);background:#fff;}
+  .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+  .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:#f9f9f9;border-right:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .sidebar-brand{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:bold;}
+  .sidebar-brand a{text-decoration:none;color:var(--ink);}
+  .v3-badge{display:inline-block;padding:1px 6px;background:var(--v3);color:#fff;font-size:9px;letter-spacing:1px;margin-left:6px;}
+  .sidebar-doc-name{padding:4px 20px 14px;font-size:12px;font-weight:bold;color:var(--gen);border-bottom:1px solid var(--border);}
+  .sidebar-doc-title{padding:12px 20px 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--light);}
+  .nav-section{padding:12px 0 4px 20px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--light);}
+  .nav-item{display:block;padding:5px 20px 5px 24px;color:var(--muted);text-decoration:none;line-height:1.4;border-left:2px solid transparent;}
+  .nav-item:hover{color:var(--gen);background:var(--gen-light);border-left-color:var(--gen);}
+  .nav-item.sub{padding-left:36px;font-size:11px;}
+  .sidebar-files{border-top:1px solid var(--border);margin-top:16px;padding-top:4px;}
+  .nav-file{display:block;padding:5px 20px;color:var(--light);text-decoration:none;font-size:11px;}
+  .nav-file:hover{color:var(--accent);}
+  .nav-file.current{color:var(--ink);font-weight:bold;}
+
+  .main{padding:60px 80px 100px;max-width:900px;}
+  .breadcrumb{font-family:'Courier New',monospace;font-size:11px;color:var(--light);margin-bottom:36px;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb span{margin:0 6px;}
+  .doc-header{border-bottom:2px solid var(--ink);padding-bottom:24px;margin-bottom:40px;}
+  .doc-label{font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--light);margin-bottom:10px;}
+  .doc-title{font-size:36px;font-weight:bold;line-height:1.15;letter-spacing:-0.5px;margin-bottom:12px;}
+  .doc-desc{font-size:16px;color:var(--muted);font-style:italic;margin-bottom:16px;}
+  .doc-meta{font-family:'Courier New',monospace;font-size:11px;color:var(--light);display:flex;gap:24px;flex-wrap:wrap;}
+
+  .section{margin-bottom:64px;}
+  .section-anchor{display:block;position:relative;top:-80px;visibility:hidden;}
+  h1.sh{font-size:26px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:20px;}
+  h2.sh{font-size:19px;margin-top:36px;margin-bottom:12px;}
+  .anchor-link{font-family:'Courier New',monospace;font-size:11px;color:var(--border);text-decoration:none;}
+  .anchor-link:hover{color:var(--accent);}
+
+  p{margin-bottom:14px;}
+  ul,ol{margin:0 0 14px 0;padding-left:24px;}
+  li{margin-bottom:6px;line-height:1.7;}
+
+  .callout{padding:16px 20px;margin:20px 0;border-left:4px solid;font-size:15px;}
+  .callout.gen{border-color:var(--gen);background:var(--gen-light);}
+  .callout.v3{border-color:var(--v3);background:var(--v3-light);}
+  .callout-label{font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:6px;}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px;}
+  th{background:var(--ink);color:#fff;padding:9px 13px;text-align:left;font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:normal;}
+  td{padding:8px 13px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;}
+  tr:nth-child(even) td{background:var(--bg-alt);}
+
+  pre{background:var(--bg-code);border:1px solid var(--border);padding:16px 20px;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin:16px 0 24px;white-space:pre;}
+  code{font-family:'Courier New',monospace;font-size:12.5px;background:#eee;padding:2px 5px;}
+
+  .agent-card{border:1px solid var(--border);border-top:4px solid var(--gen);margin-bottom:32px;}
+  .agent-card-header{display:flex;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg-alt);}
+  .agent-num{font-family:'Courier New',monospace;font-size:36px;color:var(--border);font-weight:bold;line-height:1;}
+  .agent-name{font-size:20px;font-weight:bold;}
+  .agent-badges{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;}
+  .agent-badge{font-family:'Courier New',monospace;font-size:9px;padding:2px 8px;background:var(--bg-code);border:1px solid var(--border);}
+  .spec-row{display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid var(--border);}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{padding:10px 16px;font-family:'Courier New',monospace;font-size:11px;color:var(--light);background:var(--bg-alt);border-right:1px solid var(--border);}
+  .spec-value{padding:10px 16px;font-size:14px;}
+
+  .flow-box{background:var(--bg-code);border:1px solid var(--border);padding:20px 24px;margin:16px 0 24px;font-family:'Courier New',monospace;font-size:12px;line-height:2;}
+
+  .page-nav{display:flex;justify-content:space-between;margin-top:60px;padding-top:24px;border-top:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .page-nav a{color:var(--accent);text-decoration:none;}
+  .spec-footer{font-family:'Courier New',monospace;font-size:11px;color:var(--light);text-align:center;margin-top:40px;padding-top:16px;border-top:1px solid var(--border);}
+
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .sidebar{position:static;height:auto;}
+    .main{padding:40px 32px 80px;}
+    .spec-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <a href="index.html">← FORGE Platform</a>
+    <span class="v3-badge">V3</span>
+  </div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec I — Generator Agents</div>
+
+  <div class="nav-section">Sections</div>
+  <a href="#overview" class="nav-item">Overview</a>
+  <a href="#tdd" class="nav-item">TDD Enforcement</a>
+  <a href="#task-generator" class="nav-item">01 — Code Task Generator</a>
+  <a href="#task-gen-output" class="nav-item sub">↳ Output schema</a>
+  <a href="#task-gen-flow" class="nav-item sub">↳ Flow</a>
+  <a href="#testcase-generator" class="nav-item">02 — Test Case Generator</a>
+  <a href="#testcase-output" class="nav-item sub">↳ Output schema</a>
+  <a href="#testcase-flow" class="nav-item sub">↳ Flow</a>
+  <a href="#sequence" class="nav-item">Full V3 Sequence</a>
+
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-A-scheduler-and-watchdog.html" class="nav-file">A — Scheduler &amp; Watchdog</a>
+    <a href="spec-B-functional-spec-agent.html" class="nav-file">B — Spec Generator</a>
+    <a href="spec-C-agents.html" class="nav-file">C — Pipeline Agents</a>
+    <a href="spec-D-resource-and-cloud.html" class="nav-file">D — Resource &amp; Cloud</a>
+    <a href="spec-E-knowledge-and-models.html" class="nav-file">E — Knowledge &amp; Models</a>
+    <a href="spec-F-multitenant-and-ops.html" class="nav-file">F — Multi-Tenant &amp; Ops</a>
+    <a href="spec-G-architecture-agent.html" class="nav-file">G — Architecture Agent</a>
+    <a href="spec-H-review-agents.html" class="nav-file">H — Review Agents</a>
+    <a href="spec-I-generator-agents.html" class="nav-file current">I — Generator Agents</a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb">
+    <a href="index.html">FORGE Platform V3</a>
+    <span>›</span> Spec I — Generator Agents
+  </div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification I — V3 · New</div>
+    <div class="doc-title">Generator Agents</div>
+    <div class="doc-desc">Two new agents that bridge the gap between architecture and code: the Code Task Generator decomposes approved architecture into atomic implementation tasks, and the Test Case Generator writes test cases before the Code Agent writes a single line — enforcing test-driven development across the entire pipeline.</div>
+    <div class="doc-meta">
+      <span>2 Generator Agents</span>
+      <span>Version: 3.0</span>
+      <span>Status: Draft</span>
+      <span>May 2026</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <a class="section-anchor" id="overview"></a>
+    <h1 class="sh">Overview <a href="#overview" class="anchor-link">#overview</a></h1>
+
+    <p>In V2, the Architecture Agent both designed the system and created implementation tasks. In V3 these responsibilities are separated. The Architecture Agent focuses exclusively on system design. A dedicated Code Task Generator reads the approved architecture and produces the implementation task list. A Test Case Generator then reads both the architecture and the task list to write test cases before any code is produced.</p>
+
+    <table>
+      <tr><th>Agent</th><th>Input</th><th>Output</th><th>Reviewed By</th></tr>
+      <tr><td>Code Task Generator</td><td>Approved architecture</td><td>Implementation task list</td><td>Task Review Agent</td></tr>
+      <tr><td>Test Case Generator</td><td>Approved tasks + architecture</td><td>Test case specifications per task</td><td>Test Case Review Agent</td></tr>
+    </table>
+  </div>
+
+  <!-- TDD -->
+  <div class="section">
+    <a class="section-anchor" id="tdd"></a>
+    <h1 class="sh">TDD Enforcement <a href="#tdd" class="anchor-link">#tdd</a></h1>
+
+    <div class="callout gen">
+      <div class="callout-label">Core Principle</div>
+      Test cases are written and approved before the Code Agent writes a single line of source code. The Code Agent receives approved test cases as a contract and writes code that satisfies them. This is test-driven development enforced at the pipeline level — not as a cultural guideline but as a hard architectural constraint.
+    </div>
+
+    <p>This means the Code Agent is never guessing what "correct" means. It has a precise, reviewed, approved specification of what correctness looks like for every task. First-pass code quality improves significantly. The number of bug tickets created by the Build &amp; Test Monitor drops because many issues that would have been discovered after the fact are now prevented before the code is written.</p>
+
+    <p>Test cases are also written with full knowledge of the architecture — so they test the exact interface signatures, data shapes, and error codes defined by the Architecture Agent. There is no mismatch between what the test expects and what the architecture specifies.</p>
+  </div>
+
+  <!-- CODE TASK GENERATOR -->
+  <div class="section">
+    <a class="section-anchor" id="task-generator"></a>
+    <h1 class="sh">01 — Code Task Generator Agent <a href="#task-generator" class="anchor-link">#task-generator</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">G1</div>
+        <div>
+          <div class="agent-name">Code Task Generator Agent</div>
+          <div style="font-size:12px;color:var(--light);">Decomposes approved architecture into atomic implementation tasks</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Sonnet API</span>
+          <span class="agent-badge">CPU droplet</span>
+          <span class="agent-badge">2,048 token budget</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Architecture Review Agent approves the architecture — all five architecture artifacts are marked APPROVED in Jira.</div></div>
+        <div class="spec-row"><div class="spec-label">Reads</div><div class="spec-value">System architecture document · Data model · Interface contracts · ADRs · Approved functional spec</div></div>
+        <div class="spec-row"><div class="spec-label">Produces</div><div class="spec-value">A list of 4–15 atomic implementation tasks. Each task is scoped to what one Code Agent session can implement against defined interface contracts. No task spans multiple interface boundaries.</div></div>
+        <div class="spec-row"><div class="spec-label">Does NOT do</div><div class="spec-value">Make architecture decisions. If the architecture is ambiguous, the Code Task Generator flags the gap and routes back to the Architecture Agent — it does not guess.</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Claude Sonnet API — reasoning-heavy task, not code generation. Sonnet is optimal for understanding architecture documents and producing structured decompositions.</div></div>
+        <div class="spec-row"><div class="spec-label">Hardware</div><div class="spec-value">CPU droplet only. No GPU needed — this is document analysis and structured output generation, not LLM inference at scale.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="task-gen-output"></a>
+    <h2 class="sh">Task Output Schema <a href="#task-gen-output" class="anchor-link">#task-gen-output</a></h2>
+
+    <pre>
+// Code Task Generator output — one task object per implementation task
+{
+  "task_id":              "TASK-0042",
+  "title":                "Implement AccountRepository trait",
+  "description":          "Implement the AccountRepository trait defined in architecture/interfaces.rs. Provides find_by_id, search, and upsert_from_source methods against the PostgreSQL accounts table.",
+  "files_to_write": [
+    "src/db/account_repository.rs",
+    "src/db/mod.rs"
+  ],
+  "files_to_read": [
+    "src/db/schema.rs",        // depends on Task TASK-0039
+    "architecture/interfaces.rs"
+  ],
+  "interface_implements":  "AccountRepository",
+  "interface_consumes":    ["DbPool", "Account"],
+  "interface_produces":    ["AccountRepository"],
+  "depends_on":            ["TASK-0039"],  // schema task must complete first
+  "blocks":                ["TASK-0045", "TASK-0048"],
+  "acceptance_criteria": [
+    "find_by_id returns Some(Account) when ID exists, None when it does not",
+    "search returns paginated results filtered by AccountQuery parameters",
+    "upsert_from_source creates a new account if salesforce_id not found, updates if found",
+    "all methods return DbError on database failure, not panic"
+  ],
+  "architecture_ref":      "Data Model §accounts, Interface Contracts §AccountRepository",
+  "do_not_touch": [
+    "src/db/schema.rs",   // owned by TASK-0039
+    "src/api/"            // owned by API layer tasks
+  ],
+  "gpu_tier":              2,   // L40S for Code Agent
+  "estimated_tokens":      3200,
+  "estimated_duration_min": 22
+}
+    </pre>
+
+    <a class="section-anchor" id="task-gen-flow"></a>
+    <h2 class="sh">Flow <a href="#task-gen-flow" class="anchor-link">#task-gen-flow</a></h2>
+
+    <div class="flow-box">
+Architecture Agent → APPROVED (all 5 artifacts)
+        ↓
+Code Task Generator reads: architecture + spec
+        ↓
+Produces: implementation task list (JSON)
+        ↓
+Task Review Agent evaluates (up to 3 cycles)
+        ↓
+APPROVED → tasks created in Jira as TASK_DRAFT status
+        ↓
+Test Case Generator begins (reads approved tasks)
+        ↓
+TASKS REMAIN IN TASK_DRAFT until test cases approved
+        ↓
+Test Case Review Agent approves test cases
+        ↓
+Tasks promoted to QUEUED → Code Agent can dequeue
+    </div>
+
+    <p>Note that tasks are created in <code>TASK_DRAFT</code> status — not QUEUED. The Code Agent cannot pick up a task until its test cases have been written and approved. Only after the Test Case Review Agent marks the test cases as APPROVED are the corresponding tasks promoted to QUEUED status and made available to the Code Agent.</p>
+  </div>
+
+  <!-- TEST CASE GENERATOR -->
+  <div class="section">
+    <a class="section-anchor" id="testcase-generator"></a>
+    <h1 class="sh">02 — Test Case Generator Agent <a href="#testcase-generator" class="anchor-link">#testcase-generator</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">G2</div>
+        <div>
+          <div class="agent-name">Test Case Generator Agent</div>
+          <div style="font-size:12px;color:var(--light);">Writes test cases before Code Agent writes source code</div>
+        </div>
+        <div class="agent-badges">
+          <span class="agent-badge">Qwen2.5-Coder-32B · L40S</span>
+          <span class="agent-badge">2,048 token budget</span>
+          <span class="agent-badge">Runs before Code Agent</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Triggers on</div><div class="spec-value">Task Review Agent approves the task list. Tasks exist in TASK_DRAFT status. Code Agent has not started.</div></div>
+        <div class="spec-row"><div class="spec-label">Reads</div><div class="spec-value">Approved task list · Interface contracts · Data model · Functional spec acceptance criteria · Architecture ADRs</div></div>
+        <div class="spec-row"><div class="spec-label">Produces</div><div class="spec-value">For each implementation task: a set of test case specifications covering happy path, error paths, boundary conditions, and edge cases. Test cases are written as executable specifications — not prose descriptions.</div></div>
+        <div class="spec-row"><div class="spec-label">Language aware</div><div class="spec-value">Generates test cases in the language and test framework specified by the architecture. Rust → #[test] with assert! macros. Python → pytest fixtures. TypeScript → Jest describe/it blocks. The generated test code must be syntactically valid and runnable.</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Qwen2.5-Coder-32B on L40S — a code generation model, not a reasoning model. Test cases are code. The same model that will write source code writes the tests so there is zero style mismatch.</div></div>
+        <div class="spec-row"><div class="spec-label">Critical constraint</div><div class="spec-value">The Code Agent is blocked from starting any task until that task has approved test cases. This is enforced by task status — tasks remain TASK_DRAFT until test cases are APPROVED.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="testcase-output"></a>
+    <h2 class="sh">Test Case Output Schema <a href="#testcase-output" class="anchor-link">#testcase-output</a></h2>
+
+    <pre>
+// Test Case Generator output — per task
+{
+  "task_id":     "TASK-0042",
+  "test_file":   "tests/db/account_repository_test.rs",
+  "framework":   "rust-test",
+  "test_cases": [
+    {
+      "id":          "TC-0042-001",
+      "name":        "find_by_id_returns_account_when_exists",
+      "category":    "happy_path",
+      "description": "When a valid UUID exists in the accounts table, find_by_id returns Some(Account) with correct fields.",
+      "setup":       "Insert test account {id: UUID1, name: 'Acme Corp', salesforce_id: 'SF001'} into test DB",
+      "action":      "Call repo.find_by_id(UUID1).await",
+      "expected":    "Ok(Some(Account { id: UUID1, name: 'Acme Corp', salesforce_id: Some('SF001'), ... }))",
+      "teardown":    "Delete test account from DB",
+      "code": "#[tokio::test]\nasync fn find_by_id_returns_account_when_exists() {\n    let repo = setup_test_repo().await;\n    let id = insert_test_account(&repo, 'Acme Corp').await;\n    let result = repo.find_by_id(id).await;\n    assert!(result.is_ok());\n    let account = result.unwrap();\n    assert!(account.is_some());\n    assert_eq!(account.unwrap().name, 'Acme Corp');\n}"
+    },
+    {
+      "id":          "TC-0042-002",
+      "name":        "find_by_id_returns_none_when_not_exists",
+      "category":    "error_path",
+      "description": "When UUID does not exist, find_by_id returns Ok(None) — not an error.",
+      "action":      "Call repo.find_by_id(random_uuid()).await",
+      "expected":    "Ok(None)",
+      "code": "#[tokio::test]\nasync fn find_by_id_returns_none_when_not_exists() {\n    let repo = setup_test_repo().await;\n    let result = repo.find_by_id(Uuid::new_v4()).await;\n    assert!(result.is_ok());\n    assert!(result.unwrap().is_none());\n}"
+    },
+    {
+      "id":          "TC-0042-003",
+      "name":        "upsert_creates_new_when_salesforce_id_not_found",
+      "category":    "happy_path",
+      "description": "When salesforce_id does not match any existing account, upsert creates a new account.",
+      "action":      "Call repo.upsert_from_source(source_account_with_new_sf_id).await",
+      "expected":    "Ok(Account) with new UUID assigned",
+      "code": "// ... full test code ..."
+    }
+  ],
+  "coverage_target":     88,
+  "estimated_test_count": 8,
+  "interface_tested":    "AccountRepository",
+  "model":               "qwen2.5-coder-32b",
+  "tokens_used":         1840,
+  "cost_usd":            0.028
+}
+    </pre>
+
+    <a class="section-anchor" id="testcase-flow"></a>
+    <h2 class="sh">Flow <a href="#testcase-flow" class="anchor-link">#testcase-flow</a></h2>
+
+    <div class="flow-box">
+Task Review Agent → tasks APPROVED (in TASK_DRAFT)
+        ↓
+Test Case Generator reads: tasks + architecture + spec
+Generates test cases for ALL tasks in parallel (one per task)
+        ↓
+Test Case Review Agent evaluates (up to 3 cycles per task)
+        ↓
+APPROVED → test cases committed to test/ directory
+           corresponding task promoted TASK_DRAFT → QUEUED
+        ↓
+Code Agent dequeues task
+Reads: task spec + approved test cases + architecture
+Writes source code that satisfies the test cases
+        ↓
+Code Review Agent evaluates source code (up to 3 cycles)
+        ↓
+APPROVED → committed to customer branch
+Customer CI/CD picks up the commit
+    </div>
+  </div>
+
+  <!-- FULL V3 SEQUENCE -->
+  <div class="section">
+    <a class="section-anchor" id="sequence"></a>
+    <h1 class="sh">Full V3 Pipeline Sequence <a href="#sequence" class="anchor-link">#sequence</a></h1>
+
+    <table>
+      <tr><th>#</th><th>Agent</th><th>Produces</th><th>Reviewed By</th><th>Max Cycles</th></tr>
+      <tr><td>1</td><td>Spec Generator</td><td>Functional specification</td><td>Spec Review Agent</td><td>3 → human</td></tr>
+      <tr><td>—</td><td colspan="4">⏸ Human approval gate</td></tr>
+      <tr><td>2</td><td>Architecture Agent</td><td>Architecture + ADRs + contracts</td><td>Architecture Review Agent</td><td>3 → human</td></tr>
+      <tr><td>—</td><td colspan="4">⏸ Human approval gate</td></tr>
+      <tr><td>3</td><td>Code Task Generator</td><td>Implementation task list</td><td>Task Review Agent</td><td>3 → human</td></tr>
+      <tr><td>4</td><td>Test Case Generator</td><td>Test cases per task</td><td>Test Case Review Agent</td><td>3 → human</td></tr>
+      <tr><td>5</td><td>Code Agent</td><td>Source code (per task)</td><td>Code Review Agent</td><td>3 → human</td></tr>
+      <tr><td>6</td><td>Security Agent</td><td>Security scan results</td><td>—</td><td>Bug tasks → Code Agent</td></tr>
+      <tr><td>—</td><td colspan="4">Customer CI/CD runs build and tests</td></tr>
+      <tr><td>7</td><td>Build &amp; Test Monitor</td><td>Bug tasks from CI/CD failures</td><td>—</td><td>→ Code Agent (step 5)</td></tr>
+      <tr><td>8</td><td>Log Monitor Agent</td><td>Bug tasks from log anomalies</td><td>—</td><td>→ Code Agent (step 5)</td></tr>
+      <tr><td>9</td><td>Performance Monitor</td><td>Bug tasks from metric breaches</td><td>—</td><td>→ Code Agent (step 5)</td></tr>
+    </table>
+
+    <div class="callout v3">
+      <div class="callout-label">V3 Key Difference</div>
+      Every bug fix produced by the Code Agent in steps 7–9 also goes through the Code Review Agent (step 5 loop) before being committed. Review is not just for new feature code — it applies to every line the Code Agent writes, including hotfixes from monitoring agents.
+    </div>
+  </div>
+
+  <div class="page-nav">
+    <a href="spec-H-review-agents.html">← Spec H — Review Agents</a>
+    <a href="index.html">↑ Back to Index</a>
+  </div>
+
+  <div class="spec-footer">
+    FORGE Platform Specification · Spec I · Version 3.0 · May 2026 · Confidential
+  </div>
+</main>
+</div>
+</body>
+</html>

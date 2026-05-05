@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec J — Master Plan Creator | FORGE Platform V4</title>
+<style>
+  :root {
+    --ink:#1a1a1a;--muted:#555;--light:#888;--border:#ddd;
+    --bg-alt:#fafafa;--bg-code:#f4f4f4;
+    --accent:#1d4ed8;--accent-light:#eff6ff;
+    --ok:#15803d;--ok-light:#f0fdf4;
+    --v4:#0f766e;--v4-light:#f0fdfa;
+    --intake:#7c3aed;--intake-light:#f5f3ff;
+    --plan:#c2410c;--plan-light:#fff7ed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,serif;font-size:16px;line-height:1.75;color:var(--ink);background:#fff;}
+  .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+  .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:#f9f9f9;border-right:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .sidebar-brand{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:bold;}
+  .sidebar-brand a{text-decoration:none;color:var(--ink);}
+  .v4-badge{display:inline-block;padding:1px 6px;background:var(--v4);color:#fff;font-size:9px;letter-spacing:1px;margin-left:6px;}
+  .sidebar-doc-title{padding:12px 20px 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--light);}
+  .sidebar-doc-name{padding:4px 20px 14px;font-size:12px;font-weight:bold;color:var(--v4);border-bottom:1px solid var(--border);}
+  .nav-section{padding:12px 0 4px 20px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--light);}
+  .nav-item{display:block;padding:5px 20px 5px 24px;color:var(--muted);text-decoration:none;line-height:1.4;border-left:2px solid transparent;}
+  .nav-item:hover{color:var(--v4);background:var(--v4-light);border-left-color:var(--v4);}
+  .nav-item.sub{padding-left:36px;font-size:11px;}
+  .sidebar-files{border-top:1px solid var(--border);margin-top:16px;padding-top:4px;}
+  .nav-file{display:block;padding:5px 20px;color:var(--light);text-decoration:none;font-size:11px;}
+  .nav-file:hover{color:var(--accent);}
+  .nav-file.current{color:var(--ink);font-weight:bold;}
+  .main{padding:60px 80px 100px;max-width:900px;}
+  .breadcrumb{font-family:'Courier New',monospace;font-size:11px;color:var(--light);margin-bottom:36px;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb span{margin:0 6px;}
+  .doc-header{border-bottom:2px solid var(--ink);padding-bottom:24px;margin-bottom:40px;}
+  .doc-label{font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--light);margin-bottom:10px;}
+  .doc-title{font-size:36px;font-weight:bold;line-height:1.15;letter-spacing:-0.5px;margin-bottom:12px;}
+  .doc-desc{font-size:16px;color:var(--muted);font-style:italic;margin-bottom:16px;}
+  .doc-meta{font-family:'Courier New',monospace;font-size:11px;color:var(--light);display:flex;gap:24px;flex-wrap:wrap;}
+  .section{margin-bottom:64px;}
+  .section-anchor{display:block;position:relative;top:-80px;visibility:hidden;}
+  h1.sh{font-size:26px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:20px;}
+  h2.sh{font-size:19px;margin-top:36px;margin-bottom:12px;}
+  h3.sh{font-size:15px;margin-top:24px;margin-bottom:8px;font-style:italic;}
+  .anchor-link{font-family:'Courier New',monospace;font-size:11px;color:var(--border);text-decoration:none;}
+  .anchor-link:hover{color:var(--accent);}
+  p{margin-bottom:14px;}
+  ul,ol{margin:0 0 14px 0;padding-left:24px;}
+  li{margin-bottom:6px;line-height:1.7;}
+  .callout{padding:16px 20px;margin:20px 0;border-left:4px solid;font-size:15px;}
+  .callout.v4{border-color:var(--v4);background:var(--v4-light);}
+  .callout.intake{border-color:var(--intake);background:var(--intake-light);}
+  .callout.plan{border-color:var(--plan);background:var(--plan-light);}
+  .callout-label{font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px;}
+  th{background:var(--ink);color:#fff;padding:9px 13px;text-align:left;font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:normal;}
+  td{padding:8px 13px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;}
+  tr:nth-child(even) td{background:var(--bg-alt);}
+  pre{background:var(--bg-code);border:1px solid var(--border);padding:16px 20px;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin:16px 0 24px;white-space:pre;}
+  code{font-family:'Courier New',monospace;font-size:12.5px;background:#eee;padding:2px 5px;}
+  .agent-card{border:1px solid var(--border);border-top:4px solid var(--v4);margin-bottom:32px;}
+  .agent-card-header{display:flex;align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg-alt);}
+  .agent-num{font-family:'Courier New',monospace;font-size:36px;color:var(--border);font-weight:bold;line-height:1;}
+  .agent-name{font-size:20px;font-weight:bold;}
+  .agent-badges{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;}
+  .agent-badge{font-family:'Courier New',monospace;font-size:9px;padding:2px 8px;background:var(--bg-code);border:1px solid var(--border);}
+  .spec-row{display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid var(--border);}
+  .spec-row:last-child{border-bottom:none;}
+  .spec-label{padding:10px 16px;font-family:'Courier New',monospace;font-size:11px;color:var(--light);background:var(--bg-alt);border-right:1px solid var(--border);}
+  .spec-value{padding:10px 16px;font-size:14px;}
+  .flow-box{background:var(--bg-code);border:1px solid var(--border);padding:20px 24px;margin:16px 0 24px;font-family:'Courier New',monospace;font-size:12px;line-height:2;}
+  .exec-level{display:inline-block;padding:2px 8px;font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;border:1px solid;border-radius:2px;}
+  .l1{color:#92400e;border-color:#92400e;background:#fffbeb;}
+  .l2{color:#1d4ed8;border-color:#1d4ed8;background:#eff6ff;}
+  .l3{color:#15803d;border-color:#15803d;background:#f0fdf4;}
+  .domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px;}
+  .domain-card{border:1px solid var(--border);border-left:3px solid var(--v4);padding:16px;}
+  .domain-name{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;color:var(--v4);margin-bottom:6px;}
+  .domain-agents{font-size:12px;color:var(--muted);line-height:1.6;}
+  .page-nav{display:flex;justify-content:space-between;margin-top:60px;padding-top:24px;border-top:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .page-nav a{color:var(--accent);text-decoration:none;}
+  .spec-footer{font-family:'Courier New',monospace;font-size:11px;color:var(--light);text-align:center;margin-top:40px;padding-top:16px;border-top:1px solid var(--border);}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{position:static;height:auto;}.main{padding:40px 32px 80px;}.spec-row,.domain-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-brand"><a href="index.html">← FORGE Platform</a><span class="v4-badge">V4</span></div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec J — Master Plan Creator</div>
+  <div class="nav-section">Sections</div>
+  <a href="#vision" class="nav-item">V4 Vision</a>
+  <a href="#intake" class="nav-item">Intake Agent</a>
+  <a href="#user-profile" class="nav-item sub">↳ User Profile Store</a>
+  <a href="#intake-domains" class="nav-item sub">↳ Domain detection</a>
+  <a href="#master-plan" class="nav-item">Master Plan Creator</a>
+  <a href="#options" class="nav-item sub">↳ Option generation</a>
+  <a href="#exec-levels" class="nav-item sub">↳ Execution levels</a>
+  <a href="#plan-review" class="nav-item">Plan Review Agent</a>
+  <a href="#domains" class="nav-item">Domain Registry</a>
+  <a href="#output-schema" class="nav-item">Plan Output Schema</a>
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-G-architecture-agent.html" class="nav-file">G — Architecture Agent</a>
+    <a href="spec-H-review-agents.html" class="nav-file">H — Review Agents</a>
+    <a href="spec-I-generator-agents.html" class="nav-file">I — Generator Agents</a>
+    <a href="spec-J-master-plan-creator.html" class="nav-file current">J — Master Plan Creator</a>
+    <a href="spec-K-execution-engine.html" class="nav-file">K — Execution Engine</a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="index.html">FORGE Platform V4</a><span>›</span>Spec J — Master Plan Creator</div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification J — V4 · Foundation</div>
+    <div class="doc-title">Master Plan Creator Agent</div>
+    <div class="doc-desc">The brain of V4. Takes any human goal — from booking a vacation to starting a company — understands the user's full situation through conversation, and assembles a bespoke agent graph to achieve it. Automates to the maximum possible level for every task.</div>
+    <div class="doc-meta"><span>V4 Core</span><span>Version: 4.0</span><span>Status: Draft</span><span>May 2026</span></div>
+  </div>
+
+  <!-- VISION -->
+  <div class="section">
+    <a class="section-anchor" id="vision"></a>
+    <h1 class="sh">V4 Vision <a href="#vision" class="anchor-link">#vision</a></h1>
+
+    <div class="callout v4">
+      <div class="callout-label">Core Principle</div>
+      The user describes any goal in plain language. FORGE understands their current situation, constraints, and preferences. It builds a plan with options. The user chooses one. FORGE assembles the exact agents needed and executes — automating every task to the maximum possible level. Some tasks complete autonomously. Some prepare everything for a single human click. Some produce a document for human action. The platform always pushes as far as it can go.
+    </div>
+
+    <p>V4 is not a software factory. It is a universal autonomous agent platform. The same platform that writes and deploys code can plan a vacation, build a business plan, create a study curriculum, or research a legal structure. The domain changes. The agent graph changes. The execution methods change. The underlying architecture — Intake → Plan → Options → Execute → Deliver — stays the same.</p>
+
+    <p>V3 had a fixed agent pipeline for software. V4 has a dynamic agent graph for any goal. When V4 detects a software goal, it instantiates the V3 pipeline as its execution graph. V3 becomes a domain specialization of V4.</p>
+  </div>
+
+  <!-- INTAKE AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="intake"></a>
+    <h1 class="sh">Intake Agent <a href="#intake" class="anchor-link">#intake</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">I</div>
+        <div><div class="agent-name">Intake Agent</div><div style="font-size:12px;color:var(--light);">Understands the user before the plan begins</div></div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Sonnet API</span>
+          <span class="agent-badge">Conversational</span>
+          <span class="agent-badge">Builds user profile</span>
+          <span class="agent-badge">Domain detector</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Purpose</div><div class="spec-value">Conduct a structured intake conversation to build a complete user profile before any planning begins. The same goal — "plan a vacation to Tahiti" — has completely different optimal paths depending on who is asking. The Intake Agent discovers who is asking.</div></div>
+        <div class="spec-row"><div class="spec-label">Approach</div><div class="spec-value">One question at a time. Never more than one question per message. Questions are adaptive — the next question depends on the previous answer. The agent stops when it has enough to produce meaningful options, not when it has answered a fixed questionnaire.</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Claude Sonnet API — conversational, empathetic, reads between the lines. Detects signals the user did not explicitly state (e.g. "I want to go business class but I know it's expensive" signals aspiration + budget consciousness).</div></div>
+        <div class="spec-row"><div class="spec-label">Stops when</div><div class="spec-value">It has: (1) understood the goal with enough specificity to plan, (2) identified current state and available resources, (3) understood at least the top 2 constraints, (4) detected the user's risk and effort tolerance.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="user-profile"></a>
+    <h2 class="sh">User Profile Store <a href="#user-profile" class="anchor-link">#user-profile</a></h2>
+
+    <p>Everything the Intake Agent learns is stored in a structured user profile. This profile persists across sessions — every future goal the user brings to the platform benefits from everything the platform already knows about them.</p>
+
+    <pre>
+// User Profile — built incrementally by Intake Agent
+{
+  "user_id":      "usr_abc123",
+  "created_at":   "2026-05-04",
+  "updated_at":   "2026-05-04",
+
+  // What they have
+  "financial": {
+    "credit_cards": [
+      { "issuer": "Chase", "card": "Sapphire Reserve", "points": 847000 },
+      { "issuer": "Amex", "card": "Platinum", "points": 210000 }
+    ],
+    "airline_miles": [
+      { "program": "United MileagePlus", "miles": 45000 },
+      { "program": "Air France / Flying Blue", "miles": 180000 }
+    ],
+    "hotel_points": [
+      { "program": "Marriott Bonvoy", "points": 320000 }
+    ],
+    "cash_budget_available": 8000,
+    "willing_to_open_new_card": true,
+    "credit_score_range": "excellent"
+  },
+
+  // What they want
+  "preferences": {
+    "travel_class": "business_preferred_economy_acceptable",
+    "accommodation": "luxury",
+    "risk_tolerance": "moderate",   // willing to try points hacks
+    "effort_tolerance": "low",      // doesn't want to spend hours optimizing
+    "time_sensitivity": "high"      // needs to book within 2 weeks
+  },
+
+  // What they can't do
+  "constraints": [
+    "cannot travel July — August (work)",
+    "partner has peanut allergy — must verify airline meals",
+    "needs direct or max 1 stop — partner gets motion sick"
+  ],
+
+  // What the platform has learned about them
+  "profile_signals": [
+    "values experience over price optimization",
+    "open to credit card strategy if ROI is clear",
+    "prefers decisions laid out visually with tradeoffs explicit"
+  ],
+
+  // Past goals (platform learns from history)
+  "goal_history": [
+    { "goal": "book Tahiti vacation", "option_chosen": "B", "outcome": "completed" }
+  ]
+}
+    </pre>
+
+    <a class="section-anchor" id="intake-domains"></a>
+    <h2 class="sh">Domain Detection <a href="#intake-domains" class="anchor-link">#intake-domains</a></h2>
+
+    <p>The Intake Agent classifies the goal into one or more domains while conducting the conversation. Domain classification determines which specialist knowledge the Master Plan Creator applies and which execution agents are available.</p>
+
+    <table>
+      <tr><th>User says</th><th>Domain detected</th><th>Key intake questions</th></tr>
+      <tr><td>"Plan a vacation to Tahiti"</td><td>travel</td><td>Points/miles available, travel dates, budget, accommodation preference, travel class, constraints</td></tr>
+      <tr><td>"Start a new dental practice"</td><td>business_formation + healthcare</td><td>Capital available, target location, existing patient base, licensing status, solo vs partnership</td></tr>
+      <tr><td>"Prep me for the SAT"</td><td>education + tutoring</td><td>Target score, current score, timeline, weak subjects, study hours available per week, learning style</td></tr>
+      <tr><td>"Start a company to do xyz"</td><td>business_formation + strategy</td><td>Industry, capital, co-founders, target market, existing assets, timeline to revenue</td></tr>
+      <tr><td>"Add Stripe payment retry"</td><td>software_development</td><td>Language/stack, existing retry logic, failure rate, SLA requirements → V3 pipeline</td></tr>
+      <tr><td>"Help me negotiate my salary"</td><td>career + negotiation</td><td>Current salary, offer received, market data needed, risk tolerance, competing offers</td></tr>
+      <tr><td>"Plan my retirement"</td><td>financial_planning</td><td>Age, current savings, income, risk tolerance, target retirement age, lifestyle expectations</td></tr>
+    </table>
+  </div>
+
+  <!-- MASTER PLAN CREATOR -->
+  <div class="section">
+    <a class="section-anchor" id="master-plan"></a>
+    <h1 class="sh">Master Plan Creator Agent <a href="#master-plan" class="anchor-link">#master-plan</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">M</div>
+        <div><div class="agent-name">Master Plan Creator Agent</div><div style="font-size:12px;color:var(--light);">Builds the bespoke agent graph for this user + this goal</div></div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Opus API</span>
+          <span class="agent-badge">Generates agent specs</span>
+          <span class="agent-badge">2-3 distinct options</span>
+          <span class="agent-badge">Assigns exec levels</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Purpose</div><div class="spec-value">Given the user profile and goal, produce 2-3 distinct strategic options — each with a different tradeoff — and for each option, generate the complete agent graph needed to execute it including: which agents run, what each produces, what its review agent checks, what execution level each task gets, and what the final deliverables are.</div></div>
+        <div class="spec-row"><div class="spec-label">Model</div><div class="spec-value">Claude Opus API — the most capable model for complex multi-domain reasoning. Generating an accurate, realistic plan for "start a dental practice" requires genuine domain knowledge, not just template completion.</div></div>
+        <div class="spec-row"><div class="spec-label">Options must be genuinely different</div><div class="spec-value">Not just "expensive vs cheap." Each option represents a distinct strategic approach with different tradeoffs. For Tahiti: Option A = maximize points value (complex, high reward), Option B = pure cash (simple, flexible), Option C = hybrid with new card sign-up bonus (moderate effort, high value).</div></div>
+        <div class="spec-row"><div class="spec-label">Generates agent prompts</div><div class="spec-value">For every producer agent in the chosen option's graph, the Master Plan Creator writes the system prompt that agent will use. These prompts are domain-specific and user-specific — the Tahiti research agent gets a different prompt than the dental practice market analysis agent, and both are personalized to this user's profile.</div></div>
+        <div class="spec-row"><div class="spec-label">Generates review rubrics</div><div class="spec-value">For every review agent in the graph, the Master Plan Creator generates the review rubric. A Travel Itinerary Review Agent gets different criteria than a Business Plan Review Agent. Both are generated fresh for each plan.</div></div>
+      </div>
+    </div>
+
+    <a class="section-anchor" id="options"></a>
+    <h2 class="sh">Option Generation <a href="#options" class="anchor-link">#options</a></h2>
+
+    <p>The Master Plan Creator always generates 2-3 options. Each option has a name, a one-line strategic thesis, an estimated outcome, a cost/effort/time estimate, and the complete agent graph for execution. The options are presented to the user as a visual artifact — a rich card interface — before any execution begins.</p>
+
+    <pre>
+// Master Plan output — Tahiti vacation example
+{
+  "goal":         "Plan a vacation to Tahiti",
+  "user_id":      "usr_abc123",
+  "domain":       "travel",
+
+  "options": [
+    {
+      "id":        "A",
+      "name":      "Maximum Points Value",
+      "thesis":    "Transfer 180k Flying Blue miles to Air Tahiti Nui for business class. Use Marriott points for overwater bungalow.",
+      "outcome":   "Business class both ways + 7 nights overwater bungalow at near-zero cash cost",
+      "tradeoffs": "Requires booking 6+ months out. Flying Blue award availability can be inconsistent.",
+      "cash_cost": "$420 (taxes/fees only)",
+      "points_used": "180k Flying Blue + 240k Marriott",
+      "effort":    "HIGH — requires monitoring availability, transfer timing",
+      "timeline":  "Book 6 months ahead",
+      "tasks": [
+        { "id": "T-01", "name": "Check Air Tahiti Nui award availability via Flying Blue", "exec_level": 3, "agent": "TravelSearchAgent", "delivers": "Available award dates and business class seats" },
+        { "id": "T-02", "name": "Transfer Amex points to Flying Blue", "exec_level": 2, "agent": "PointsTransferAgent", "delivers": "Transfer confirmation page pre-filled for user approval" },
+        { "id": "T-03", "name": "Book flights with Flying Blue miles", "exec_level": 3, "agent": "FlightBookingAgent", "delivers": "Booking confirmation" },
+        { "id": "T-04", "name": "Search Marriott overwater bungalow availability", "exec_level": 3, "agent": "HotelSearchAgent", "delivers": "Available properties with points cost" },
+        { "id": "T-05", "name": "Book hotel with Marriott points", "exec_level": 3, "agent": "HotelBookingAgent", "delivers": "Booking confirmation" },
+        { "id": "T-06", "name": "Research peanut allergy meal options on Air Tahiti Nui", "exec_level": 1, "agent": "ResearchAgent", "delivers": "Document: airline allergy policy and meal ordering process" },
+        { "id": "T-07", "name": "Create day-by-day Tahiti itinerary", "exec_level": 1, "agent": "ItineraryAgent", "delivers": "Personalized itinerary document with restaurant recommendations" }
+      ]
+    },
+    {
+      "id":        "B",
+      "name":      "Open New Card + Hybrid",
+      "thesis":    "Apply for Chase Sapphire Preferred (75k bonus after $4k spend). Use existing Sapphire Reserve points for hotel. Pay cash for flights.",
+      "outcome":   "Economy flights + luxury hotel largely on points. Simple booking process.",
+      "tradeoffs": "Economy class. Credit inquiry. Requires $4k spend in 3 months.",
+      "cash_cost": "$2,800 (flights + fees)",
+      "effort":    "MEDIUM — one new card application",
+      "timeline":  "Book 2-3 months ahead after card approval",
+      "tasks": [
+        { "id": "T-01", "name": "Apply for Chase Sapphire Preferred", "exec_level": 2, "agent": "CreditCardAgent", "delivers": "Pre-filled application — user submits" },
+        { "id": "T-02", "name": "Find best cash price for LAX-PPT flights", "exec_level": 3, "agent": "FlightSearchAgent", "delivers": "Best priced flights with booking link" },
+        { "id": "T-03", "name": "Book flights with cash", "exec_level": 3, "agent": "FlightBookingAgent", "delivers": "Booking confirmation" },
+        { "id": "T-04", "name": "Book hotel with existing Chase points", "exec_level": 3, "agent": "HotelBookingAgent", "delivers": "Booking confirmation" },
+        { "id": "T-05", "name": "Create itinerary", "exec_level": 1, "agent": "ItineraryAgent", "delivers": "Personalized itinerary document" }
+      ]
+    },
+    {
+      "id":        "C",
+      "name":      "Pure Cash — Book Now",
+      "thesis":    "Pay cash for everything. Maximum flexibility. Book immediately without waiting for points availability.",
+      "outcome":   "Economy flights + 4-star hotel. No points complexity. Trip planned and booked within 48 hours.",
+      "tradeoffs": "Highest cash cost. No points optimization.",
+      "cash_cost": "$6,200",
+      "effort":    "LOW — platform books everything",
+      "timeline":  "Book immediately",
+      "tasks": [
+        { "id": "T-01", "name": "Find and compare best cash flight options", "exec_level": 3, "agent": "FlightSearchAgent", "delivers": "Top 3 options with prices" },
+        { "id": "T-02", "name": "Book flights", "exec_level": 3, "agent": "FlightBookingAgent", "delivers": "Confirmation" },
+        { "id": "T-03", "name": "Find and book best value hotel", "exec_level": 3, "agent": "HotelBookingAgent", "delivers": "Confirmation" },
+        { "id": "T-04", "name": "Book airport transfers", "exec_level": 3, "agent": "TransferBookingAgent", "delivers": "Confirmation" },
+        { "id": "T-05", "name": "Create itinerary", "exec_level": 1, "agent": "ItineraryAgent", "delivers": "Personalized itinerary document" }
+      ]
+    }
+  ]
+}
+    </pre>
+
+    <a class="section-anchor" id="exec-levels"></a>
+    <h2 class="sh">Execution Levels <a href="#exec-levels" class="anchor-link">#exec-levels</a></h2>
+
+    <p>Every task in every plan has an execution level. The Master Plan Creator assigns the level based on what is technically automatable and what requires human authority. The goal is always to push as far as possible toward Level 3.</p>
+
+    <table>
+      <tr><th>Level</th><th>Name</th><th>What the platform does</th><th>What the human does</th><th>Examples</th></tr>
+      <tr>
+        <td><span class="exec-level l3">Level 3</span></td>
+        <td>Fully Autonomous</td>
+        <td>Executes the task completely using APIs, web automation, or direct integration. Delivers the result.</td>
+        <td>Nothing — sees the completed result</td>
+        <td>Book a flight using stored card, search for award availability, commit code to branch, create a document</td>
+      </tr>
+      <tr>
+        <td><span class="exec-level l2">Level 2</span></td>
+        <td>One-Click Execute</td>
+        <td>Prepares everything — fills forms, stages the transaction, pre-populates all fields. Delivers a ready-to-submit artifact.</td>
+        <td>Single click or confirmation to submit</td>
+        <td>Credit card application pre-filled, points transfer form ready, legal document ready to sign, email drafted and ready to send</td>
+      </tr>
+      <tr>
+        <td><span class="exec-level l1">Level 1</span></td>
+        <td>Advise and Deliver</td>
+        <td>Researches, analyzes, and produces a complete document or recommendation. Cannot automate the action itself.</td>
+        <td>Reads the deliverable and acts manually</td>
+        <td>Regulatory requirements document, salary negotiation strategy, dietary restriction research, study schedule</td>
+      </tr>
+    </table>
+
+    <p>A single plan will typically contain all three levels. The Tahiti Option A example above has Level 3 tasks (book the flight), Level 2 tasks (transfer points — requires user confirmation), and Level 1 tasks (allergy research — cannot be automated). The Master Plan Creator assigns the highest achievable level to each task.</p>
+  </div>
+
+  <!-- PLAN REVIEW AGENT -->
+  <div class="section">
+    <a class="section-anchor" id="plan-review"></a>
+    <h1 class="sh">Plan Review Agent <a href="#plan-review" class="anchor-link">#plan-review</a></h1>
+
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div class="agent-num">PR</div>
+        <div><div class="agent-name">Plan Review Agent</div><div style="font-size:12px;color:var(--light);">Reviews the master plan before it is shown to the user</div></div>
+        <div class="agent-badges">
+          <span class="agent-badge">Claude Sonnet API</span>
+          <span class="agent-badge">Max 3 cycles</span>
+          <span class="agent-badge">User-profile-aware</span>
+        </div>
+      </div>
+      <div class="agent-card-body">
+        <div class="spec-row"><div class="spec-label">Reviews</div><div class="spec-value">The full master plan — all options, all task graphs, all execution levels — before it is presented to the user.</div></div>
+        <div class="spec-row"><div class="spec-label">Checks</div><div class="spec-value">Options are genuinely distinct (not variations of the same approach) · Constraints in the user profile are all respected · Execution levels are accurate (not over-promising Level 3 for tasks that require human authority) · Estimates are realistic · No critical tasks are missing from the graph</div></div>
+        <div class="spec-row"><div class="spec-label">Has access to</div><div class="spec-value">Full user profile · The goal · All three options and their task graphs · Domain knowledge base for the detected domain</div></div>
+        <div class="spec-row"><div class="spec-label">Output</div><div class="spec-value">APPROVED — plan shown to user. OR: revision tasks for the Master Plan Creator with specific issues found. Max 3 cycles then human review.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOMAIN REGISTRY -->
+  <div class="section">
+    <a class="section-anchor" id="domains"></a>
+    <h1 class="sh">Domain Registry <a href="#domains" class="anchor-link">#domains</a></h1>
+
+    <p>The Domain Registry is a knowledge store that the Master Plan Creator consults when building plans. Each domain entry contains: typical goals, available execution agents, common constraints, typical deliverables, and which tasks are automatable to Level 3 vs require human authority.</p>
+
+    <div class="domain-grid">
+      <div class="domain-card">
+        <div class="domain-name">TRAVEL</div>
+        <div class="domain-agents">Flight Search · Flight Booking · Hotel Search · Hotel Booking · Points Transfer · Credit Card · Transfer Agent · Itinerary · Visa Research · Insurance</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">BUSINESS FORMATION</div>
+        <div class="domain-agents">Market Analysis · Business Plan · Financial Model · Legal Structure · Location Analysis · Regulatory Research · Staffing Plan · GTM Strategy</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">SOFTWARE DEVELOPMENT</div>
+        <div class="domain-agents">V3 Full Pipeline → Spec Generator · Architecture · Code Task Generator · Test Case Generator · Code Agent · Security · Build Monitor · Log Monitor · Perf Monitor</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">EDUCATION / TUTORING</div>
+        <div class="domain-agents">Diagnostic Assessment · Curriculum Design · Schedule Builder · Content Generator · Practice Test Generator · Progress Tracker · Resource Finder</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">FINANCIAL PLANNING</div>
+        <div class="domain-agents">Portfolio Analysis · Retirement Modeller · Tax Strategy · Insurance Analysis · Debt Optimizer · Investment Research · Savings Plan</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">CAREER</div>
+        <div class="domain-agents">Market Research · Resume Optimizer · Salary Benchmarker · Negotiation Strategist · Interview Prep · LinkedIn Optimizer · Offer Analyzer</div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">LEGAL</div>
+        <div class="domain-agents">Document Researcher · Contract Analyzer · Regulatory Mapper · Entity Formation · Compliance Checker · Template Generator <em>(Note: L1 only — no legal advice)</em></div>
+      </div>
+      <div class="domain-card">
+        <div class="domain-name">HEALTH &amp; WELLNESS</div>
+        <div class="domain-agents">Nutrition Planner · Workout Designer · Provider Finder · Appointment Scheduler · Insurance Navigator · Supplement Researcher <em>(Note: not medical advice)</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTPUT SCHEMA -->
+  <div class="section">
+    <a class="section-anchor" id="output-schema"></a>
+    <h1 class="sh">Plan Output Schema <a href="#output-schema" class="anchor-link">#output-schema</a></h1>
+    <pre>
+{
+  "plan_id":          "PLAN-0042",
+  "user_id":          "usr_abc123",
+  "goal":             "Plan a vacation to Tahiti",
+  "domain":           ["travel"],
+  "intake_turns":     12,
+  "profile_snapshot": { ...user profile at plan time... },
+
+  "options": [ ...2-3 options as shown above... ],
+
+  "user_selected_option": null,   // set when user clicks Execute
+  "execution_status":     "pending",
+
+  "plan_review": {
+    "status":   "approved",
+    "cycles":   1,
+    "issues_found": 1,
+    "issues_resolved": 1
+  },
+
+  "model_used":    "claude-opus-4-6",
+  "tokens_used":   { "input": 8420, "output": 3840 },
+  "cost_usd":      0.84,
+  "created_at":    "2026-05-04T09:14:22Z",
+  "approved_at":   "2026-05-04T09:18:55Z"
+}
+    </pre>
+  </div>
+
+  <div class="page-nav">
+    <a href="spec-I-generator-agents.html">← Spec I — Generator Agents</a>
+    <a href="spec-K-execution-engine.html">Spec K — Execution Engine →</a>
+  </div>
+  <div class="spec-footer">FORGE Platform Specification · Spec J · Version 4.0 · May 2026 · Confidential</div>
+</main>
+</div>
+</body>
+</html>

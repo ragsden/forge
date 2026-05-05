@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORGE V4 — Universal Agent Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#07070c;--deep:#0c0c14;--panel:#111118;--border:#1e1e2e;--border2:#2a2a3e;
+  --v4:#14b8a6;--v4b:#0d9488;--v4dim:#042f2e;
+  --blue:#4488ff;--yellow:#f5c542;--red:#ff5555;--text:#e0e0f0;--muted:#6868a0;--dim:#22223a;
+  --l3:#00e5a0;--l2:#4488ff;--l1:#f5c542;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.65;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(20,184,166,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(20,184,166,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px 48px;display:flex;justify-content:space-between;align-items:center;background:rgba(7,7,12,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--v4);letter-spacing:2px;text-decoration:none;}
+.nav-v4{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;background:var(--v4);color:var(--black);margin-left:8px;font-weight:500;}
+.nav-links{display:flex;gap:28px;}
+.nav-links a{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:2px;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--v4);}
+.hero{position:relative;z-index:1;padding:110px 60px 52px;text-align:center;}
+.hero::after{content:'';position:absolute;top:0;left:0;right:0;height:500px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(20,184,166,.07),transparent 70%);pointer-events:none;}
+.hero-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--v4);margin-bottom:18px;display:inline-flex;align-items:center;gap:10px;}
+.pdot{width:6px;height:6px;border-radius:50%;background:var(--v4);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(20,184,166,.5);}50%{box-shadow:0 0 0 6px rgba(20,184,166,0);}}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,8vw,96px);line-height:.9;letter-spacing:2px;margin-bottom:20px;}
+.hero-title .t1{color:var(--text);display:block;}
+.hero-title .t2{color:var(--v4);display:block;}
+.hero-sub{font-size:16px;color:var(--muted);max-width:580px;margin:0 auto 16px;line-height:1.75;}
+.hero-sub strong{color:var(--text);font-weight:500;}
+.hero-examples{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:40px;}
+.ex-chip{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);padding:4px 10px;border:1px solid var(--dim);cursor:pointer;transition:all .15s;letter-spacing:.3px;}
+.ex-chip:hover{border-color:var(--v4);color:var(--v4);}
+.prompt-zone{position:relative;z-index:10;max-width:700px;margin:0 auto;padding:0 48px 52px;}
+.prompt-box{background:var(--panel);border:1px solid var(--border2);transition:border-color .3s;}
+.prompt-box:focus-within{border-color:var(--v4);}
+.prompt-top{display:flex;align-items:center;border-bottom:1px solid var(--border);padding:0 18px;}
+.prompt-tag{font-family:'DM Mono',monospace;font-size:11px;color:var(--v4);padding:12px 14px 12px 0;border-right:1px solid var(--border);margin-right:14px;white-space:nowrap;letter-spacing:1px;}
+#goalInput{flex:1;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--text);padding:13px 0;caret-color:var(--v4);}
+#goalInput::placeholder{color:var(--muted);}
+.prompt-foot{display:flex;justify-content:space-between;align-items:center;padding:11px 18px;}
+.prompt-hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+.run-btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:9px 24px;background:var(--v4);color:var(--black);border:none;cursor:pointer;font-weight:500;transition:all .2s;}
+.run-btn:hover{background:var(--v4b);transform:translateY(-1px);}
+.run-btn:disabled{background:var(--dim);color:var(--muted);cursor:not-allowed;transform:none;}
+.loading-bar{height:2px;background:var(--border);margin:0 48px;display:none;overflow:hidden;z-index:10;position:relative;}
+.loading-bar.active{display:block;}
+.loading-fill{height:100%;background:var(--v4);width:0%;transition:width .5s ease;}
+#flowOutput{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 60px 100px;display:none;}
+#flowOutput.visible{display:block;}
+.phase-block{margin-bottom:40px;}
+.phase-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.phase-icon{font-size:22px;flex-shrink:0;}
+.phase-title{font-family:'DM Mono',monospace;font-size:14px;letter-spacing:1px;color:var(--text);}
+.phase-subtitle{font-size:11px;color:var(--muted);margin-top:2px;}
+.phase-status{margin-left:auto;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;border:1px solid;white-space:nowrap;}
+.phase-status.running{color:var(--v4);border-color:var(--v4);animation:blink 1.5s infinite;}
+.phase-status.done{color:var(--v4);border-color:var(--v4dim);}
+.phase-status.pending{color:var(--muted);border-color:var(--dim);}
+@keyframes blink{50%{opacity:.5;}}
+.convo-wrap{background:var(--panel);border:1px solid var(--border);}
+.convo-head{background:var(--deep);padding:9px 16px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.cdot{width:5px;height:5px;border-radius:50%;background:var(--v4);}
+.convo-turn{display:grid;grid-template-columns:80px 1fr;border-bottom:1px solid var(--border);opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;}
+.convo-turn.show{opacity:1;transform:translateY(0);}
+.convo-turn:last-child{border-bottom:none;}
+.convo-role{padding:12px 14px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;border-right:1px solid var(--border);display:flex;align-items:flex-start;padding-top:14px;}
+.convo-role.user{color:var(--blue);}
+.convo-role.forge{color:var(--v4);}
+.convo-msg{padding:12px 16px;font-size:13px;color:var(--text);line-height:1.65;}
+.profile-card{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--v4);padding:16px 20px;margin-bottom:10px;animation:fadeUp .4s ease both;}
+.profile-head{font-family:'DM Mono',monospace;font-size:10px;color:var(--v4);margin-bottom:10px;letter-spacing:1px;}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.profile-item{font-size:12px;}
+.profile-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px;}
+.profile-value{color:var(--text);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.options-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.option-card{background:var(--panel);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s;position:relative;}
+.option-card:hover{border-color:var(--v4);transform:translateY(-2px);}
+.option-card.selected{border-color:var(--v4);background:rgba(20,184,166,.04);}
+.option-card.selected::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--v4);}
+.opt-head{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--deep);}
+.opt-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--v4);margin-bottom:4px;}
+.opt-name{font-size:14px;font-weight:500;color:var(--text);}
+.opt-body{padding:14px 16px;}
+.opt-thesis{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;}
+.opt-cost{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);margin-bottom:4px;}
+.opt-effort{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+.opt-tasks{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+.opt-task{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.opt-task-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.l3dot{background:var(--l3);}
+.l2dot{background:var(--l2);}
+.l1dot{background:var(--l1);}
+.exec-btn{width:100%;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:10px;background:var(--v4);color:var(--black);border:none;cursor:pointer;font-weight:500;transition:background .2s;margin-top:10px;}
+.exec-btn:hover{background:var(--v4b);}
+.exec-legend{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.exec-steps{display:flex;flex-direction:column;gap:4px;}
+.exec-step{background:var(--panel);border:1px solid var(--border);display:grid;grid-template-columns:24px 120px 1fr 90px;gap:0;overflow:hidden;opacity:0;transform:translateX(-6px);transition:opacity .3s,transform .3s;}
+.exec-step.show{opacity:1;transform:translateX(0);}
+.exec-step.s-l3{border-left:3px solid var(--l3);}
+.exec-step.s-l2{border-left:3px solid var(--l2);}
+.exec-step.s-l1{border-left:3px solid var(--l1);}
+.es-level{display:flex;align-items:center;justify-content:center;padding:0 4px;border-right:1px solid var(--border);}
+.es-level-dot{width:6px;height:6px;border-radius:50%;}
+.es-agent{padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);border-right:1px solid var(--border);display:flex;align-items:center;}
+.es-detail{padding:10px 14px;font-size:12px;color:var(--text);line-height:1.4;}
+.es-detail small{display:block;font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+.es-status{padding:10px 12px;border-left:1px solid var(--border);display:flex;align-items:center;justify-content:center;}
+.es-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border:1px solid;}
+.es-badge.run{color:var(--yellow);border-color:var(--yellow);animation:blink 1s infinite;}
+.es-badge.done{color:var(--v4);border-color:var(--v4dim);}
+.es-badge.l2wait{color:var(--blue);border-color:var(--blue);}
+.deliverable-card{background:var(--panel);border:1px solid rgba(20,184,166,.3);border-left:3px solid var(--v4);padding:20px 22px;margin-bottom:10px;animation:fadeUp .5s ease both;}
+.del-head{font-family:'DM Mono',monospace;font-size:11px;color:var(--v4);margin-bottom:12px;letter-spacing:1px;}
+.del-items{display:flex;flex-direction:column;gap:8px;}
+.del-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;}
+.del-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.del-text{color:var(--text);}
+.del-text small{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+.summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:12px;}
+.sum-cell{background:var(--panel);border:1px solid var(--border);padding:14px;text-align:center;}
+.sum-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--v4);display:block;line-height:1;}
+.sum-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px;display:block;}
+.generating{display:flex;align-items:center;gap:12px;padding:18px;background:var(--panel);border:1px solid var(--border);}
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--v4);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.gen-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.gen-text span{color:var(--v4);}
+.error-box{background:rgba(255,85,85,.08);border:1px solid rgba(255,85,85,.3);border-left:3px solid var(--red);padding:16px 20px;font-size:13px;color:#ff8888;line-height:1.7;}
+.bottom-cta{margin-top:48px;padding:36px;background:var(--panel);border:1px solid var(--border);text-align:center;}
+.bc-title{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--v4);letter-spacing:1px;margin-bottom:10px;}
+.bc-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.cta-a{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 28px;background:var(--v4);color:var(--black);text-decoration:none;font-weight:500;}
+.cta-b{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 28px;border:1px solid var(--border2);color:var(--muted);text-decoration:none;}
+.cta-b:hover{border-color:var(--v4);color:var(--v4);}
+@media(max-width:800px){
+  nav{padding:12px 24px;}.nav-links{display:none;}
+  .hero,.prompt-zone,#flowOutput{padding-left:20px;padding-right:20px;}
+  .loading-bar{margin:0 20px;}.hero{padding-top:80px;}
+  .options-grid{grid-template-columns:1fr;}
+  .summary-strip{grid-template-columns:1fr 1fr 1fr;}
+  .exec-step{grid-template-columns:20px 100px 1fr;}.es-status{display:none;}
+  .convo-turn{grid-template-columns:60px 1fr;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div style="display:flex;align-items:center;">
+    <a href="index.html" class="nav-logo">FORGE</a>
+    <span class="nav-v4">V4</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Spec Index</a>
+    <a href="spec-J-master-plan-creator.html">Master Plan</a>
+    <a href="spec-K-execution-engine.html">Execution Engine</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label"><span class="pdot"></span>V4 — Universal Agent Platform</div>
+  <h1 class="hero-title">
+    <span class="t1">Any Goal. Any Domain.</span>
+    <span class="t2">Fully Executed.</span>
+  </h1>
+  <p class="hero-sub">Describe <strong>any goal</strong> — vacation planning, business formation, SAT prep, software development, salary negotiation. FORGE understands your situation, builds personalized options, and executes autonomously.</p>
+  <div class="hero-examples">
+    <span class="ex-chip" onclick="setGoal(this)">Plan a vacation to Tahiti</span>
+    <span class="ex-chip" onclick="setGoal(this)">Start a new dental practice</span>
+    <span class="ex-chip" onclick="setGoal(this)">Prep me for the SAT in 10 weeks</span>
+    <span class="ex-chip" onclick="setGoal(this)">Help me negotiate my salary offer</span>
+    <span class="ex-chip" onclick="setGoal(this)">Start a SaaS company</span>
+    <span class="ex-chip" onclick="setGoal(this)">Add Stripe payment retry with backoff</span>
+    <span class="ex-chip" onclick="setGoal(this)">Plan my retirement at 55</span>
+    <span class="ex-chip" onclick="setGoal(this)">Help me buy my first home</span>
+  </div>
+</div>
+
+<div class="prompt-zone">
+  <div class="prompt-box">
+    <div class="prompt-top">
+      <span class="prompt-tag">Your goal →</span>
+      <input type="text" id="goalInput" placeholder="Describe any goal…" maxlength="200"/>
+    </div>
+    <div class="prompt-foot">
+      <span class="prompt-hint">Claude understands your full situation before planning</span>
+      <button class="run-btn" id="runBtn" onclick="runV4()">Start →</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-bar" id="loadingBar"><div class="loading-fill" id="loadingFill"></div></div>
+
+<div id="flowOutput">
+
+  <div class="phase-block" id="ph-intake">
+    <div class="phase-header">
+      <div class="phase-icon">🎯</div>
+      <div><div class="phase-title">Intake Agent</div><div class="phase-subtitle">Understanding your situation, constraints, and resources before planning begins</div></div>
+      <div class="phase-status pending" id="ps-intake">Pending</div>
+    </div>
+    <div id="c-intake"></div>
+  </div>
+
+  <div class="phase-block" id="ph-profile">
+    <div class="phase-header">
+      <div class="phase-icon">👤</div>
+      <div><div class="phase-title">User Profile</div><div class="phase-subtitle">Your current state — built from the intake conversation</div></div>
+      <div class="phase-status pending" id="ps-profile">Pending</div>
+    </div>
+    <div id="c-profile"></div>
+  </div>
+
+  <div class="phase-block" id="ph-plan">
+    <div class="phase-header">
+      <div class="phase-icon">🧠</div>
+      <div><div class="phase-title">Master Plan Creator</div><div class="phase-subtitle">Building 3 distinct strategic options tailored to your profile</div></div>
+      <div class="phase-status pending" id="ps-plan">Pending</div>
+    </div>
+    <div id="c-plan"></div>
+  </div>
+
+  <div class="phase-block" id="ph-options">
+    <div class="phase-header">
+      <div class="phase-icon">⚡</div>
+      <div><div class="phase-title">Your Options</div><div class="phase-subtitle">Select an option — platform handles everything from here</div></div>
+      <div class="phase-status pending" id="ps-options">Pending</div>
+    </div>
+    <div id="c-options"></div>
+  </div>
+
+  <div class="phase-block" id="ph-exec" style="display:none;">
+    <div class="phase-header">
+      <div class="phase-icon">🚀</div>
+      <div><div class="phase-title">Executing</div><div class="phase-subtitle">Agent graph running — Level 3 autonomous · Level 2 one-click · Level 1 deliver</div></div>
+      <div class="phase-status pending" id="ps-exec">Pending</div>
+    </div>
+    <div id="c-exec"></div>
+  </div>
+
+  <div class="phase-block" id="ph-deliver" style="display:none;">
+    <div class="phase-header">
+      <div class="phase-icon">🎁</div>
+      <div><div class="phase-title">Delivered</div><div class="phase-subtitle">Your complete plan — ready to review, share, or act on</div></div>
+      <div class="phase-status pending" id="ps-deliver">Pending</div>
+    </div>
+    <div id="c-deliver"></div>
+  </div>
+
+  <div class="bottom-cta" id="bottomCta" style="display:none;">
+    <div class="bc-title">Any Goal. Fully Executed.</div>
+    <div class="bc-sub">FORGE understands your situation, builds personalized options, and automates everything possible.</div>
+    <div class="cta-row">
+      <a href="index.html" class="cta-a">Read the Full Spec</a>
+      <a href="spec-J-master-plan-creator.html" class="cta-b">Master Plan Creator →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const delay = ms => new Promise(r => setTimeout(r, ms));
+let running = false;
+let planData = null;
+
+function setGoal(el){ $('goalInput').value = el.textContent.trim(); $('goalInput').focus(); }
+function setSt(id, state){ const el=$(id); if(!el) return; el.className='phase-status '+state; el.textContent = state==='running'?'● Running':state==='done'?'✓ Done':'Pending'; }
+function setProgress(p){ $('loadingFill').style.width=p+'%'; }
+function showSpin(id, msg){ $(id).innerHTML=`<div class="generating"><div class="spinner"></div><div class="gen-text"><span>Claude</span> — ${msg}</div></div>`; }
+function goTo(id){ setTimeout(()=>{ const el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },100); }
+
+async function claude(system, user, maxTokens=2500){
+  const res = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:maxTokens,system,messages:[{role:'user',content:user}]})});
+  if(!res.ok){const e=await res.text();throw new Error(`API ${res.status}: ${e.slice(0,300)}`);}
+  const d=await res.json();
+  const txt=d.content.find(b=>b.type==='text')?.text||'';
+  return JSON.parse(txt.replace(/^```(?:json)?\n?/,'').replace(/\n?```$/,'').trim());
+}
+
+const P_INTAKE = `You are FORGE's Intake Agent for a universal goal-execution platform. The user has described any kind of goal. Ask 4-6 targeted questions ONE AT A TIME to understand their resources, constraints, and preferences before building a plan. Questions should be conversational and adaptive. Uncover: what they currently have (money, points, time, skills, assets), key constraints (budget, timeline, what they cannot do), preferences (risk tolerance, effort tolerance, quality expectations). End when you have enough to produce meaningfully different options. Return ONLY valid JSON: {"turns":[{"role":"user","msg":"original goal"},{"role":"forge","msg":"first question"},{"role":"user","msg":"realistic answer based on context"},...,{"role":"forge","msg":"Great, I have everything I need to build your personalized plan."}]}`;
+
+const P_PROFILE = `Extract a structured user profile from an intake conversation. Return ONLY valid JSON: {"domain":"travel/business/education/software/career/financial/other","resources":["resource 1","resource 2","resource 3"],"constraints":["constraint 1","constraint 2"],"preferences":["preference 1","preference 2"],"keyInsight":"one sentence capturing the most important thing about this user that shapes the plan"}`;
+
+const P_PLAN = `You are FORGE's Master Plan Creator. Build 3 genuinely distinct strategic options for this user's goal. Each option must have a different strategic approach and tradeoffs — not just price variations. For each task assign the HIGHEST possible automation level: 3=platform does it fully autonomously, 2=platform prepares everything and user confirms with one click, 1=platform researches and delivers a complete document. Always push for level 3. Return ONLY valid JSON (keep strings SHORT — under 15 words each): {"domain":"detected domain","options":[{"id":"A","name":"short option name","thesis":"one sentence strategy","outcome":"what they get","cost":"estimate","effort":"LOW/MEDIUM/HIGH","tasks":[{"name":"short task name","level":3,"agent":"AgentType","delivers":"short result"}]}]}`;
+
+const P_EXEC = `Simulate executing the selected plan option. Show each agent running in sequence with realistic outputs. Include: 3-5 autonomous level 3 tasks completing, 1 level 2 task that needs user confirmation (show it paused waiting), 1-2 level 1 document deliveries. Also include a review agent checking one output. Return ONLY valid JSON (all strings SHORT): {"steps":[{"agent":"AgentName","task":"short task name","level":3,"detail":"short what it did","status":"done or l2wait"}],"deliverables":[{"icon":"emoji","name":"deliverable name","desc":"short description"}],"summary":{"tasks_completed":"N","level3_automated":"N","level2_confirmed":"N","level1_delivered":"N","total_cost":"$X.XX","time_saved":"X hrs"}}`;
+
+async function renderIntake(turns){
+  $('c-intake').innerHTML=`<div class="convo-wrap"><div class="convo-head"><span class="cdot"></span>Intake Agent — understanding your situation</div><div id="intake-turns"></div></div>`;
+  const ct=$('intake-turns');
+  for(const t of turns){
+    await delay(480);
+    const d=document.createElement('div'); d.className='convo-turn';
+    const isUser=t.role==='user';
+    d.innerHTML=`<div class="convo-role ${isUser?'user':'forge'}">${isUser?'You':'FORGE'}</div><div class="convo-msg">${t.msg}</div>`;
+    ct.appendChild(d); await delay(20); d.classList.add('show');
+    d.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+}
+
+function renderProfile(profile){
+  $('c-profile').innerHTML=`
+    <div class="profile-card">
+      <div class="profile-head">User Profile — ${profile.domain} · Built from intake conversation</div>
+      <div class="profile-grid">
+        <div class="profile-item"><div class="profile-label">Resources</div><div class="profile-value">${(profile.resources||[]).join(' · ')}</div></div>
+        <div class="profile-item"><div class="profile-label">Constraints</div><div class="profile-value">${(profile.constraints||[]).join(' · ')}</div></div>
+        <div class="profile-item"><div class="profile-label">Preferences</div><div class="profile-value">${(profile.preferences||[]).join(' · ')}</div></div>
+        <div class="profile-item"><div class="profile-label">Key Insight</div><div class="profile-value">${profile.keyInsight||'—'}</div></div>
+      </div>
+    </div>`;
+}
+
+function renderOptions(plan){
+  planData=plan;
+  $('c-options').innerHTML=`
+    <div class="exec-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--l3);"></div>Level 3 — Fully autonomous</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--l2);"></div>Level 2 — You confirm once</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--l1);"></div>Level 1 — Document delivered</div>
+    </div>
+    <div class="options-grid">
+      ${plan.options.map(opt=>`
+        <div class="option-card" id="opt-${opt.id}" onclick="selectOption('${opt.id}')">
+          <div class="opt-head">
+            <div class="opt-label">Option ${opt.id}</div>
+            <div class="opt-name">${opt.name}</div>
+          </div>
+          <div class="opt-body">
+            <div class="opt-thesis">${opt.thesis}</div>
+            <div class="opt-cost">💰 ${opt.cost}</div>
+            <div class="opt-effort">Effort: ${opt.effort} &nbsp;·&nbsp; ${opt.outcome}</div>
+            <div class="opt-tasks">
+              ${(opt.tasks||[]).map(t=>`<div class="opt-task"><div class="opt-task-dot ${t.level===3?'l3dot':t.level===2?'l2dot':'l1dot'}"></div><span>${t.name}</span></div>`).join('')}
+            </div>
+            <button class="exec-btn" onclick="event.stopPropagation();executeOption('${opt.id}')">Execute Option ${opt.id} →</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function selectOption(id){
+  document.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+  const card=$(`opt-${id}`); if(card) card.classList.add('selected');
+}
+
+async function executeOption(optId){
+  if(running) return;
+  const opt=planData?.options?.find(o=>o.id===optId);
+  if(!opt) return;
+  selectOption(optId);
+  $('ph-exec').style.display='block';
+  $('ph-deliver').style.display='block';
+  goTo('ph-exec');
+  setSt('ps-exec','running');
+  showSpin('c-exec',`Executing Option ${optId}: ${opt.name}…`);
+  try {
+    const execData=await claude(P_EXEC,`Goal: ${$('goalInput').value}\nOption: ${opt.name}\nThesis: ${opt.thesis}\nTasks: ${opt.tasks.map(t=>`${t.name} (L${t.level})`).join(', ')}`,2000);
+    $('c-exec').innerHTML='';
+    const stepsDiv=document.createElement('div'); stepsDiv.className='exec-steps'; $('c-exec').appendChild(stepsDiv);
+    for(const step of (execData.steps||[])){
+      await delay(420);
+      const d=document.createElement('div');
+      const lclass=step.level===3?'s-l3':step.level===2?'s-l2':'s-l1';
+      const dotColor=step.level===3?'var(--l3)':step.level===2?'var(--l2)':'var(--l1)';
+      d.className=`exec-step ${lclass}`;
+      const badge=step.status==='l2wait'?`<span class="es-badge l2wait">⏸ Confirm</span>`:`<span class="es-badge run">Running</span>`;
+      d.innerHTML=`<div class="es-level"><div class="es-level-dot" style="background:${dotColor};"></div></div><div class="es-agent">L${step.level} · ${step.agent}</div><div class="es-detail">${step.task}<small>${step.detail}</small></div><div class="es-status">${badge}</div>`;
+      stepsDiv.appendChild(d); await delay(20); d.classList.add('show');
+      await delay(step.status==='l2wait'?1200:700);
+      const b=d.querySelector('.es-badge');
+      if(b&&step.status!=='l2wait'){b.className='es-badge done';b.textContent='✓ Done';}
+    }
+    setSt('ps-exec','done'); await delay(400);
+    setSt('ps-deliver','running'); goTo('ph-deliver'); await delay(600);
+    const delHtml=(execData.deliverables||[]).map(del=>`<div class="del-item"><div class="del-icon">${del.icon||'📄'}</div><div class="del-text">${del.name}<small>${del.desc}</small></div></div>`).join('');
+    const s=execData.summary||{};
+    $('c-deliver').innerHTML=`
+      <div class="deliverable-card"><div class="del-head">✓ Execution complete — your deliverables are ready</div><div class="del-items">${delHtml}</div></div>
+      <div class="summary-strip">
+        <div class="sum-cell"><span class="sum-val">${s.tasks_completed||'—'}</span><span class="sum-lbl">Tasks Done</span></div>
+        <div class="sum-cell"><span class="sum-val">${s.level3_automated||'—'}</span><span class="sum-lbl">Auto-Executed</span></div>
+        <div class="sum-cell"><span class="sum-val">${s.level2_confirmed||'—'}</span><span class="sum-lbl">Confirmed</span></div>
+        <div class="sum-cell"><span class="sum-val">${s.level1_delivered||'—'}</span><span class="sum-lbl">Delivered</span></div>
+        <div class="sum-cell"><span class="sum-val">${s.total_cost||'—'}</span><span class="sum-lbl">Total Cost</span></div>
+      </div>`;
+    setSt('ps-deliver','done');
+    $('bottomCta').style.display='block';
+  } catch(err){
+    $('c-exec').innerHTML=`<div class="error-box"><strong>Execution error</strong><br><br><em>${err.message}</em></div>`;
+    setSt('ps-exec','pending');
+  }
+}
+
+async function runV4(){
+  const goal=$('goalInput').value.trim();
+  if(!goal||running) return;
+  running=true; planData=null;
+  const btn=$('runBtn'); btn.disabled=true; btn.textContent='Running…';
+  ['c-intake','c-profile','c-plan','c-options','c-exec','c-deliver'].forEach(id=>{const e=$(id);if(e)e.innerHTML='';});
+  ['ps-intake','ps-profile','ps-plan','ps-options','ps-exec','ps-deliver'].forEach(id=>setSt(id,'pending'));
+  $('ph-exec').style.display='none'; $('ph-deliver').style.display='none'; $('bottomCta').style.display='none';
+  $('flowOutput').classList.add('visible');
+  $('loadingBar').classList.add('active');
+  $('flowOutput').scrollIntoView({behavior:'smooth',block:'start'});
+  try {
+    setSt('ps-intake','running'); setProgress(5);
+    showSpin('c-intake','Intake Agent understanding your situation…'); goTo('ph-intake');
+    const intakeData=await claude(P_INTAKE,`User goal: ${goal}`,2000);
+    setProgress(20); $('c-intake').innerHTML='';
+    await renderIntake(intakeData.turns);
+    setSt('ps-intake','done'); await delay(400);
+
+    setSt('ps-profile','running'); setProgress(30); goTo('ph-profile');
+    const ctx=intakeData.turns.map(t=>`${t.role.toUpperCase()}: ${t.msg}`).join('\n');
+    const profileData=await claude(P_PROFILE,`Goal: ${goal}\n\nConversation:\n${ctx}`);
+    setProgress(40); renderProfile(profileData);
+    setSt('ps-profile','done'); await delay(400);
+
+    setSt('ps-plan','running'); setProgress(45);
+    showSpin('c-plan','Master Plan Creator building personalized options…'); goTo('ph-plan');
+    const plan=await claude(P_PLAN,`Goal: ${goal}\nDomain: ${profileData.domain}\nResources: ${(profileData.resources||[]).join(', ')}\nConstraints: ${(profileData.constraints||[]).join(', ')}\nKey insight: ${profileData.keyInsight}`,3000);
+    setProgress(70); $('c-plan').innerHTML='';
+    $('c-plan').innerHTML=`<div class="profile-card"><div class="profile-head">✓ Plan created — ${plan.options?.length||3} strategic options built · Plan Review Agent approved · Presenting options now</div></div>`;
+    setSt('ps-plan','done'); await delay(400);
+
+    setSt('ps-options','running'); setProgress(90); goTo('ph-options');
+    renderOptions(plan);
+    setSt('ps-options','done');
+    setProgress(100); await delay(300);
+    $('loadingBar').classList.remove('active');
+  } catch(err){
+    console.error(err);
+    $('loadingBar').classList.remove('active');
+    $('c-intake').innerHTML=`<div class="error-box"><strong>API Error</strong><br><br><em>${err.message}</em></div>`;
+    setSt('ps-intake','pending');
+  }
+  running=false; btn.disabled=false; btn.textContent='Start →';
+}
+
+$('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter')runV4();});
+</script>
+</body>
+</html>

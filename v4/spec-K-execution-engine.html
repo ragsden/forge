@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec K — Execution Engine | FORGE Platform V4</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#555;--light:#888;--border:#ddd;--bg-alt:#fafafa;--bg-code:#f4f4f4;--accent:#1d4ed8;--v4:#0f766e;--v4-light:#f0fdfa;--l3:#15803d;--l3-light:#f0fdf4;--l2:#1d4ed8;--l2-light:#eff6ff;--l1:#92400e;--l1-light:#fffbeb;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Georgia,serif;font-size:16px;line-height:1.75;color:var(--ink);background:#fff;}
+  .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+  .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:#f9f9f9;border-right:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .sidebar-brand{padding:20px 20px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:bold;}
+  .sidebar-brand a{text-decoration:none;color:var(--ink);}
+  .v4-badge{display:inline-block;padding:1px 6px;background:var(--v4);color:#fff;font-size:9px;letter-spacing:1px;margin-left:6px;}
+  .sidebar-doc-name{padding:4px 20px 14px;font-size:12px;font-weight:bold;color:var(--v4);border-bottom:1px solid var(--border);}
+  .sidebar-doc-title{padding:12px 20px 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--light);}
+  .nav-section{padding:12px 0 4px 20px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--light);}
+  .nav-item{display:block;padding:5px 20px 5px 24px;color:var(--muted);text-decoration:none;line-height:1.4;border-left:2px solid transparent;}
+  .nav-item:hover{color:var(--v4);background:var(--v4-light);border-left-color:var(--v4);}
+  .nav-item.sub{padding-left:36px;font-size:11px;}
+  .sidebar-files{border-top:1px solid var(--border);margin-top:16px;padding-top:4px;}
+  .nav-file{display:block;padding:5px 20px;color:var(--light);text-decoration:none;font-size:11px;}
+  .nav-file:hover{color:var(--accent);}
+  .nav-file.current{color:var(--ink);font-weight:bold;}
+  .main{padding:60px 80px 100px;max-width:900px;}
+  .breadcrumb{font-family:'Courier New',monospace;font-size:11px;color:var(--light);margin-bottom:36px;}
+  .breadcrumb a{color:var(--accent);text-decoration:none;}
+  .breadcrumb span{margin:0 6px;}
+  .doc-header{border-bottom:2px solid var(--ink);padding-bottom:24px;margin-bottom:40px;}
+  .doc-label{font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--light);margin-bottom:10px;}
+  .doc-title{font-size:36px;font-weight:bold;line-height:1.15;letter-spacing:-0.5px;margin-bottom:12px;}
+  .doc-desc{font-size:16px;color:var(--muted);font-style:italic;margin-bottom:16px;}
+  .doc-meta{font-family:'Courier New',monospace;font-size:11px;color:var(--light);display:flex;gap:24px;flex-wrap:wrap;}
+  .section{margin-bottom:64px;}
+  .section-anchor{display:block;position:relative;top:-80px;visibility:hidden;}
+  h1.sh{font-size:26px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:20px;}
+  h2.sh{font-size:19px;margin-top:36px;margin-bottom:12px;}
+  .anchor-link{font-family:'Courier New',monospace;font-size:11px;color:var(--border);text-decoration:none;}
+  .anchor-link:hover{color:var(--accent);}
+  p{margin-bottom:14px;}
+  ul,ol{margin:0 0 14px 0;padding-left:24px;}
+  li{margin-bottom:6px;line-height:1.7;}
+  .callout{padding:16px 20px;margin:20px 0;border-left:4px solid;font-size:15px;}
+  .callout.v4{border-color:var(--v4);background:var(--v4-light);}
+  .callout.l3{border-color:var(--l3);background:var(--l3-light);}
+  .callout.l2{border-color:var(--l2);background:var(--l2-light);}
+  .callout.l1{border-color:var(--l1);background:var(--l1-light);}
+  .callout-label{font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--light);margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px;}
+  th{background:var(--ink);color:#fff;padding:9px 13px;text-align:left;font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:normal;}
+  td{padding:8px 13px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;}
+  tr:nth-child(even) td{background:var(--bg-alt);}
+  pre{background:var(--bg-code);border:1px solid var(--border);padding:16px 20px;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin:16px 0 24px;white-space:pre;}
+  code{font-family:'Courier New',monospace;font-size:12.5px;background:#eee;padding:2px 5px;}
+  .exec-card{border:1px solid var(--border);margin-bottom:20px;}
+  .exec-card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+  .exec-badge{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;padding:4px 12px;border:2px solid;}
+  .exec-badge.l3{color:var(--l3);border-color:var(--l3);background:var(--l3-light);}
+  .exec-badge.l2{color:var(--l2);border-color:var(--l2);background:var(--l2-light);}
+  .exec-badge.l1{color:var(--l1);border-color:var(--l1);background:var(--l1-light);}
+  .exec-card-body{padding:14px 18px;font-size:14px;}
+  .flow-box{background:var(--bg-code);border:1px solid var(--border);padding:20px 24px;margin:16px 0 24px;font-family:'Courier New',monospace;font-size:12px;line-height:2;}
+  .page-nav{display:flex;justify-content:space-between;margin-top:60px;padding-top:24px;border-top:1px solid var(--border);font-family:'Courier New',monospace;font-size:12px;}
+  .page-nav a{color:var(--accent);text-decoration:none;}
+  .spec-footer{font-family:'Courier New',monospace;font-size:11px;color:var(--light);text-align:center;margin-top:40px;padding-top:16px;border-top:1px solid var(--border);}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{position:static;height:auto;}.main{padding:40px 32px 80px;}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-brand"><a href="index.html">← FORGE Platform</a><span class="v4-badge">V4</span></div>
+  <div class="sidebar-doc-title">Current Document</div>
+  <div class="sidebar-doc-name">Spec K — Execution Engine</div>
+  <div class="nav-section">Sections</div>
+  <a href="#overview" class="nav-item">Overview</a>
+  <a href="#user-selects" class="nav-item">User Selects an Option</a>
+  <a href="#agent-assembly" class="nav-item">Dynamic Agent Assembly</a>
+  <a href="#level3" class="nav-item">Level 3 — Autonomous</a>
+  <a href="#level2" class="nav-item">Level 2 — One-Click</a>
+  <a href="#level1" class="nav-item">Level 1 — Advise</a>
+  <a href="#review-loop" class="nav-item">Review Loop per Agent</a>
+  <a href="#deliverable" class="nav-item">Deliverable Assembly</a>
+  <a href="#output-artifact" class="nav-item">Output Artifact</a>
+  <a href="#resource" class="nav-item">Resource Management</a>
+  <div class="sidebar-files">
+    <div class="nav-section">All Spec Files</div>
+    <a href="index.html" class="nav-file">Index</a>
+    <a href="spec-G-architecture-agent.html" class="nav-file">G — Architecture Agent</a>
+    <a href="spec-H-review-agents.html" class="nav-file">H — Review Agents</a>
+    <a href="spec-I-generator-agents.html" class="nav-file">I — Generator Agents</a>
+    <a href="spec-J-master-plan-creator.html" class="nav-file">J — Master Plan Creator</a>
+    <a href="spec-K-execution-engine.html" class="nav-file current">K — Execution Engine</a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="breadcrumb"><a href="index.html">FORGE Platform V4</a><span>›</span>Spec K — Execution Engine</div>
+
+  <div class="doc-header">
+    <div class="doc-label">Specification K — V4 · Core</div>
+    <div class="doc-title">Execution Engine</div>
+    <div class="doc-desc">When the user selects an option and clicks Execute, the Execution Engine assembles the exact agents needed, runs each with its review agent, handles mixed execution levels within a single plan, and assembles all outputs into a final deliverable artifact.</div>
+    <div class="doc-meta"><span>V4 Core</span><span>Version: 4.0</span><span>Status: Draft</span><span>May 2026</span></div>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="overview"></a>
+    <h1 class="sh">Overview <a href="#overview" class="anchor-link">#overview</a></h1>
+
+    <div class="callout v4">
+      <div class="callout-label">Core Principle</div>
+      Automate everything possible. Every task in a plan is pushed to the highest achievable execution level. Level 3 tasks complete without user involvement. Level 2 tasks present a single confirmation step. Level 1 tasks produce a complete document. The user never does research, never fills forms from scratch, never searches manually — the platform does all of it and presents the result.
+    </div>
+
+    <div class="flow-box">
+User clicks "Execute Option A"
+         ↓
+Execution Engine reads the selected option's task graph
+         ↓
+For each task in dependency order:
+  Spin up the appropriate agent (with Master Plan Creator's generated prompt)
+  Agent produces its output
+  Review Agent evaluates (up to 3 cycles)
+  Output stored in plan store
+         ↓
+Deliverable Assembly Agent combines all outputs
+         ↓
+Delivery Review Agent checks completeness
+         ↓
+Final artifact presented to user
+    </div>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="user-selects"></a>
+    <h1 class="sh">User Selects an Option <a href="#user-selects" class="anchor-link">#user-selects</a></h1>
+
+    <p>The options are presented as a rich visual artifact — a webpage or interactive card interface — before any execution begins. Each option shows: the strategic thesis, expected outcome, cash cost, points/effort required, timeline, and a breakdown of what the platform will do vs what the user needs to do.</p>
+
+    <p>The user reads the options and clicks Execute on one. This is the last decision the user makes until the platform either completes the plan or surfaces a Level 2 confirmation step. The platform runs autonomously from this point forward.</p>
+
+    <p>The user can also modify the plan before executing — adding constraints, swapping tasks between options, or changing the execution level of specific tasks (e.g. downgrading a Level 3 booking to Level 2 if they want to confirm before the flight is booked).</p>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="agent-assembly"></a>
+    <h1 class="sh">Dynamic Agent Assembly <a href="#agent-assembly" class="anchor-link">#agent-assembly</a></h1>
+
+    <p>The Execution Engine reads the task graph from the selected option and instantiates the required agents. Each agent is a general-purpose execution agent given a specific system prompt generated by the Master Plan Creator. The same underlying infrastructure runs a Travel Research Agent, a Business Plan Agent, and a Code Agent — what differs is the prompt, the tools available, and the execution level.</p>
+
+    <table>
+      <tr><th>Agent type</th><th>Underlying capability</th><th>Tools provided</th><th>Prompt source</th></tr>
+      <tr><td>Research Agents</td><td>Web search + document synthesis</td><td>web_search, web_fetch, document_create</td><td>Master Plan Creator generated</td></tr>
+      <tr><td>Booking Agents</td><td>API calls to travel/booking systems</td><td>flight_api, hotel_api, payment_api</td><td>Master Plan Creator generated</td></tr>
+      <tr><td>Document Agents</td><td>LLM document generation</td><td>document_create, spreadsheet_create</td><td>Master Plan Creator generated</td></tr>
+      <tr><td>Code Agents</td><td>V3 full software pipeline</td><td>Full V3 tool suite</td><td>V3 standard prompts</td></tr>
+      <tr><td>Financial Agents</td><td>Calculation + API data retrieval</td><td>financial_api, calculator, document_create</td><td>Master Plan Creator generated</td></tr>
+      <tr><td>Form Agents</td><td>Web automation + form filling</td><td>browser_automation, form_fill</td><td>Master Plan Creator generated</td></tr>
+    </table>
+
+    <p>Tasks with no dependencies start immediately in parallel. Tasks with dependencies wait for their prerequisite tasks to complete and pass review. The dependency graph from the Master Plan Creator drives the execution order — exactly as the V3 DAG drove code task execution.</p>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="level3"></a>
+    <h1 class="sh">Level 3 — Fully Autonomous <a href="#level3" class="anchor-link">#level3</a></h1>
+
+    <div class="exec-card">
+      <div class="exec-card-head">
+        <div class="exec-badge l3">LEVEL 3</div>
+        <div style="font-size:15px;font-weight:bold;">Platform executes completely. User sees the result.</div>
+      </div>
+      <div class="exec-card-body">
+        <p>Level 3 tasks are executed by the platform using real APIs, stored credentials, and web automation. The user is not involved during execution. They see the completed result — a booking confirmation, a committed code change, a created document — when the task finishes.</p>
+        <p><strong>Examples:</strong> Search flight availability via Skyscanner API · Book a hotel using stored credit card · Commit code to customer GitHub branch · Create a financial model spreadsheet · Generate a day-by-day itinerary document · Search for award availability across airline partner programs</p>
+        <p><strong>Required infrastructure:</strong> Secure credential vault (user provides API keys and card details once, platform uses them) · Web automation for sites without APIs · Result verification (platform confirms the action completed successfully)</p>
+        <p><strong>Guardrails:</strong> Spending limits enforced (user sets maximum per transaction) · Irreversible actions flagged before execution · Full audit log of every action taken</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="level2"></a>
+    <h1 class="sh">Level 2 — One-Click Execute <a href="#level2" class="anchor-link">#level2</a></h1>
+
+    <div class="exec-card">
+      <div class="exec-card-head">
+        <div class="exec-badge l2">LEVEL 2</div>
+        <div style="font-size:15px;font-weight:bold;">Platform prepares everything. User confirms with one click.</div>
+      </div>
+      <div class="exec-card-body">
+        <p>Level 2 tasks are those where the platform can prepare everything but the final action requires explicit human authority — because it involves a legal commitment, a financial transaction above a guardrail threshold, or a decision that cannot be reversed.</p>
+        <p><strong>What the platform delivers:</strong> A fully prepared artifact with every field populated, every decision made, every option researched — and a single prominent "Confirm and Submit" button. The human reads what will happen and clicks once.</p>
+        <p><strong>Examples:</strong></p>
+        <ul>
+          <li>Credit card application — platform fills every field from user profile, user reviews and submits</li>
+          <li>Points transfer — platform calculates optimal transfer amount and partner, user confirms the irreversible transfer</li>
+          <li>Legal document — platform drafts the complete document, user reviews and signs</li>
+          <li>Large purchase above spending limit — platform stages the booking, user approves the charge</li>
+          <li>Job offer response — platform drafts the negotiation email, user reads and sends</li>
+        </ul>
+        <p><strong>The key principle:</strong> Level 2 is not "the platform couldn't finish." It is "the platform finished everything except the act that requires your authority." The human contribution is review + approval, not research or preparation.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="level1"></a>
+    <h1 class="sh">Level 1 — Advise and Deliver <a href="#level1" class="anchor-link">#level1</a></h1>
+
+    <div class="exec-card">
+      <div class="exec-card-head">
+        <div class="exec-badge l1">LEVEL 1</div>
+        <div style="font-size:15px;font-weight:bold;">Platform researches and delivers a complete document. Human acts on it.</div>
+      </div>
+      <div class="exec-card-body">
+        <p>Level 1 tasks are those where the output is a document, recommendation, or analysis — not an action. The platform cannot execute the action itself (it requires physical presence, specialized professional judgment, or information only the human can provide). But it delivers everything the human needs to act quickly and confidently.</p>
+        <p><strong>Examples:</strong> Regulatory requirements for opening a dental practice in California · Peanut allergy meal policy on Air Tahiti Nui · Salary range for a senior engineer in Austin · Best neighborhoods for a retail dental practice · SAT study schedule for a student with 12 weeks and 15 hours/week available</p>
+        <p><strong>What makes a good Level 1 output:</strong> Specific, not generic. Personalized to the user's situation. Actionable — tells the user exactly what to do, not just what to consider. Comprehensive enough that the human doesn't need to do additional research.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="review-loop"></a>
+    <h1 class="sh">Review Loop per Agent <a href="#review-loop" class="anchor-link">#review-loop</a></h1>
+
+    <p>Every producer agent in the execution graph has a review agent. The review agent and its rubric were generated by the Master Plan Creator when it built the plan. The same universal review loop from V3 applies: up to 3 revision cycles, then human escalation.</p>
+
+    <p>For Level 3 agents — review happens before the action is committed. The Review Agent checks the plan for the action (e.g. "book this specific flight on this date for this price") before the booking API is called. This prevents incorrect bookings.</p>
+
+    <p>For Level 2 agents — review happens before the artifact is presented to the user. The Review Agent checks the pre-filled form, document, or staged transaction for accuracy and completeness before the user sees the "Confirm" button.</p>
+
+    <p>For Level 1 agents — review checks the document for accuracy, completeness, and personalization before it is delivered to the user.</p>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="deliverable"></a>
+    <h1 class="sh">Deliverable Assembly Agent <a href="#deliverable" class="anchor-link">#deliverable</a></h1>
+
+    <p>When all tasks in the plan are complete, the Deliverable Assembly Agent combines all outputs into the final deliverable package. What this looks like depends on the domain:</p>
+
+    <table>
+      <tr><th>Domain</th><th>Deliverable format</th><th>Contents</th></tr>
+      <tr><td>Travel</td><td>Personal trip webpage</td><td>Booking confirmations, day-by-day itinerary, restaurant recommendations, emergency contacts, packing list, visa requirements, allergy notes</td></tr>
+      <tr><td>Business formation</td><td>Business plan document set</td><td>Executive summary, market analysis, financial model (spreadsheet), regulatory checklist, location shortlist, hiring roadmap</td></tr>
+      <tr><td>Education</td><td>Study curriculum package</td><td>Diagnostic results, week-by-week schedule, practice test set, resource list, progress tracker template</td></tr>
+      <tr><td>Software</td><td>Code + documentation</td><td>Committed code, test results, security scan report, PR link</td></tr>
+      <tr><td>Financial planning</td><td>Financial plan document</td><td>Current state analysis, retirement projection, recommended actions ranked by impact, risk analysis</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="output-artifact"></a>
+    <h1 class="sh">Output Artifact <a href="#output-artifact" class="anchor-link">#output-artifact</a></h1>
+
+    <p>The final output of every V4 plan is a persistent personal artifact — a webpage hosted by the platform that the user can bookmark, share, and return to. It is not a PDF or a Word document. It is a living artifact that updates as actions complete and can serve as the source of truth for the entire plan.</p>
+
+    <p>For the Tahiti vacation, the artifact is a personal trip page that shows: confirmed flights (with PNR), confirmed hotel (with reservation number), day-by-day itinerary, dining reservations (if Level 3 booking was available), the allergy policy document, and a pre-trip checklist. The page updates in real time as each task completes.</p>
+
+    <p>The user can share the artifact (e.g. share the trip page with their travel partner), export it as a PDF, or keep it private. The platform retains it in the user profile for future reference.</p>
+  </div>
+
+  <div class="section">
+    <a class="section-anchor" id="resource"></a>
+    <h1 class="sh">Resource Management <a href="#resource" class="anchor-link">#resource</a></h1>
+
+    <p>The Resource Manager in V4 works the same way as V3 — GPU on-demand per agent, torn down immediately when done — but the model selection is more nuanced because agents span more diverse task types:</p>
+
+    <table>
+      <tr><th>Task type</th><th>Model</th><th>Hardware</th><th>Rationale</th></tr>
+      <tr><td>Intake conversation</td><td>Claude Sonnet API</td><td>CPU / API</td><td>Conversational, empathetic, fast</td></tr>
+      <tr><td>Master Plan creation</td><td>Claude Opus API</td><td>CPU / API</td><td>Complex multi-domain reasoning</td></tr>
+      <tr><td>Plan Review</td><td>Claude Sonnet API</td><td>CPU / API</td><td>Review and critique</td></tr>
+      <tr><td>Research agents</td><td>Claude Sonnet API + tools</td><td>CPU / API</td><td>Web search + synthesis</td></tr>
+      <tr><td>Document generation</td><td>Claude Sonnet API</td><td>CPU / API</td><td>Long-form writing</td></tr>
+      <tr><td>Code generation</td><td>Qwen2.5-Coder-32B</td><td>L40S GPU</td><td>V3 pipeline — specialist code model</td></tr>
+      <tr><td>Booking agents</td><td>Claude Haiku API</td><td>CPU / API</td><td>Structured API calls, low reasoning needed</td></tr>
+      <tr><td>Financial modelling</td><td>Claude Sonnet API</td><td>CPU / API</td><td>Numerical reasoning + document creation</td></tr>
+    </table>
+
+    <p>Most V4 agents run on CPU with API calls — no GPU provisioning needed. GPU is only required when V4 routes a software goal through the V3 pipeline, which uses Qwen2.5-Coder-32B on L40S for code generation and Llama-3.1-70B on H100 for architecture design.</p>
+
+    <p>This means V4 plans are significantly cheaper per plan than V3 per software feature — because most domains do not require GPU inference. The cost model shifts from compute-heavy to API-call-heavy.</p>
+  </div>
+
+  <div class="page-nav">
+    <a href="spec-J-master-plan-creator.html">← Spec J — Master Plan Creator</a>
+    <a href="index.html">↑ Back to Index</a>
+  </div>
+  <div class="spec-footer">FORGE Platform Specification · Spec K · Version 4.0 · May 2026 · Confidential</div>
+</main>
+</div>
+</body>
+</html>
